@@ -94,7 +94,7 @@ function Exchange() {
                         return;
                     }
                 }
-                chrome.tabs.create({url: exchange.server + '/owa'});
+                exchange.owa(exchange.server, exchange.username, exchange.password);
             } else {
                 chrome.tabs.create({url: chrome.extension.getURL('owa_options.html')});
             }
@@ -229,6 +229,15 @@ function Exchange() {
     exchange.validForm = function (formSelector) {
         return $(formSelector).find('#server').val() && $(formSelector).find('#updateInterval').val() && $(formSelector).find('#username').val() && $(formSelector).find('#password').val();
 
+    };
+
+    exchange.owa = function(server, login, password){
+        var form = $('<form>',{action: server + '/owa', target: 'owa', method: 'post'});
+        form.append($('<input>', {name: 'forcedownlevel', value: '0'}))
+            .append($('<input>', {name: 'username', value: login}))
+            .append($('<input>', {name: 'password', value: password}))
+            .append($('<input>', {name: 'isUtf8', value: 1}));
+        form.submit();
     };
 
     exchange.work = function(){

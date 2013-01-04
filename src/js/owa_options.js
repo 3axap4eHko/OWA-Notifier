@@ -14,6 +14,15 @@ $(document).ready(function () {
         exchange.loadForm(form);
     });
 
+    form.find('#test').click(function () {
+        alert(1);
+        exchange.owa(
+            form.find('input#server').val(),
+            form.find('input#username').val(),
+            form.find('input#password').val()
+        );
+    });
+
     form.find('input#save').click(function () {
         $('div.alert').hide();
         form.find('.control-group').removeClass('error');
