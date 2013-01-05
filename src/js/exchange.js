@@ -232,12 +232,17 @@ function Exchange() {
     };
 
     exchange.owa = function(server, login, password){
-        var form = $('<form>',{action: server + '/owa', target: 'owa', method: 'post'});
-        form.append($('<input>', {name: 'forcedownlevel', value: '0'}))
+        window.open(server + '/owa/auth.owa', 'owa');
+        var form = $('<form>',{action: server + '/owa/auth.owa', target: 'owa', method: 'post', id: 'owaAuthForm'})
+            .append($('<input>', {name: 'forcedownlevel', value: '0'}))
+            .append($('<input>', {name: 'flags', value: 4}))
+            .append($('<input>', {name: 'trusted', value: 4}))
+            .append($('<input>', {name: 'destination', value: server + '/owa/'}))
             .append($('<input>', {name: 'username', value: login}))
             .append($('<input>', {name: 'password', value: password}))
             .append($('<input>', {name: 'isUtf8', value: 1}));
         form.submit();
+        form.remove();
     };
 
     exchange.work = function(){

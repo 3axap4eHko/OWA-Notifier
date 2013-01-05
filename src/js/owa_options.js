@@ -15,7 +15,6 @@ $(document).ready(function () {
     });
 
     form.find('#test').click(function () {
-        alert(1);
         exchange.owa(
             form.find('input#server').val(),
             form.find('input#username').val(),
