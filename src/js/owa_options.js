@@ -16,7 +16,7 @@ $(document).ready(function () {
 
     form.find('#test').click(function () {
         exchange.owa(
-            form.find('input#server').val(),
+            form.find('input#outlook-web-access').val(),
             form.find('input#username').val(),
             form.find('input#password').val()
         );

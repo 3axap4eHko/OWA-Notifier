@@ -15,6 +15,7 @@
         <a href="https://github.com/3axap4eHko" style="position: absolute;top: 0; left: 0; border: 0;">
             <img src="https://s3.amazonaws.com/github/ribbons/forkme_left_gray_6d6d6d.png" alt="Fork me on GitHub">
         </a>
+
         <div class="alert alert-success hide">
             <h4>Settings saved!</h4>
         </div>
@@ -30,16 +31,21 @@
         </p>
 
         <form id="notifier-options" class="form-horizontal">
-            <div class="control-group">
-                <label class="control-label" for="server">Exchange server</label>
 
+            <div class="control-group">
+                <label class="control-label" for="exchange-web-service">Exchange Web Service</label>
                 <div class="controls">
-                    <div class="input-append">
-                        <input type="url" id="server" class="input-xlarge" placeholder="http://exchange.domain.name/">
-                        <span class="add-on">/ews or /owa</span>
-                    </div>
+                    <input type="url" id="exchange-web-service" class="input-xlarge" placeholder="http://exchange.domain.name/ews">
                 </div>
             </div>
+
+            <div class="control-group">
+                <label class="control-label" for="outlook-web-access">Outlook Web Access</label>
+                <div class="controls">
+                    <input type="url" id="outlook-web-access" class="input-xlarge" placeholder="http://exchange.domain.name/owa">
+                </div>
+            </div>
+
             <div class="control-group">
                 <label class="control-label" for="username">Domain \ Username</label>
 

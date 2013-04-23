@@ -1,7 +1,8 @@
 function Exchange() {
 
     var defaultConfig = {
-        server: '',
+        serverOWA: '',
+        serverEWS: '',
         updateInterval: 30,
         username: '',
         password: '',
@@ -23,8 +24,9 @@ function Exchange() {
         return exchange;
     };
 
-    exchange.save = function (server, updateInterval, username, password, volume) {
-        localStorage.server = server;
+    exchange.save = function (serverOWA, serverEWS, updateInterval, username, password, volume) {
+        localStorage.serverOWA = serverOWA;
+        localStorage.serverEWS = serverEWS;
         localStorage.updateInterval = updateInterval;
         localStorage.username = username;
         localStorage.password = password;
@@ -37,7 +39,7 @@ function Exchange() {
 
     exchange.isValid = function () {
         exchange.load();
-        if (exchange.server && exchange.updateInterval && exchange.username && exchange.password) {
+        if (exchange.serverOWA && exchange.serverEWS && exchange.updateInterval && exchange.username && exchange.password) {
             return true
         }
         return false;
@@ -71,7 +73,7 @@ function Exchange() {
     exchange.update = function (callback) {
         $.ajax({
             type    : "POST",
-            url     : exchange.server + '/ews/Exchange.asmx',
+            url     : exchange.serverEWS + '/Exchange.asmx',
             dataType: "xml",
             headers : {"Content-Type": "text/xml"},
             data    : exchange.data,
@@ -89,12 +91,12 @@ function Exchange() {
         chrome.tabs.getAllInWindow(undefined, function (tabs) {
             if (exchange.isValid()) {
                 for (var i = 0, tab; tab = tabs[i]; i++) {
-                    if (tab.url && (tab.url.indexOf(exchange.server) > -1)) {
+                    if (tab.url && (tab.url.indexOf(exchange.serverOWA) > -1)) {
                         chrome.tabs.update(tab.id, {selected: true, url: tab.url});
                         return;
                     }
                 }
-                exchange.owa(exchange.server, exchange.username, exchange.password);
+                exchange.owa(exchange.serverOWA, exchange.username, exchange.password);
             } else {
                 chrome.tabs.create({url: chrome.extension.getURL('owa_options.html')});
             }
@@ -161,7 +163,7 @@ function Exchange() {
         exchange.update(unreadCallback);
     };
 
-    exchange.test = function (server, updateInterval, username, password, onSuccess, onError) {
+    exchange.test = function (serverEWS, updateInterval, username, password, onSuccess, onError) {
 
         if ((typeof updateInterval !== 'number') || isNaN(updateInterval) || !(updateInterval > 0)) {
             chrome.browserAction.setBadgeText({text: 'error'});
@@ -176,7 +178,7 @@ function Exchange() {
         this.xmlAction('folders', function () {
             $.ajax({
                 type    : "POST",
-                url     : server + '/ews/Exchange.asmx',
+                url     : serverEWS + '/Exchange.asmx',
                 dataType: "xml",
                 headers : {"Content-Type": "text/xml"},
                 data    : exchange.data,
@@ -203,22 +205,24 @@ function Exchange() {
 
     exchange.saveForm = function (formSelector, onSuccess, onError) {
 
-        var server = $(formSelector).find('#server').val();
+        var serverOWA = $(formSelector).find('#outlook-web-access').val();
+        var serverEWS = $(formSelector).find('#exchange-web-service').val();
         var updateInterval = parseInt($(formSelector).find('#updateInterval').val());
         var username = $(formSelector).find('#username').val();
         var password = $(formSelector).find('#password').val();
         var volume = $(formSelector).find('#volume').val();
         var success = function () {
-            exchange.save(server, updateInterval, username, password, volume);
+            exchange.save(serverOWA, serverEWS, updateInterval, username, password, volume);
             onSuccess();
         };
-        exchange.test(server, updateInterval, username, password, success, onError);
+        exchange.test(serverEWS, updateInterval, username, password, success, onError);
         return exchange;
     };
 
     exchange.loadForm = function (formSelector) {
         exchange.load();
-        $(formSelector).find('#server').val(exchange.server);
+        $(formSelector).find('#outlook-web-access').val(exchange.serverOWA);
+        $(formSelector).find('#exchange-web-service').val(exchange.serverEWS);
         $(formSelector).find('#updateInterval').val(exchange.updateInterval);
         $(formSelector).find('#username').val(exchange.username);
         $(formSelector).find('#password').val(exchange.password);
@@ -227,22 +231,22 @@ function Exchange() {
     };
 
     exchange.validForm = function (formSelector) {
-        return $(formSelector).find('#server').val() && $(formSelector).find('#updateInterval').val() && $(formSelector).find('#username').val() && $(formSelector).find('#password').val();
+        return $(formSelector).find('#exchange-web-service').val() && $(formSelector).find('#outlook-web-access').val() && $(formSelector).find('#updateInterval').val() && $(formSelector).find('#username').val() && $(formSelector).find('#password').val();
 
     };
 
     exchange.owa = function(server, login, password){
-        window.open(server + '/owa/auth.owa', 'owa');
-        var form = $('<form>',{action: server + '/owa/auth.owa', target: 'owa', method: 'post', id: 'owaAuthForm'})
+        var form = $('<form>',{action: server + '/auth.owa', target: 'owa', method: 'post', id: 'owaAuthForm'})
             .append($('<input>', {name: 'forcedownlevel', value: '0'}))
             .append($('<input>', {name: 'flags', value: 4}))
             .append($('<input>', {name: 'trusted', value: 4}))
-            .append($('<input>', {name: 'destination', value: server + '/owa/'}))
+            .append($('<input>', {name: 'destination', value: server + '/'}))
             .append($('<input>', {name: 'username', value: login}))
             .append($('<input>', {name: 'password', value: password}))
             .append($('<input>', {name: 'isUtf8', value: 1}));
-        form.submit();
+        $.post(server + '/auth.owa', form.serialize());
         form.remove();
+        window.open(server, 'owa');
     };
 
     exchange.work = function(){
