@@ -11,79 +11,97 @@
 
 <body>
 <div class="container">
-    <div class="hero-unit" style="position: relative;">
-        <a href="https://github.com/3axap4eHko" style="position: absolute;top: 0; left: 0; border: 0;">
-            <img src="https://s3.amazonaws.com/github/ribbons/forkme_left_gray_6d6d6d.png" alt="Fork me on GitHub">
-        </a>
-
-        <div class="alert alert-success hide">
-            <h4>Settings saved!</h4>
+    <div class="navbar topbar">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand">
+                <img src="images/icon256.png">Owa Notifier Options
+            </a>
         </div>
-        <div class="alert alert-error hide">
-            <h4>Settings error!</h4>
+        <div class="alert-holder">
+            <div class="alert alert-success" hidden>
+                <h4>Settings saved!</h4>
+            </div>
+            <div class="alert alert-error" hidden>
+                <h4>Settings error!</h4>
+            </div>
         </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="https://github.com/3axap4eHko/OWA-Notifier/issues" target="owa_issues"> For issues </a></li>
+                <li><a href="https://github.com/3axap4eHko/OWA-Notifier/wiki" target="owa_wiki"> Have a question?</a></li>
+            </ul>
+        </div>
+    </div>
 
-        <h1><img src="images/icon256.png">OWA notifier options</h1>
-
+    <div class="jumbotron" style="position: relative;">
         <p>
             To use OWA (Outlook Web Access) notifier you must have enabled the EWS (Exchange Web Service).
-            If you find a bug, please email me at 3axap4ehko.development@gmail.com and make you case.
+        </p>
+        <p>
+            If you find a bug, please report on <a href="https://github.com/3axap4eHko/OWA-Notifier/issues" target="owa_issues"> GitHub </a> or email me at 3axap4ehko.development@gmail.com and make you case.
         </p>
 
-        <form id="notifier-options" class="form-horizontal">
+        <form id="notifier-options" class="form-horizontal" role="form">
 
-            <div class="control-group">
-                <label class="control-label" for="exchange-web-service">Exchange Web Service</label>
-                <div class="controls">
-                    <input type="url" id="exchange-web-service" class="input-xlarge" placeholder="http://exchange.domain.name/ews">
+            <div class="form-group">
+                <label class="col-lg-4 control-label" for="exchange-web-service">Exchange Web Service</label>
+                <div class="col-lg-6">
+                    <input type="url" id="exchange-web-service" class="input-lg form-control" placeholder="http://exchange.domain.name/ews">
                 </div>
             </div>
 
-            <div class="control-group">
-                <label class="control-label" for="outlook-web-access">Outlook Web Access</label>
-                <div class="controls">
-                    <input type="url" id="outlook-web-access" class="input-xlarge" placeholder="http://exchange.domain.name/owa">
+            <div class="form-group">
+                <label class="col-lg-4 control-label" for="outlook-web-access">Outlook Web Access</label>
+                <div class="col-lg-6">
+                    <input type="url" id="outlook-web-access" class="input-lg form-control" placeholder="http://exchange.domain.name/owa">
                 </div>
             </div>
 
-            <div class="control-group">
-                <label class="control-label" for="username">Domain \ Username</label>
-
-                <div class="controls">
-                    <input type="text" id="username" placeholder="username">
+            <div class="form-group">
+                <label class="col-lg-4 control-label" for="username">Domain \ Username</label>
+                <div class="col-lg-6">
+                    <input type="text" id="username" class="input-lg form-control" placeholder="username">
                 </div>
             </div>
-            <div class="control-group">
-                <label class="control-label" for="password">Password</label>
 
-                <div class="controls">
-                    <input type="password" id="password" placeholder="password">
+            <div class="form-group">
+                <label class="col-lg-4 control-label" for="password">Password</label>
+                <div class="col-lg-6">
+                    <input type="password" id="password" class="input-lg form-control" placeholder="password">
                 </div>
             </div>
-            <div class="control-group">
-                <label class="control-label" for="updateInterval">Update interval</label>
 
-                <div class="controls">
-                    <div class="input-append">
-                        <input type="number" id="updateInterval" min="0" max="3600" placeholder="30">
-                        <span class="add-on"> seconds</span>
+            <div class="form-group">
+                <label class="col-lg-4 control-label" for="updateInterval">Update interval</label>
+                <div class="col-lg-3">
+                    <div class="input-group">
+                        <input type="number" id="updateInterval" min="0" max="3600" class="input-lg form-control" placeholder="30">
+                        <span class="input-group-addon"> seconds</span>
                     </div>
                 </div>
             </div>
-            <div class="control-group">
-                <label class="control-label" for="volume">Sound Volume</label>
 
-                <div class="controls">
-                    <div class="input-append">
-                        <input type="range" name="volume" id="volume" min="0" max="1" step="0.01"/>
-                        <span id="volumeDisplay" class="add-on"> %</span>
+            <div class="form-group">
+                <label class="col-lg-4 control-label" for="volume">Sound Volume</label>
+
+                <div class="col-lg-6">
+                    <div class="input-group">
+                        <input type="range" name="volume" id="volume" min="0" max="1" step="0.01" class="input-lg form-control col-lg-8"/>
+                        <output for="volume"></output>
+                        <span id="volumeDisplay" class="input-group-addon"> %</span>
                     </div>
                 </div>
             </div>
-            <div class="control-group">
-                <div class="controls">
-                    <input type="submit" id="save" class="btn btn-success disabled" value="Save">
-                    <a id="test" class="btn btn-info ml30">Test Settings</a>
+
+            <div class="form-group">
+                <div class="col-lg-offset-4 col-lg-6">
+                    <input type="submit" id="save" class="btn btn-success input-lg disabled" value="Save">
+                    <input type="button" id="test" class="btn btn-info input-lg" value="Test Settings">
                 </div>
             </div>
         </form>

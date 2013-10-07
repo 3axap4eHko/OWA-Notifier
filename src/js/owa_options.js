@@ -1,3 +1,26 @@
+// Select all range inputs, watch for change
+$(document).on('change', "input[type='range']", function() {
+    var el, newPoint, newPlace, width, offset;
+    // Cache this for efficiency
+    el = $(this);
+    // Measure width of range input
+    width = el.width();
+    // Figure out placement percentage between left and right of input
+    newPoint = (el.val() - el.attr("min")) / (el.attr("max") - el.attr("min"));
+    // Janky value to get pointer to line up better
+    offset = -1.3;
+    // Prevent bubble from going beyond left or right (unsupported browsers)
+    if (newPoint < 0) { newPlace = 0; }
+    else if (newPoint > 1) { newPlace = width; }
+    else { newPlace = width * newPoint + offset; offset -= newPoint; }
+    // Move bubble
+    el.next("output").css({
+        left: newPlace,
+        marginLeft: offset + "%"
+    });
+});
+
+
 $(document).ready(function () {
 
     var form = $('form#notifier-options');
@@ -24,19 +47,19 @@ $(document).ready(function () {
 
     form.find('input#save').click(function () {
         $('div.alert').hide();
-        form.find('.control-group').removeClass('error');
+        form.find('.form-group').removeClass('error');
         var success = function () {
-            $('div.alert.alert-success').show();
+            $('div.alert.alert-success').slideDown();
             setTimeout(function () {
-                $('div.alert.alert-success').hide();
+                $('div.alert.alert-success').slideUp();
             }, 3000);
         };
 
         var error = function (errorFields) {
             $.each(errorFields, function (key, value) {
-                form.find('#' + value).parents('.control-group').addClass('error')
+                form.find('#' + value).parents('.form-group').addClass('error')
             });
-            $('div.alert.alert-error').show();
+            $('div.alert.alert-error').slideDown();
         };
 
         exchange.saveForm(form, success, error);
