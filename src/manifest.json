@@ -1,17 +1,22 @@
 {
-    "name":"OWA notifier",
-    "version":"1.3.1",
-    "description":"OWA notifier.",
-    "manifest_version":2,
-    "browser_action":{
+    "name": "OWA notifier",
+    "version": "1.3.3",
+    "description": "OWA notifier.",
+    "manifest_version": 2,
+    "browser_action": {
         "default_icon": "images/icon.png"
     },
-    "icons":{
-        "256":"images/icon256.png",
-        "128":"images/icon128.png"
+    "icons": {
+        "256": "images/icon256.png",
+        "128": "images/icon128.png"
     },
-    "permissions":[ "https://*/owa", "https://*/owa", "https://*/ews", "http://*/ews", "tabs", "webNavigation", "background" ],
-    "options_page":"owa_options.html",
+    "permissions": [
+        "<all_urls>",
+        "tabs",
+        "webNavigation",
+        "background"
+    ],
+    "options_page": "owa_options.html",
     "background": {
         "page": "owa.html",
         "persistent": false
