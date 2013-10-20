@@ -18,7 +18,8 @@ function Exchange() {
     exchange.listener = false;
     exchange.data = '';
     exchange.errors = [];
-    exchange.lastUpdate = null; 
+    exchange.lastUpdate = null;
+    exchange.maxNotificationNumber = 10; 
 
     exchange.load = function () {
         $.extend(exchange, defaultConfig, localStorage);
@@ -162,6 +163,12 @@ function Exchange() {
         var unreadMessages = $(data).find("Items")[0].childNodes;
         var currentDate = new Date();
         $.each(unreadMessages, function (index, value) {
+            
+            //Break if we already displayed too many notifications
+            if(index > exchange.maxNotificationNumber-1) {
+                return false;
+            }
+            
             //If we have a lst update time then filter messages to display just the ones we didn't displayed yet
             if(exchange.lastUpdate != null) {
                 var receivedDateStr = $(value).find("DateTimeReceived")[0].firstChild.nodeValue;
