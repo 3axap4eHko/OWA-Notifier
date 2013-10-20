@@ -1,3 +1,7 @@
+/**
+ * TODO http://msdn.microsoft.com/en-us/library/exchange/aa580274(v=exchg.150).aspx
+ */
+ 
 function Exchange() {
 
     var defaultConfig = {
