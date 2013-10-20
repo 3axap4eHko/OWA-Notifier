@@ -19,7 +19,8 @@ function Exchange() {
     exchange.data = '';
     exchange.errors = [];
     exchange.lastUpdate = null;
-    exchange.maxNotificationNumber = 10; 
+    exchange.maxNotificationNumber = 10;
+    exchange.dissmissTime = 10;
 
     exchange.load = function () {
         $.extend(exchange, defaultConfig, localStorage);
@@ -189,6 +190,7 @@ function Exchange() {
             }
 
             notification.show();
+            setTimeout(function() {notification.cancel();}, exchange.dissmissTime * 1000);
         });
         exchange.lastUpdate = currentDate.valueOf();
     }
