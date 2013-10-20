@@ -14,11 +14,15 @@
         "<all_urls>",
         "tabs",
         "webNavigation",
-        "background"
+        "background",
+        "notifications"
     ],
     "options_page": "owa_options.html",
     "background": {
         "page": "owa.html",
         "persistent": false
-    }
+    },
+    "web_accessible_resources": [
+        "images/icon256.png"
+    ]
 }
