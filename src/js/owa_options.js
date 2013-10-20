@@ -26,7 +26,6 @@ $(document).ready(function () {
     var exchange = new Exchange();
     exchange.loadForm(form);
 
-
     if (exchange.validForm(form)) {
         form.find('input#save').removeClass('disabled')
     } else {

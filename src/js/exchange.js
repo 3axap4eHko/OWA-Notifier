@@ -24,6 +24,7 @@ function Exchange() {
     exchange.errors = [];
     exchange.options = {};
     exchange.unread = 0;
+    exchange.unreadItems = [];
 
     exchange.load = function () {
         Object.keys(defaultConfig).forEach(function(optionKey){
@@ -49,7 +50,7 @@ function Exchange() {
 
     exchange.xmlAction = function (action, callback) {
         $.ajax({
-            type    : "POST",
+            type    : "GET",
             url     : chrome.extension.getURL('xml/' + action + '.xml'),
             dataType: "text",
             success : function (data) {
@@ -89,19 +90,22 @@ function Exchange() {
     };
 
     exchange.goToInbox = function () {
-        chrome.tabs.getAllInWindow(undefined, function (tabs) {
-            if (exchange.isValid()) {
-                for (var i = 0, tab; tab = tabs[i]; i++) {
-                    if (tab.url && (tab.url.indexOf(exchange.options.serverOWA) > -1)) {
-                        chrome.tabs.update(tab.id, {selected: true, url: tab.url});
-                        return;
+
+        if (exchange.isValid()) {
+            window.open(chrome.extension.getURL('popup.html'));
+            return;
+            chrome.tabs.getAllInWindow(undefined, function (tabs) {
+                    for (var i = 0, tab; tab = tabs[i]; i++) {
+                        if (tab.url && (tab.url.indexOf(exchange.options.serverOWA) > -1)) {
+                            chrome.tabs.update(tab.id, {selected: true, url: tab.url});
+                            return;
+                        }
                     }
-                }
-                exchange.owa(exchange.options.serverOWA, exchange.options.username, exchange.options.password);
-            } else {
-                chrome.tabs.create({url: chrome.extension.getURL('owa_options.html')});
-            }
-        });
+                    exchange.owa(exchange.options.serverOWA, exchange.options.username, exchange.options.password);
+            });
+        } else {
+            chrome.tabs.create({url: chrome.extension.getURL('owa_options.html')});
+        }
     };
 
     exchange.disable = function (text) {
@@ -163,8 +167,10 @@ function Exchange() {
 
     exchange.getUnread = function () {
         var unreadCallback = function (data) {
-            exchange.updateIcon($(data).find("UnreadCount")[0].childNodes[0].nodeValue);
+            var count = $(data).find("UnreadCount")[0].childNodes[0].nodeValue;
+            exchange.updateIcon(count);
             exchange.countSet = true;
+            chrome.browserAction.setPopup({popup: count ? "popup.html" : ""});
             if (!exchange.listener) {
                 exchange.addListener();
             }
