@@ -1,7 +1,3 @@
-/**
- * TODO http://msdn.microsoft.com/en-us/library/exchange/aa580274(v=exchg.150).aspx
- */
- 
 function Exchange() {
 
     var defaultConfig = {
@@ -21,7 +17,10 @@ function Exchange() {
     exchange.countSet = false;
     exchange.listener = false;
     exchange.data = '';
-    exchange.errors =[];
+    exchange.errors = [];
+    exchange.lastUpdate = null;
+    exchange.maxNotificationNumber = 10;
+    exchange.dissmissTime = 10;
 
     exchange.load = function () {
         $.extend(exchange, defaultConfig, localStorage);
@@ -131,6 +130,7 @@ function Exchange() {
 
     exchange.updateIcon = function (unread) {
         var oldUnread = exchange.getUnreadCount(exchange.unread);
+        var changed = false;
         unread = exchange.getUnreadCount(unread);
         if (unread < 0) {
             exchange.disable('error');
@@ -139,6 +139,7 @@ function Exchange() {
                 exchange.enable('');
             } else {
                 if (unread > oldUnread) {
+                    changed = true;
                     exchange.playSound(exchange.volume);
                     cjs.animate();
                     exchange.enable(unread.toString());
@@ -148,6 +149,7 @@ function Exchange() {
             }
         }
         exchange.unread = unread;
+        return changed;
     };
 
     exchange.animate = function () {
@@ -156,9 +158,50 @@ function Exchange() {
         })
     };
 
+
+    exchange.displayNotifications = function (data) {
+        
+        var unreadMessages = $(data).find("Items")[0].childNodes;
+        var currentDate = new Date();
+        $.each(unreadMessages, function (index, value) {
+            
+            //Break if we already displayed too many notifications
+            if(index > exchange.maxNotificationNumber-1) {
+                return false;
+            }
+            
+            //If we have a lst update time then filter messages to display just the ones we didn't displayed yet
+            if(exchange.lastUpdate != null) {
+                var receivedDateStr = $(value).find("DateTimeReceived")[0].firstChild.nodeValue;
+                var receivedDate = Date.parse(receivedDateStr);
+                if(receivedDate < exchange.lastUpdate) {
+                    return true;
+                }
+            }
+            //TODO: Change this to use rich notifications once they are available everywhere
+            var notification = webkitNotifications.createNotification(
+                "images/icon256.png",
+                "New email from: "+$(value).find("Name")[0].firstChild.nodeValue,
+                $(value).find("Subject")[0].firstChild.nodeValue
+            );
+            
+            notification.onclick = function(event) {
+                exchange.goToInbox();
+            }
+
+            notification.show();
+            setTimeout(function() {notification.cancel();}, exchange.dissmissTime * 1000);
+        });
+        exchange.lastUpdate = currentDate.valueOf();
+    }
+
     exchange.getUnread = function () {
-        var unreadCallback = function (data) {
-            exchange.updateIcon($(data).find("UnreadCount")[0].childNodes[0].nodeValue);
+        var unreadCallback = function(data) {
+            var items = $(data).find("Items");
+            
+            if (exchange.updateIcon(items.length ? items[0].childNodes.length : 0)) {
+                exchange.displayNotifications(data);
+            }
             exchange.countSet = true;
             if (!exchange.listener) {
                 exchange.addListener();
@@ -253,8 +296,8 @@ function Exchange() {
         window.open(server, 'owa');
     };
 
-    exchange.work = function(){
-        exchange.xmlAction('folders', function () {
+    exchange.work = function () {
+        exchange.xmlAction('items', function () {
             exchange.getUnread();
         });
     };
