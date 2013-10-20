@@ -176,6 +176,10 @@ function Exchange() {
                 "New email from: "+$(value).find("Name")[0].firstChild.nodeValue,
                 $(value).find("Subject")[0].firstChild.nodeValue
             );
+            
+            notification.onclick = function(event) {
+                exchange.goToInbox();
+            }
 
             notification.show();
         });
