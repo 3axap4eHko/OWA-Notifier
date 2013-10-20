@@ -5,6 +5,9 @@
 ::-webkit-scrollbar-button {width: 0;height: 0;display: none;}
 ::-webkit-scrollbar-corner {background-color: transparent}
 
+a:focus{
+    outline: none;
+}
 
 body {
     min-width: 500px;
@@ -64,10 +67,8 @@ body {
 
 ul.mail {
     border-radius: 5px;
-    border: 2px solid #aaa;
-    background-color: #aaa;
+    border: 2px solid #eee;
     padding: 0;
-
     font-weight: bold;
     width: 450px;
 }
@@ -78,7 +79,7 @@ ul.mail a {
 }
 
 ul.mail:hover {
-    background-color: #fff;
+    border: 2px solid #777;
     color: #333333;
 }
 
