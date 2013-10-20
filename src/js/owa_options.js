@@ -20,12 +20,12 @@ $(document).on('change', "input[type='range']", function() {
     });
 });
 
-
 $(document).ready(function () {
 
     var form = $('form#notifier-options');
     var exchange = new Exchange();
     exchange.loadForm(form);
+
 
     if (exchange.validForm(form)) {
         form.find('input#save').removeClass('disabled')

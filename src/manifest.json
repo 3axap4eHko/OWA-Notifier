@@ -1,8 +1,10 @@
 {
-    "name": "OWA notifier",
-    "version": "1.3.3",
-    "description": "OWA notifier.",
+    "author": "3axap4eHko",
+    "version": "1.4.0",
     "manifest_version": 2,
+    "name": "OWA notifier",
+    "short_name": "OWA N",
+    "description": "OWA notifier Chrome Extension.",
     "browser_action": {
         "default_icon": "images/icon.png"
     },
@@ -10,10 +12,32 @@
         "256": "images/icon256.png",
         "128": "images/icon128.png"
     },
+    "commands": {
+        "openOWA": {
+            "description": "Open OWA window",
+            "suggested_key": {
+                "default": "Ctrl+Shift+M",
+                "mac": "MacCtrl+Shift+M"
+            }
+        },
+        "notifyOWA": {
+            "description": "Open notification window",
+            "suggested_key": {
+                "default": "Alt+Shift+O",
+                "mac": "MacCtrl+Shift+O"
+            }
+        }
+    },
+    "web_accessible_resources": [
+        "images/icon128.png"
+    ],
     "permissions": [
+        "tts",
+        "idle",
+        "notifications",
+        "webNavigation",
         "<all_urls>",
         "tabs",
-        "webNavigation",
         "background"
     ],
     "options_page": "owa_options.html",

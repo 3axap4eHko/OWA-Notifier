@@ -1,13 +1,13 @@
 function Exchange() {
 
     var defaultConfig = {
-        serverOWA: '',
         serverEWS: '',
+        serverOWA: '',
         updateInterval: 30,
+        notificationDelay: 30,
         username: '',
         password: '',
-        volume: 0.3,
-        unread: 0
+        volume: 0.3
     };
 
     var exchange = this;
@@ -17,21 +17,19 @@ function Exchange() {
     exchange.countSet = false;
     exchange.listener = false;
     exchange.data = '';
-    exchange.errors =[];
+    exchange.errors = [];
+    exchange.options = {};
+    exchange.unread = 0;
 
     exchange.load = function () {
-        $.extend(exchange, defaultConfig, localStorage);
+        Object.keys(defaultConfig).forEach(function(optionKey){
+            exchange.options[optionKey] = localStorage.getItem(optionKey) || defaultConfig[optionKey];
+        });
         return exchange;
     };
 
-    exchange.save = function (serverOWA, serverEWS, updateInterval, username, password, volume) {
-        localStorage.serverOWA = serverOWA;
-        localStorage.serverEWS = serverEWS;
-        localStorage.updateInterval = updateInterval;
-        localStorage.username = username;
-        localStorage.password = password;
-        localStorage.volume = volume;
-        localStorage.unread = 0;
+    exchange.save = function ( options ) {
+        $.extend(localStorage, options, {unread: 0});
         exchange.load();
         exchange.run();
         return exchange;
@@ -39,10 +37,10 @@ function Exchange() {
 
     exchange.isValid = function () {
         exchange.load();
-        if (exchange.serverOWA && exchange.serverEWS && exchange.updateInterval && exchange.username && exchange.password) {
-            return true
-        }
-        return false;
+        return Object.keys(defaultConfig).every(function(optionKey)
+        {
+            return exchange.options.hasOwnProperty(optionKey);
+        });
     };
 
     exchange.xmlAction = function (action, callback) {
@@ -57,7 +55,6 @@ function Exchange() {
             error   : function () {
                 chrome.browserAction.setBadgeText({text: 'error'});
             }
-
         })
     };
 
@@ -73,12 +70,12 @@ function Exchange() {
     exchange.update = function (callback) {
         $.ajax({
             type    : "POST",
-            url     : exchange.serverEWS + '/Exchange.asmx',
+            url     : exchange.options.serverEWS + '/Exchange.asmx',
             dataType: "xml",
             headers : {"Content-Type": "text/xml"},
             data    : exchange.data,
-            password: exchange.password,
-            username: exchange.username,
+            password: exchange.options.password,
+            username: exchange.options.username,
             success : callback,
             error   : function () {
                 chrome.browserAction.setBadgeText({text: 'error'});
@@ -91,12 +88,12 @@ function Exchange() {
         chrome.tabs.getAllInWindow(undefined, function (tabs) {
             if (exchange.isValid()) {
                 for (var i = 0, tab; tab = tabs[i]; i++) {
-                    if (tab.url && (tab.url.indexOf(exchange.serverOWA) > -1)) {
+                    if (tab.url && (tab.url.indexOf(exchange.options.serverOWA) > -1)) {
                         chrome.tabs.update(tab.id, {selected: true, url: tab.url});
                         return;
                     }
                 }
-                exchange.owa(exchange.serverOWA, exchange.username, exchange.password);
+                exchange.owa(exchange.options.serverOWA, exchange.options.username, exchange.options.password);
             } else {
                 chrome.tabs.create({url: chrome.extension.getURL('owa_options.html')});
             }
@@ -125,6 +122,13 @@ function Exchange() {
         cjs.playSound();
     };
 
+    exchange.notification = function(title, message)
+    {
+        var notify = webkitNotifications.createNotification("/images/icon128.png", title, message);
+        notify.show();
+        !!exchange.options.notificationDelay || setTimeout(function(){notify.close()}, exchange.options.notificationDelay * 1000);
+    };
+
     exchange.updateIcon = function (unread) {
         var oldUnread = exchange.getUnreadCount(exchange.unread);
         unread = exchange.getUnreadCount(unread);
@@ -135,9 +139,10 @@ function Exchange() {
                 exchange.enable('');
             } else {
                 if (unread > oldUnread) {
-                    exchange.playSound(exchange.volume);
+                    exchange.playSound(exchange.options.volume);
                     cjs.animate();
                     exchange.enable(unread.toString());
+                    exchange.notification('You have '+unread.toString()+' unread emails','');
                 } else {
                     exchange.enable(unread.toString());
                 }
@@ -149,7 +154,7 @@ function Exchange() {
     exchange.animate = function () {
         cjs.animateRotation(function () {
             exchange.enable();
-        })
+        });
     };
 
     exchange.getUnread = function () {
@@ -163,27 +168,16 @@ function Exchange() {
         exchange.update(unreadCallback);
     };
 
-    exchange.test = function (serverEWS, updateInterval, username, password, onSuccess, onError) {
-
-        if ((typeof updateInterval !== 'number') || isNaN(updateInterval) || !(updateInterval > 0)) {
-            chrome.browserAction.setBadgeText({text: 'error'});
-            if (onError) {
-                onError(
-                    [
-                        'updateInterval'
-                    ])
-            }
-            return;
-        }
-        this.xmlAction('folders', function () {
+    exchange.test = function (options, onSuccess, onError) {
+        exchange.xmlAction('folders', function () {
             $.ajax({
                 type    : "POST",
-                url     : serverEWS + '/Exchange.asmx',
+                url     : options.serverEWS + '/Exchange.asmx',
                 dataType: "xml",
                 headers : {"Content-Type": "text/xml"},
                 data    : exchange.data,
-                password: password,
-                username: username,
+                password: options.password,
+                username: options.username,
                 success : onSuccess,
                 error   : function (jqXHR, textStatus, errorThrown) {
                     if (errorThrown == 'Unauthorized') {
@@ -204,35 +198,36 @@ function Exchange() {
     };
 
     exchange.saveForm = function (formSelector, onSuccess, onError) {
+        var options = {};
+        $(formSelector).find('[data-options]').each(function()
+        {
+            var $this = $(this),
+                filter = window[$this.data('filter')] || Function.self;
+            options[$this.data('options')] = filter($this.val());
+        });
 
-        var serverOWA = $(formSelector).find('#outlook-web-access').val();
-        var serverEWS = $(formSelector).find('#exchange-web-service').val();
-        var updateInterval = parseInt($(formSelector).find('#updateInterval').val());
-        var username = $(formSelector).find('#username').val();
-        var password = $(formSelector).find('#password').val();
-        var volume = $(formSelector).find('#volume').val();
         var success = function () {
-            exchange.save(serverOWA, serverEWS, updateInterval, username, password, volume);
+            exchange.save(options);
             onSuccess();
         };
-        exchange.test(serverEWS, updateInterval, username, password, success, onError);
+        exchange.test(options, success, onError);
         return exchange;
     };
 
     exchange.loadForm = function (formSelector) {
         exchange.load();
-        $(formSelector).find('#outlook-web-access').val(exchange.serverOWA);
-        $(formSelector).find('#exchange-web-service').val(exchange.serverEWS);
-        $(formSelector).find('#updateInterval').val(exchange.updateInterval);
-        $(formSelector).find('#username').val(exchange.username);
-        $(formSelector).find('#password').val(exchange.password);
-        $(formSelector).find('#volume').val(exchange.volume);
+        $(formSelector).find('[data-options]').each(function()
+        {
+            var $this = $(this);
+            $this.val(exchange.options[$this.data('options')]);
+        });
         return exchange;
     };
 
     exchange.validForm = function (formSelector) {
-        return $(formSelector).find('#exchange-web-service').val() && $(formSelector).find('#outlook-web-access').val() && $(formSelector).find('#updateInterval').val() && $(formSelector).find('#username').val() && $(formSelector).find('#password').val();
-
+        return $(formSelector).find('[data-options]').toArray().every(function(element){
+            return !!$(element).val();
+        });
     };
 
     exchange.owa = function(server, login, password){
@@ -258,8 +253,22 @@ function Exchange() {
     exchange.run = function () {
         clearTimeout(timerId);
         exchange.work();
-        timerId = setInterval(exchange.work, exchange.updateInterval * 1000);
-        return exchange;
+        timerId = setInterval(exchange.work, exchange.options.updateInterval * 1000);
+
+        if (chrome.commands) {
+            chrome.commands.onCommand.addListener(function(command) {
+                switch (command)
+                {
+                    case "openOWA":
+
+                        break;
+                    case "notifyOWA":
+
+                        break;
+                }
+            });
+        }
+                return exchange;
     };
     exchange.load();
     chrome.browserAction.onClicked.addListener(exchange.goToInbox);

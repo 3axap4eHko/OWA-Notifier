@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="css/bootstrap.min.css"/>
     <link rel="stylesheet" href="css/owa_options.css"/>
     <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/core.js"></script>
     <script type="text/javascript" src="js/chromeJS.js"></script>
     <script type="text/javascript" src="js/exchange.js"></script>
 </head>
@@ -51,36 +52,46 @@
             <div class="form-group">
                 <label class="col-lg-4 control-label" for="exchange-web-service">Exchange Web Service</label>
                 <div class="col-lg-6">
-                    <input type="url" id="exchange-web-service" class="input-lg form-control" placeholder="http://exchange.domain.name/ews">
+                    <input type="url" id="exchange-web-service" class="input-lg form-control" placeholder="http://exchange.domain.name/ews" data-options="serverEWS">
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="col-lg-4 control-label" for="outlook-web-access">Outlook Web Access</label>
                 <div class="col-lg-6">
-                    <input type="url" id="outlook-web-access" class="input-lg form-control" placeholder="http://exchange.domain.name/owa">
+                    <input type="url" id="outlook-web-access" class="input-lg form-control" placeholder="http://exchange.domain.name/owa" data-options="serverOWA">
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="col-lg-4 control-label" for="username">Domain \ Username</label>
                 <div class="col-lg-6">
-                    <input type="text" id="username" class="input-lg form-control" placeholder="username">
+                    <input type="text" id="username" class="input-lg form-control" placeholder="username" data-options="username">
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="col-lg-4 control-label" for="password">Password</label>
                 <div class="col-lg-6">
-                    <input type="password" id="password" class="input-lg form-control" placeholder="password">
+                    <input type="password" id="password" class="input-lg form-control" placeholder="password" data-options="password">
                 </div>
             </div>
 
             <div class="form-group">
-                <label class="col-lg-4 control-label" for="updateInterval">Update interval</label>
+                <label class="col-lg-4 control-label" for="update-interval">Update interval</label>
                 <div class="col-lg-3">
                     <div class="input-group">
-                        <input type="number" id="updateInterval" min="0" max="3600" class="input-lg form-control" placeholder="30">
+                        <input type="number" id="update-interval" min="0" max="3600" class="input-lg form-control" placeholder="30" data-options="updateInterval" data-filter="parseInt">
+                        <span class="input-group-addon"> seconds</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-lg-4 control-label" for="notification-delay">Delay notifications</label>
+                <div class="col-lg-3">
+                    <div class="input-group">
+                        <input type="number" id="notification-delay" min="0" max="3600" class="input-lg form-control" placeholder="10" data-options="notificationDelay" data-filter="parseInt">
                         <span class="input-group-addon"> seconds</span>
                     </div>
                 </div>
@@ -91,7 +102,7 @@
 
                 <div class="col-lg-6">
                     <div class="input-group">
-                        <input type="range" name="volume" id="volume" min="0" max="1" step="0.01" class="input-lg form-control col-lg-8"/>
+                        <input type="range" name="volume" id="volume" min="0" max="1" step="0.01" class="input-lg form-control col-lg-8" data-options="volume" data-filter="parseFloat"/>
                         <output for="volume"></output>
                         <span id="volumeDisplay" class="input-group-addon"> %</span>
                     </div>

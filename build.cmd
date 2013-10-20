@@ -4,6 +4,8 @@ rmdir /S /Q build
 mkdir build
 xcopy /E src build
 echo Compress chromeJS.js
+java -jar compiler.jar --js "src/js/core.js" --js_output_file "build/js/core.js"
+echo Compress chromeJS.js
 java -jar compiler.jar --js "src/js/chromeJS.js" --js_output_file "build/js/chromeJS.js"
 echo Compress exchange.js
 java -jar compiler.jar --js "src/js/exchange.js" --js_output_file "build/js/exchange.js"
