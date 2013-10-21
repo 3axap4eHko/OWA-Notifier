@@ -1,6 +1,6 @@
 {
     "author": "3axap4eHko",
-    "version": "1.4.1",
+    "version": "1.4.2",
     "manifest_version": 2,
     "name": "OWA notifier",
     "short_name": "OWA N",
@@ -11,22 +11,6 @@
     "icons": {
         "256": "images/icon256.png",
         "128": "images/icon128.png"
-    },
-    "commands": {
-        "openOWA": {
-            "description": "Open OWA window",
-            "suggested_key": {
-                "default": "Ctrl+Shift+M",
-                "mac": "MacCtrl+Shift+M"
-            }
-        },
-        "notifyOWA": {
-            "description": "Open notification window",
-            "suggested_key": {
-                "default": "Alt+Shift+O",
-                "mac": "MacCtrl+Shift+O"
-            }
-        }
     },
     "web_accessible_resources": [
         "images/icon128.png"

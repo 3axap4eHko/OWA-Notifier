@@ -1,3 +1,6 @@
+.w80 {
+    width: 80px;
+}
 .navbar-header .navbar-brand {
     font-size: 32px;
     text-transform: uppercase;
@@ -15,20 +18,11 @@ input[type="range"]::-webkit-slider-thumb {
     position: relative;
     -webkit-appearance: none;
     background-color: #666;
-    border-radius: 10px;
-    width: 40px;
-    height: 30px;
-}
-
-input[type="range"]::-webkit-slider-thumb:after {
-    position: absolute;
-    text-align: center;
-    color: #fff;
-    display: inline-block;
-    content: "\26AB";
-    font-size: 30px;
-    top: -3px;
-    left: 7px;
+    border-radius: 2px;
+    border: 1px solid #000;
+    width: 15px;
+    height: 40px;
+    left: 0;
 }
 
 input[type="range"].form-control {

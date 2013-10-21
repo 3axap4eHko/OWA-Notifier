@@ -16,7 +16,7 @@ $(document).on('change', "input[type='range']", function() {
     // Move bubble
     el.next("output").css({
         left: newPlace,
-        marginLeft: offset + "%"
+        marginLeft: offset + '%'
     });
 });
 
@@ -74,13 +74,15 @@ $(document).ready(function () {
         return true;
     });
 
-    form.find('input#volume').change(function () {
-        form.find('#volumeDisplay').html(Math.ceil(form.find('input#volume').val()*100) + ' %');
+    form.find('input[type="range"]').change(function () {
+        var el = $(this),
+            display = $(el.data('display'));
+        display.html(Math.ceil(el.val()*100) + ' ' + el.data('unit'));
     });
 
     form.find('input#volume').mouseup(function () {
         exchange.playSound(form.find('input#volume').val());
     });
 
-    form.find('input#volume').change();
+    form.find('input[type="range"]').change();
 });

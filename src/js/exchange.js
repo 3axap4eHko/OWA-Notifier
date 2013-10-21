@@ -8,7 +8,6 @@ function Exchange() {
         serverEWS: '',
         serverOWA: '',
         updateInterval: 30,
-        notificationDelay: 30,
         username: '',
         password: '',
         volume: 0.3
@@ -25,6 +24,7 @@ function Exchange() {
     exchange.options = {};
     exchange.unread = 0;
     exchange.unreadItems = [];
+    exchange.lastNotify = null;
 
     exchange.load = function () {
         Object.keys(defaultConfig).forEach(function(optionKey){
@@ -128,11 +128,15 @@ function Exchange() {
         cjs.playSound();
     };
 
-    exchange.notification = function(url)
+    exchange.notification = function(url, data)
     {
-        var notify = webkitNotifications.createHTMLNotification(url);
+        var urlData = Object.keys(data || {}).map(function(key)
+        {
+            return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
+        }).join('&');
+        exchange.lastNotify && exchange.lastNotify.close();
+        var notify = exchange.lastNotify = webkitNotifications.createHTMLNotification(url + '?' + urlData);
         notify.show();
-        !!exchange.options.notificationDelay || setTimeout(function(){notify.close()}, exchange.options.notificationDelay * 1000);
     };
 
     exchange.updateIcon = function (unread) {
@@ -148,7 +152,10 @@ function Exchange() {
                     exchange.playSound(exchange.options.volume);
                     cjs.animate();
                     exchange.enable(unread.toString());
-                    exchange.notification( chrome.extension.getURL('notify.html') + '#' + unread.toString());
+                    exchange.notification( chrome.extension.getURL('notify.html'), {
+                        'title': 'You have ' + unread.toString() + ' unread mails',
+                        'message': $('<a>',{html: 'Click to view', href: '#', 'data-action': 'goToInbox'})[0].outerHTML
+                    } );
                 } else {
                     exchange.enable(unread.toString());
                 }
@@ -264,20 +271,7 @@ function Exchange() {
         exchange.work();
         timerId = setInterval(exchange.work, exchange.options.updateInterval * 1000);
 
-        if (chrome.commands) {
-            chrome.commands.onCommand.addListener(function(command) {
-                switch (command)
-                {
-                    case "openOWA":
-
-                        break;
-                    case "notifyOWA":
-
-                        break;
-                }
-            });
-        }
-                return exchange;
+        return exchange;
     };
     exchange.load();
     chrome.browserAction.onClicked.addListener(exchange.goToInbox);
