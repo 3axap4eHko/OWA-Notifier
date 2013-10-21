@@ -92,8 +92,6 @@ function Exchange() {
     exchange.goToInbox = function () {
 
         if (exchange.isValid()) {
-            window.open(chrome.extension.getURL('popup.html'));
-            return;
             chrome.tabs.getAllInWindow(undefined, function (tabs) {
                     for (var i = 0, tab; tab = tabs[i]; i++) {
                         if (tab.url && (tab.url.indexOf(exchange.options.serverOWA) > -1)) {
@@ -170,7 +168,6 @@ function Exchange() {
             var count = $(data).find("UnreadCount")[0].childNodes[0].nodeValue;
             exchange.updateIcon(count);
             exchange.countSet = true;
-            chrome.browserAction.setPopup({popup: count ? "popup.html" : ""});
             if (!exchange.listener) {
                 exchange.addListener();
             }
