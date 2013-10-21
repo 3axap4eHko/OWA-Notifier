@@ -143,8 +143,10 @@ function Exchange() {
         var oldUnread = exchange.getUnreadCount(exchange.unread);
         unread = exchange.getUnreadCount(unread);
         if (unread < 0) {
+            chrome.browserAction.setPopup({popup: ""});
             exchange.disable('error');
         } else {
+            chrome.browserAction.setPopup({popup: "popup.html"});
             if (unread == 0) {
                 exchange.enable('');
             } else {
