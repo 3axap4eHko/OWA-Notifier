@@ -128,9 +128,9 @@ function Exchange() {
         cjs.playSound();
     };
 
-    exchange.notification = function(title, message)
+    exchange.notification = function(url)
     {
-        var notify = webkitNotifications.createNotification("/images/icon128.png", title, message);
+        var notify = webkitNotifications.createHTMLNotification(url);
         notify.show();
         !!exchange.options.notificationDelay || setTimeout(function(){notify.close()}, exchange.options.notificationDelay * 1000);
     };
@@ -148,7 +148,7 @@ function Exchange() {
                     exchange.playSound(exchange.options.volume);
                     cjs.animate();
                     exchange.enable(unread.toString());
-                    exchange.notification('You have '+unread.toString()+' unread emails','');
+                    exchange.notification( chrome.extension.getURL('notify.html') + '#' + unread.toString());
                 } else {
                     exchange.enable(unread.toString());
                 }
