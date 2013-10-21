@@ -28,7 +28,7 @@ function Exchange() {
 
     exchange.load = function () {
         Object.keys(defaultConfig).forEach(function(optionKey){
-            exchange.options[optionKey] = localStorage.getItem(optionKey) || defaultConfig[optionKey];
+            exchange.options[optionKey] = localStorage.getItem(optionKey);
         });
         return exchange;
     };
@@ -44,7 +44,7 @@ function Exchange() {
         exchange.load();
         return Object.keys(defaultConfig).every(function(optionKey)
         {
-            return exchange.options.hasOwnProperty(optionKey);
+            return exchange.options[optionKey] !== null;
         });
     };
 
@@ -235,8 +235,10 @@ function Exchange() {
     };
 
     exchange.validForm = function (formSelector) {
+        var val = '';
         return $(formSelector).find('[data-options]').toArray().every(function(element){
-            return !!$(element).val();
+            val = $(element).val();
+            return val !== '' && val !== null;
         });
     };
 
