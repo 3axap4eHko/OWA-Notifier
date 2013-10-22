@@ -34,18 +34,19 @@ function Exchange() {
     };
 
     exchange.save = function ( options ) {
-        $.extend(localStorage, options, {unread: 0});
+        $.extend(localStorage, options);
         exchange.load();
-        exchange.run();
         return exchange;
     };
 
     exchange.isValid = function () {
         exchange.load();
-        return Object.keys(defaultConfig).every(function(optionKey)
+        var result = Object.keys(defaultConfig).every(function(optionKey)
         {
             return exchange.options[optionKey] !== null;
         });
+
+        return result;
     };
 
     exchange.xmlAction = function (action, callback) {
@@ -64,12 +65,12 @@ function Exchange() {
     };
 
     exchange.addListener = function () {
+        exchange.listener = true;
         chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
             if (changeInfo.url) {
                 exchange.getUnread();
             }
         });
-        exchange.listener = true;
     };
 
     exchange.update = function (callback) {
@@ -130,6 +131,10 @@ function Exchange() {
 
     exchange.notification = function(url, data)
     {
+        if (!window.webkitNotifications || !window.webkitNotifications.createHTMLNotification)
+        {
+            return;
+        }
         var urlData = Object.keys(data || {}).map(function(key)
         {
             return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
@@ -141,29 +146,28 @@ function Exchange() {
 
     exchange.updateIcon = function (unread) {
         var oldUnread = exchange.getUnreadCount(exchange.unread);
-        unread = exchange.getUnreadCount(unread);
-        if (unread < 0) {
+        exchange.unread = exchange.getUnreadCount(unread);
+        if (exchange.unread < 0) {
             chrome.browserAction.setPopup({popup: ""});
             exchange.disable('error');
         } else {
             chrome.browserAction.setPopup({popup: "popup.html"});
-            if (unread == 0) {
+            if (exchange.unread == 0) {
                 exchange.enable('');
             } else {
-                if (unread > oldUnread) {
+                if (exchange.unread > oldUnread) {
                     exchange.playSound(exchange.options.volume);
                     cjs.animate();
-                    exchange.enable(unread.toString());
+                    exchange.enable(exchange.unread.toString());
                     exchange.notification( chrome.extension.getURL('notify.html'), {
                         'title': 'You have ' + unread.toString() + ' unread mails',
                         'message': $('<a>',{html: 'Click to view', href: '#', 'data-action': 'goToInbox'})[0].outerHTML
                     } );
                 } else {
-                    exchange.enable(unread.toString());
+                    exchange.enable(exchange.unread.toString());
                 }
             }
         }
-        exchange.unread = unread;
     };
 
     exchange.animate = function () {
@@ -262,16 +266,26 @@ function Exchange() {
         window.open(server, 'owa');
     };
 
-    exchange.work = function(){
-        exchange.xmlAction('folders', function () {
-            exchange.getUnread();
-        });
+    exchange.work = function() {
+        clearTimeout(timerId);
+        if( !exchange.isValid() )
+        {
+            timerId = setTimeout(exchange.work, 1000);
+            chrome.browserAction.setBadgeText({text: 'setup'});
+
+        }
+        else
+        {
+            timerId = setTimeout(exchange.work, exchange.options.updateInterval * 1000);
+            exchange.xmlAction('folders', function () {
+                exchange.getUnread();
+            });
+        }
     };
 
     exchange.run = function () {
-        clearTimeout(timerId);
+        exchange.addListener();
         exchange.work();
-        timerId = setInterval(exchange.work, exchange.options.updateInterval * 1000);
 
         return exchange;
     };
