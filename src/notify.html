@@ -4,33 +4,41 @@
     <title>OWA notifier - Popup</title>
     <link rel="stylesheet" href="css/bootstrap.min.css"/>
     <style>
+        html, body {
+            height: 100%;
+        }
         body {
             direction: ltr;
             min-height: 50px;
+            cursor: pointer;
+            background: #eee;
+            border: 2px solid #fff;
+        }
+        body:hover {
+            background: #fff;
         }
         #icon {
-            height: 32px;
-            width: 32px;
+            height: 64px;
+            width: 64px;
             float: left;
         }
         #title {
-            margin-left: 38px;
+            padding-top: 10px;
+            margin-left: 70px;
             font-weight: bold;
             font-size: 13px;
+            text-transform: uppercase;
         }
         #message {
-            margin-left: 38px;
+            margin-left: 70px;
             font-size: 13px;
         }
     </style>
     <script type="text/javascript" src="js/jquery.min.js"></script>
-    <script type="text/javascript" src="js/core.js"></script>
-    <script type="text/javascript" src="js/chromeJS.js"></script>
-    <script type="text/javascript" src="js/exchange.js"></script>
 </head>
 <body>
 <div>
-    <div id="icon"><img src="images/icon32.png" width="32" height="32"></div>
+    <div id="icon"><img src="images/icon128.png" width="64" height="64"></div>
     <div id="title"></div>
     <div id="message"></div>
 </div>
