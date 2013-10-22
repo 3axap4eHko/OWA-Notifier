@@ -129,7 +129,7 @@ function Exchange() {
         cjs.playSound();
     };
 
-    exchange.notification = function(url, data)
+    exchange.notification = function(url, data, onclick)
     {
         if (!window.webkitNotifications || !window.webkitNotifications.createHTMLNotification)
         {
@@ -140,8 +140,11 @@ function Exchange() {
             return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
         }).join('&');
         exchange.lastNotify && exchange.lastNotify.close();
-        var notify = exchange.lastNotify = webkitNotifications.createHTMLNotification(url + '?' + urlData);
-        notify.show();
+        exchange.lastNotify = webkitNotifications.createHTMLNotification(chrome.extension.getURL(url) + '?' + urlData);
+        exchange.lastNotify.onclick = onclick || Function.empty;
+        exchange.lastNotify.show();
+
+        return exchange.lastNotify;
     };
 
     exchange.updateIcon = function (unread) {
@@ -159,10 +162,18 @@ function Exchange() {
                     exchange.playSound(exchange.options.volume);
                     cjs.animate();
                     exchange.enable(exchange.unread.toString());
-                    exchange.notification( chrome.extension.getURL('notify.html'), {
-                        'title': 'You have ' + unread.toString() + ' unread mails',
-                        'message': $('<a>',{html: 'Click to view', href: '#', 'data-action': 'goToInbox'})[0].outerHTML
-                    } );
+                    exchange.notification(
+                        'notify.html',
+                        {
+                            title: ('You have {0} unread mails').fmt(unread),
+                            message: 'Click to view'
+                        },
+                        function() {
+                            exchange.goToInbox();
+                            this.close();
+                        }
+                    );
+
                 } else {
                     exchange.enable(exchange.unread.toString());
                 }

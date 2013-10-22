@@ -1,14 +1,3 @@
-var exchange = new Exchange();
-
-$(document).on('click','[data-action]', function()
-{
-    var action = $(this).data('action');
-    exchange[action]();
-    setTimeout(function(){
-        window.close();
-    },1000);
-});
-
 $(document).ready(function(){
     var urlData = window.location.href.split('?')[1],
         data = {};
