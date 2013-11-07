@@ -131,20 +131,23 @@ function Exchange() {
 
     exchange.notification = function(url, data, onclick)
     {
-        if (!window.webkitNotifications || !window.webkitNotifications.createHTMLNotification)
-        {
-            return;
-        }
-        var urlData = Object.keys(data || {}).map(function(key)
-        {
-            return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
-        }).join('&');
-        exchange.lastNotify && exchange.lastNotify.close();
-        exchange.lastNotify = webkitNotifications.createHTMLNotification(chrome.extension.getURL(url) + '?' + urlData);
-        exchange.lastNotify.onclick = onclick || Function.empty;
-        exchange.lastNotify.show();
+        //createHTMLNotification returns undefined in Chrome 30
+        //http://jsfiddle.net/dandv/wT26x/1/ (working example)
+        var havePermission = window.webkitNotifications.checkPermission();
+        if (havePermission == 0) {
+            var urlData = Object.keys(data || {}).map(function(key)
+            {
+                return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
+            }).join('&');
+            exchange.lastNotify && exchange.lastNotify.close();
+            exchange.lastNotify = webkitNotifications.createNotification('http://www.rizwanashraf.com/wp-content/uploads/2013/07/outlook-web-app.png', data.title, data.message);
+            exchange.lastNotify.onclick = onclick || Function.empty;
+            exchange.lastNotify.show();
 
-        return exchange.lastNotify;
+            return exchange.lastNotify;
+        } else {
+            window.webkitNotifications.requestPermission();
+        }
     };
 
     exchange.updateIcon = function (unread) {
