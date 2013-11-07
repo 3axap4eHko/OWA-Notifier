@@ -138,7 +138,7 @@ function Exchange() {
                 return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
             }).join('&');
             exchange.lastNotify && exchange.lastNotify.close();
-            exchange.lastNotify = webkitNotifications.createNotification('http://www.rizwanashraf.com/wp-content/uploads/2013/07/outlook-web-app.png', data.title, data.message);
+            exchange.lastNotify = webkitNotifications.createNotification(chrome.extension.getURL('images/icon128.png'), data.title, data.message);
             exchange.lastNotify.onclick = onclick || Function.empty;
             exchange.lastNotify.show();
 
