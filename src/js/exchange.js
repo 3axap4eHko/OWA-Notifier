@@ -93,7 +93,7 @@ function Exchange() {
     exchange.goToInbox = function () {
 
         if (exchange.isValid()) {
-            chrome.tabs.getAllInWindow(undefined, function (tabs) {
+            chrome.tabs.query({}, function (tabs) {
                     for (var i = 0, tab; tab = tabs[i]; i++) {
                         if (tab.url && (tab.url.indexOf(exchange.options.serverOWA) > -1)) {
                             chrome.tabs.update(tab.id, {selected: true, url: tab.url});
@@ -131,8 +131,6 @@ function Exchange() {
 
     exchange.notification = function(url, data, onclick)
     {
-        //createHTMLNotification returns undefined in Chrome 30
-        //http://jsfiddle.net/dandv/wT26x/1/ (working example)
         var havePermission = window.webkitNotifications.checkPermission();
         if (havePermission == 0) {
             var urlData = Object.keys(data || {}).map(function(key)
