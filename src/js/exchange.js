@@ -93,7 +93,7 @@ function Exchange() {
     exchange.goToInbox = function () {
 
         if (exchange.isValid()) {
-            chrome.tabs.getAllInWindow(undefined, function (tabs) {
+            chrome.tabs.query({}, function (tabs) {
                     for (var i = 0, tab; tab = tabs[i]; i++) {
                         if (tab.url && (tab.url.indexOf(exchange.options.serverOWA) > -1)) {
                             chrome.tabs.update(tab.id, {selected: true, url: tab.url});
@@ -131,20 +131,21 @@ function Exchange() {
 
     exchange.notification = function(url, data, onclick)
     {
-        if (!window.webkitNotifications || !window.webkitNotifications.createHTMLNotification)
-        {
-            return;
-        }
-        var urlData = Object.keys(data || {}).map(function(key)
-        {
-            return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
-        }).join('&');
-        exchange.lastNotify && exchange.lastNotify.close();
-        exchange.lastNotify = webkitNotifications.createHTMLNotification(chrome.extension.getURL(url) + '?' + urlData);
-        exchange.lastNotify.onclick = onclick || Function.empty;
-        exchange.lastNotify.show();
+        var havePermission = window.webkitNotifications.checkPermission();
+        if (havePermission == 0) {
+            var urlData = Object.keys(data || {}).map(function(key)
+            {
+                return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
+            }).join('&');
+            exchange.lastNotify && exchange.lastNotify.close();
+            exchange.lastNotify = webkitNotifications.createNotification(chrome.extension.getURL('images/icon128.png'), data.title, data.message);
+            exchange.lastNotify.onclick = onclick || Function.empty;
+            exchange.lastNotify.show();
 
-        return exchange.lastNotify;
+            return exchange.lastNotify;
+        } else {
+            window.webkitNotifications.requestPermission();
+        }
     };
 
     exchange.updateIcon = function (unread) {
