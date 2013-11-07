@@ -131,18 +131,19 @@ function Exchange() {
 
     exchange.notification = function(url, data, onclick)
     {
+        if (!window.webkitNotifications)
+        {
+            console.error('Notifications are not supported for this Browser/OS version yet.');
+            return;
+        }
         var havePermission = window.webkitNotifications.checkPermission();
-        if (havePermission == 0) {
-            var urlData = Object.keys(data || {}).map(function(key)
-            {
-                return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
-            }).join('&');
+        if (havePermission === 0) {
+
             exchange.lastNotify && exchange.lastNotify.close();
+            //TODO: change on notifications API will be updated
             exchange.lastNotify = webkitNotifications.createNotification(chrome.extension.getURL('images/icon128.png'), data.title, data.message);
             exchange.lastNotify.onclick = onclick || Function.empty;
             exchange.lastNotify.show();
-
-            return exchange.lastNotify;
         } else {
             window.webkitNotifications.requestPermission();
         }
