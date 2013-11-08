@@ -284,6 +284,8 @@ function Exchange() {
         }
         else
         {
+            //if user does not set an internval on extension options b/c placeholder "looks" real; set to 5 minutes
+            if (exchange.options.updateInterval == "NaN") exchange.options.updateInterval = 300;
             timerId = setTimeout(exchange.work, exchange.options.updateInterval * 1000);
             exchange.xmlAction('folders', function () {
                 exchange.getUnread();
