@@ -26,17 +26,11 @@ $(document).ready(function () {
     var exchange = new Exchange();
     exchange.loadForm(form);
 
-    if (exchange.validForm(form)) {
-        form.find('input#save').removeClass('disabled')
-    } else {
-        form.find('input#save').addClass('disabled')
-    }
-
     form.find('input#reset').click(function () {
         exchange.loadForm(form);
     });
 
-    form.find('#test').click(function () {
+    form.find('input#test').click(function () {
         exchange.owa(
             form.find('input#outlook-web-access').val(),
             form.find('input#username').val(),
@@ -44,7 +38,7 @@ $(document).ready(function () {
         );
     });
 
-    form.find('input#save').click(function () {
+    form.submit(function () {
         $('div.alert').hide();
         form.find('.form-group').removeClass('error');
         var success = function () {
@@ -58,20 +52,11 @@ $(document).ready(function () {
             $.each(errorFields, function (key, value) {
                 form.find('#' + value).parents('.form-group').addClass('error')
             });
-            $('div.alert.alert-error').slideDown();
+            $('div.alert.alert-danger').slideDown();
         };
 
         exchange.saveForm(form, success, error);
         return false;
-    });
-
-    form.find('input').keyup(function () {
-        if (exchange.validForm(form)) {
-            form.find('input#save').removeClass('disabled')
-        } else {
-            form.find('input#save').addClass('disabled')
-        }
-        return true;
     });
 
     form.find('input[type="range"]').change(function () {
