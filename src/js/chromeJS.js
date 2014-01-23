@@ -77,6 +77,10 @@ function CJS(params) {
     };
 
     cJS.playSound = function(soundFile){
+        if (!sound.get(0))
+        {
+            return;
+        }
         sound.get(0).pause();
         sound.get(0).currentTime = 0;
         if (soundFile){

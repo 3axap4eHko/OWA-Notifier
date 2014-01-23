@@ -1,10 +1,10 @@
 {
     "author": "3axap4eHko",
-    "version": "1.4.6",
+    "version": "1.4.7",
     "manifest_version": 2,
-    "name": "OWA notifier",
-    "short_name": "OWA N",
-    "description": "OWA notifier Chrome Extension.",
+    "name": "Outlook Web Access notifier",
+    "short_name": "OWA notifier",
+    "description": "Outlook Web Access notifier Chrome Extension.",
     "browser_action": {
         "default_icon": "images/icon.png"
     },

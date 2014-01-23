@@ -8,6 +8,7 @@ function Exchange() {
         serverEWS: '',
         serverOWA: '',
         updateInterval: 30,
+        displayTime: 15,
         username: '',
         password: '',
         volume: 0.3
@@ -16,6 +17,7 @@ function Exchange() {
     var exchange = this;
     var cjs = new CJS({});
     var timerId = 0;
+    var OWAPermissions = {permissions:['notifications'],origins:['<all_urls>']};
 
     exchange.countSet = false;
     exchange.listener = false;
@@ -24,7 +26,8 @@ function Exchange() {
     exchange.options = {};
     exchange.unread = 0;
     exchange.unreadItems = [];
-    exchange.lastNotify = null;
+    exchange.permitted = false;
+    exchange.notify = null;
 
     exchange.load = function () {
         Object.keys(defaultConfig).forEach(function(optionKey){
@@ -136,14 +139,13 @@ function Exchange() {
             console.error('Notifications are not supported for this Browser/OS version yet.');
             return;
         }
-        var havePermission = window.webkitNotifications.checkPermission();
-        if (havePermission === 0) {
-
-            exchange.lastNotify && exchange.lastNotify.close();
+        if (exchange.permitted) {
             //TODO: change on notifications API will be updated
-            exchange.lastNotify = webkitNotifications.createNotification(chrome.extension.getURL('images/icon128.png'), data.title, data.message);
-            exchange.lastNotify.onclick = onclick || Function.empty;
-            exchange.lastNotify.show();
+            exchange.notify && exchange.notify.cancel();
+            exchange.notify  = window.webkitNotifications.createNotification(chrome.extension.getURL('images/icon128.png'), data.title, data.message);
+            exchange.notify.onclick = onclick || Function.empty;
+            exchange.notify.show();
+            setTimeout((function() { this.close();}).bind(exchange.notify), (exchange.options.displayTime || 15) * 1000);
         } else {
             window.webkitNotifications.requestPermission();
         }
@@ -165,7 +167,7 @@ function Exchange() {
                     exchange.notification(
                         'notify.html',
                         {
-                            title: ('You have {0} unread mails').fmt(unread),
+                            title: ('You have {0} unread mail{1}').fmt(unread, unread>1?'s':''),
                             message: 'Click to view'
                         },
                         function() {
@@ -279,8 +281,7 @@ function Exchange() {
         if( !exchange.isValid() )
         {
             timerId = setTimeout(exchange.work, 1000);
-            chrome.browserAction.setBadgeText({text: 'setup'});
-
+            window.chrome.browserAction.setBadgeText({text: 'setup'});
         }
         else
         {
@@ -297,8 +298,22 @@ function Exchange() {
 
         return exchange;
     };
+
+    exchange.permitted = window.webkitNotifications.checkPermission() === 0;
     exchange.load();
-    chrome.browserAction.onClicked.addListener(exchange.goToInbox);
+    window.chrome.browserAction.onClicked.addListener(exchange.goToInbox);
+
+    if (localStorage.getItem('version')!=chrome.app.getDetails().version)
+    {
+        localStorage.setItem('version', chrome.app.getDetails().version);
+        var notify = window.webkitNotifications.createNotification(chrome.extension.getURL('images/icon128.png'), 'Outlook Web Access Notifier', 'Version update notification');
+        notify.onclick = function ()
+        {
+            chrome.tabs.create({url: 'https://chrome.google.com/webstore/detail/owa-notifier/hldldpjjjagjfikfknadmnnmpbbhgihg/details'});
+            this.cancel();
+        };
+        notify.show();
+    }
 }
 
 
