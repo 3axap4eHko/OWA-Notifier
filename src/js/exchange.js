@@ -17,6 +17,7 @@ function Exchange() {
     var exchange = this;
     var cjs = new CJS({});
     var timerId = 0;
+    /** @TODO For the chrome.notifications */
     var OWAPermissions = {permissions:['notifications'],origins:['<all_urls>']};
 
     exchange.countSet = false;
@@ -305,8 +306,12 @@ function Exchange() {
 
     if (localStorage.getItem('version')!=chrome.app.getDetails().version)
     {
-        localStorage.setItem('version', chrome.app.getDetails().version);
-        var notify = window.webkitNotifications.createNotification(chrome.extension.getURL('images/icon128.png'), 'Outlook Web Access Notifier', 'Version update notification');
+        //localStorage.setItem('version', chrome.app.getDetails().version);
+        var notify = window.webkitNotifications.createNotification(
+            chrome.extension.getURL('images/icon128.png'),
+            'OWA Notifier updated to ' + chrome.app.getDetails().version,
+            'Click this message for viewing changes'
+        );
         notify.onclick = function ()
         {
             chrome.tabs.create({url: 'https://chrome.google.com/webstore/detail/owa-notifier/hldldpjjjagjfikfknadmnnmpbbhgihg/details'});
