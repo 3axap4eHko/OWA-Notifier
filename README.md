@@ -1,6 +1,5 @@
-Google Chrome Extension OWA (Outlook Web Access) notifier for EWS (Exchange Web Service)
-=====================
-
+# Outlook Web Access Notifier
+### for Microsoft Exchange Web Services
 
 This extension does check of unread emails in Index folder of MS Exchange's Outlook Web Access 2010.
 Need to enabled the Exchange Web Services (EWS).
