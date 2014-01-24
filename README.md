@@ -10,7 +10,7 @@ P.S. Please, help me to improve extension. If you have a bug or idea, just send 
 Changes:
 #### Version 1.4.7
  - Added notification display time
- 
+
 #### Version 1.4.x
  - Desktop notifications
  - Change update count logic
