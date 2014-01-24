@@ -146,7 +146,7 @@ function Exchange() {
             exchange.notify  = window.webkitNotifications.createNotification(chrome.extension.getURL('images/icon128.png'), data.title, data.message);
             exchange.notify.onclick = onclick || Function.empty;
             exchange.notify.show();
-            setTimeout((function() { this.close();}).bind(exchange.notify), (exchange.options.displayTime || 15) * 1000);
+            setTimeout((function() { this.close();}).bind(exchange.notify), (exchange.options.displayTime || defaultConfig.displayTime) * 1000);
         } else {
             window.webkitNotifications.requestPermission();
         }
@@ -306,7 +306,7 @@ function Exchange() {
 
     if (localStorage.getItem('version')!=chrome.app.getDetails().version)
     {
-        //localStorage.setItem('version', chrome.app.getDetails().version);
+        localStorage.setItem('version', chrome.app.getDetails().version);
         var notify = window.webkitNotifications.createNotification(
             chrome.extension.getURL('images/icon128.png'),
             'OWA Notifier updated to ' + chrome.app.getDetails().version,
