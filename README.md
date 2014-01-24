@@ -1,4 +1,4 @@
-Google Chrome Extension OWA (Outlook Web Access) notifier for EWS (Exchange Web Service) {#welcome}
+Google Chrome Extension OWA (Outlook Web Access) notifier for EWS (Exchange Web Service)
 =====================
 
 
