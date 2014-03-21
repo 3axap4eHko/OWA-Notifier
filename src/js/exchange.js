@@ -146,7 +146,9 @@ function Exchange() {
             exchange.notify  = window.webkitNotifications.createNotification(chrome.extension.getURL('images/icon128.png'), data.title, data.message);
             exchange.notify.onclick = onclick || Function.empty;
             exchange.notify.show();
-            setTimeout((function() { this.close();}).bind(exchange.notify), (exchange.options.displayTime || defaultConfig.displayTime) * 1000);
+            if (exchange.options.displayTime != 0) {
+              setTimeout((function() { exchange.notify && exchange.notify.cancel() }), exchange.options.displayTime * 1000);
+            }
         } else {
             window.webkitNotifications.requestPermission();
         }
@@ -173,7 +175,7 @@ function Exchange() {
                         },
                         function() {
                             exchange.goToInbox();
-                            this.close();
+                            exchange.notify.cancel();
                         }
                     );
 
