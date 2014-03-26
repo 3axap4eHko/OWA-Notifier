@@ -120,7 +120,6 @@
             case 'apply':
                 interval=form.rawData();
                 break;
-
         }
         popover.popover('hide');
         return false;

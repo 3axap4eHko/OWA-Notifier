@@ -32,7 +32,7 @@ function Exchange() {
 
     exchange.load = function () {
         Object.keys(defaultConfig).forEach(function(optionKey){
-            exchange.options[optionKey] = localStorage.getItem(optionKey);
+            exchange.options[optionKey] = localStorage.hasOwnProperty(optionKey) ?  localStorage.getItem(optionKey) : defaultConfig[optionKey];
         });
         return exchange;
     };
