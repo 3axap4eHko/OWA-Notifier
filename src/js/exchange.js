@@ -146,9 +146,11 @@ function Exchange() {
             exchange.notify  = window.webkitNotifications.createNotification(chrome.extension.getURL('images/icon128.png'), data.title, data.message);
             exchange.notify.onclick = onclick || Function.empty;
             exchange.notify.show();
-            if (exchange.options.displayTime != 0) {
-              setTimeout((function() { exchange.notify && exchange.notify.cancel() }), exchange.options.displayTime * 1000);
-            }
+            exchange.options.displayTime!=0 &&
+            setTimeout(function() {
+                    exchange.notify && exchange.notify.cancel();
+                }, (exchange.options.displayTime || defaultConfig.displayTime) * 1000
+            );
         } else {
             window.webkitNotifications.requestPermission();
         }
@@ -252,7 +254,7 @@ function Exchange() {
         $(formSelector).find('[data-options]').each(function()
         {
             var $this = $(this);
-            $this.val(exchange.options[$this.data('options')]);
+            $this.val(exchange.options[$this.data('options')]).trigger('change');
         });
         return exchange;
     };

@@ -5,7 +5,9 @@
     <link rel="stylesheet" href="css/bootstrap.min.css"/>
     <link rel="stylesheet" href="css/owa_options.css"/>
     <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
     <script type="text/javascript" src="js/core.js"></script>
+    <script type="text/javascript" src="js/plugins.js"></script>
     <script type="text/javascript" src="js/chromeJS.js"></script>
     <script type="text/javascript" src="js/exchange.js"></script>
 </head>
@@ -80,22 +82,17 @@
             <div class="form-group">
                 <label class="col-lg-4 control-label" for="update-interval">Update interval</label>
                 <div class="col-lg-3">
-                    <div class="input-group">
-                        <input type="number" id="update-interval" min="1" max="3600" class="input-lg form-control" value="30" placeholder="Interval" data-options="updateInterval" data-filter="parseInt" required>
-                        <span class="input-group-addon"> seconds</span>
-                    </div>
+                    <input type="text" id="update-interval" class="interval-picker input-lg form-control" value="00:00:10" placeholder="Interval" readonly required>
+                    <input type="hidden" value="10" data-options="updateInterval" data-interval-view="#update-interval" data-filter="parseInt" required>
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="col-lg-4 control-label" for="display-time">Display time</label>
                 <div class="col-lg-3">
-                    <div class="input-group">
-                        <input type="number" id="display-time" min="1" max="3600" class="input-lg form-control" value="15" placeholder="Interval" data-options="displayTime" data-filter="parseInt" required>
-                        <span class="input-group-addon"> seconds</span>
-                    </div>
+                    <input type="text" id="display-time" class="interval-picker input-lg form-control" value="00:00:15" placeholder="Interval" readonly required title="Set 00:00:00 to disable timeout">
+                    <input type="hidden" value="15" data-options="displayTime" data-interval-view="#display-time" data-filter="parseInt" required>
                 </div>
-                <p>Set to 0 to display forever.</p>
             </div>
 
             <div class="form-group">

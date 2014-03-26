@@ -4,6 +4,12 @@
             return Array.prototype.slice.apply(this, [0]);
         }
     });
+    Object.defineProperty(Object.prototype, 'is', {
+        value: function (type) {
+            return Object.prototype.toString.apply(this).slice(8,-1)==type;
+        }
+    });
+
     Object.defineProperty(Function, 'empty', {
         value: function () {
         }

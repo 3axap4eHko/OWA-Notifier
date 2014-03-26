@@ -7,6 +7,7 @@ function compress {
     echo Compress: $1 $(stat -c %s $1)" > "$2 $(stat -c %s $2)
 }
 compress "src/js/core.js"        "build/js/core.js"
+compress "src/js/plugins.js"     "build/js/plugins.js"
 compress "src/js/chromeJS.js"    "build/js/chromeJS.js"
 compress "src/js/exchange.js"    "build/js/exchange.js"
 compress "src/js/owa.js"         "build/js/owa.js"
