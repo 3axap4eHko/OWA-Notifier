@@ -30,9 +30,9 @@ function Exchange() {
     exchange.permitted = false;
     exchange.notify = null;
 
-    exchange.load = function () {
+    exchange.load = function (clear) {
         Object.keys(defaultConfig).forEach(function(optionKey){
-            exchange.options[optionKey] = localStorage.hasOwnProperty(optionKey) ?  localStorage.getItem(optionKey) : defaultConfig[optionKey];
+            exchange.options[optionKey] = (clear || localStorage.hasOwnProperty(optionKey)) ?  localStorage.getItem(optionKey) : defaultConfig[optionKey];
         });
         return exchange;
     };
@@ -44,13 +44,10 @@ function Exchange() {
     };
 
     exchange.isValid = function () {
-        exchange.load();
-        var result = Object.keys(defaultConfig).every(function(optionKey)
-        {
+        exchange.load(true);
+        return Object.keys(defaultConfig).every(function(optionKey) {
             return exchange.options[optionKey] !== null;
         });
-
-        return result;
     };
 
     exchange.xmlAction = function (action, callback) {
@@ -91,13 +88,11 @@ function Exchange() {
                 chrome.browserAction.setBadgeText({text: 'error'});
             }
         })
-
     };
 
     exchange.goToInbox = function () {
-
         if (exchange.isValid()) {
-            chrome.tabs.query({}, function (tabs) {
+            chrome.tabs.query({ }, function (tabs) {
                     for (var i = 0, tab; tab = tabs[i]; i++) {
                         if (tab.url && (tab.url.indexOf(exchange.options.serverOWA) > -1)) {
                             chrome.tabs.update(tab.id, {selected: true, url: tab.url});
@@ -135,22 +130,23 @@ function Exchange() {
 
     exchange.notification = function(url, data, onclick)
     {
-        if (!window.webkitNotifications)
-        {
+        if (!window.webkitNotifications) {
             console.error('Notifications are not supported for this Browser/OS version yet.');
             return;
         }
         if (exchange.permitted) {
             //TODO: change on notifications API will be updated
             exchange.notify && exchange.notify.cancel();
-            exchange.notify  = window.webkitNotifications.createNotification(chrome.extension.getURL('images/icon128.png'), data.title, data.message);
+            exchange.notify = window.webkitNotifications.createNotification(chrome.extension.getURL('images/icon128.png'), data.title, data.message);
             exchange.notify.onclick = onclick || Function.empty;
-            exchange.notify.show();
-            exchange.options.displayTime!=0 &&
-            setTimeout(function() {
+            exchange.options.displayTime!=0 && setTimeout(function() {
                     exchange.notify && exchange.notify.cancel();
                 }, (exchange.options.displayTime || defaultConfig.displayTime) * 1000
             );
+            exchange.notify.onclose = function() {
+                exchange.notify = null;
+            };
+            exchange.notify.show();
         } else {
             window.webkitNotifications.requestPermission();
         }
@@ -163,6 +159,7 @@ function Exchange() {
             exchange.disable('error');
         } else {
             if (exchange.unread == 0) {
+                exchange.notify && exchange.notify.cancel();
                 exchange.enable('');
             } else {
                 if (exchange.unread > oldUnread) {
@@ -177,7 +174,7 @@ function Exchange() {
                         },
                         function() {
                             exchange.goToInbox();
-                            exchange.notify.cancel();
+                            exchange.notify && exchange.notify.cancel();
                         }
                     );
 
@@ -276,14 +273,17 @@ function Exchange() {
             .append($('<input>', {name: 'username', value: login}))
             .append($('<input>', {name: 'password', value: password}))
             .append($('<input>', {name: 'isUtf8', value: 1}));
-        $.post(server + '/auth.owa', form.serialize());
+        try{
+            $.post(server + '/auth.owa', form.serialize());
+        }catch (e){
+        }
         form.remove();
         window.open(server, 'owa');
     };
 
     exchange.work = function() {
         clearTimeout(timerId);
-        if( !exchange.isValid() )
+        if ( !exchange.isValid() )
         {
             timerId = setTimeout(exchange.work, 1000);
             window.chrome.browserAction.setBadgeText({text: 'setup'});

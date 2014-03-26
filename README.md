@@ -7,6 +7,9 @@ Need to enabled the Exchange Web Services (EWS).
 P.S. Please, help me to improve extension. If you have a bug or idea, just send me email or report on GitHub with your case. Thnx.
 
 Changes:
+#### Version 1.4.8
+ - Added notification display time disable
+
 #### Version 1.4.7
  - Added notification display time
 

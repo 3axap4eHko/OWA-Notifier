@@ -3,7 +3,10 @@ function CJS(params) {
     var canvas = $('<canvas>').attr({width: 19, height: 19}).get(0);
     var canvasContext = canvas.getContext('2d');
     var image = $('<img>', {src: ''});
-    var sound = $('<audio>', {preload: 'auto', src: ''});
+    var sound = document.createElement('audio');
+    sound.setAttribute('preload', 'auto');
+    sound.setAttribute('src','');
+        //$('<audio>', {preload: 'auto', src: ''});
 
     var iteration = 0;
 
@@ -72,25 +75,29 @@ function CJS(params) {
         }
     };
     cJS.volume = function(value){
-        sound.get(0).muted=(value==0);
-        sound.get(0).volume=value;
+        try{
+            sound.muted=(value==0);
+            sound.volume=value;
+        }catch (e){
+
+        }
     };
 
     cJS.playSound = function(soundFile){
-        if (!sound.get(0))
-        {
-            return;
+        try{
+            sound.pause();
+            sound.currentTime = 0;
+            if (soundFile){
+                sound.setAttribute('src', soundFile);
+            }
+            sound.play();
+        }catch (e){
+
         }
-        sound.get(0).pause();
-        sound.get(0).currentTime = 0;
-        if (soundFile){
-            sound.attr('src', soundFile);
-        }
-        sound.get(0).play();
     };
 
     config = $.extend({}, config, params);
-    sound.attr('src', config.sound);
+    sound.setAttribute('src', config.sound);
     image.attr('src', config.icon);
 
 }

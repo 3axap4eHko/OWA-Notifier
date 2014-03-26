@@ -66,7 +66,7 @@
                 '<input type="number" class="form-control input-sm" name="seconds" min="0" max="60" value="00">' +
             '</div>' +
             '<div class="form-group pull-right">' +
-                '<button class="btn btn-xs btn-default" data-action="reset"><i class="glyphicon glyphicon-ban-circle"></i></button>' +
+                '<button class="btn btn-xs btn-default" data-action="reset" title="Reset to 0"><i class="glyphicon glyphicon-ban-circle"></i></button>' +
                 '<button class="btn btn-xs btn-success" data-action="apply"><i class="glyphicon glyphicon-ok"></i></button>' +
             '</div>' +
             '</form>');
