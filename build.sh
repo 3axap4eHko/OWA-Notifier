@@ -12,7 +12,6 @@ compress "src/js/chromeJS.js"    "build/js/chromeJS.js"
 compress "src/js/exchange.js"    "build/js/exchange.js"
 compress "src/js/owa.js"         "build/js/owa.js"
 compress "src/js/owa_options.js" "build/js/owa_options.js"
-compress "src/js/notify.js"      "build/js/notify.js"
 compress "src/js/popup.js"       "build/js/popup.js"
 zip -r owa.zip src>/dev/null
 echo Build owa.zip complete!
