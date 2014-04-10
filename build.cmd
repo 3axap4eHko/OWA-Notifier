@@ -15,7 +15,5 @@ echo Compress owa_options.js
 java -jar compiler.jar --js "src/js/owa_options.js" --js_output_file "build/js/owa_options.js"
 echo Compress popup.js
 java -jar compiler.jar --js "src/js/popup.js" --js_output_file "build/js/popup.js"
-echo Compress notify.js
-java -jar compiler.jar --js "src/js/notify.js" --js_output_file "build/js/notify.js"
 echo Build complete, make zip file!
 pause

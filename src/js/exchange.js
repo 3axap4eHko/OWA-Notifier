@@ -1,7 +1,7 @@
 /**
  * TODO http://msdn.microsoft.com/en-us/library/exchange/aa580274(v=exchg.150).aspx
  */
- 
+
 function Exchange() {
 
     var defaultConfig = {
@@ -17,8 +17,6 @@ function Exchange() {
     var exchange = this;
     var cjs = new CJS({});
     var timerId = 0;
-    /** @TODO For the chrome.notifications */
-    var OWAPermissions = {permissions:['notifications'],origins:['<all_urls>']};
 
     exchange.countSet = false;
     exchange.listener = false;
@@ -27,17 +25,16 @@ function Exchange() {
     exchange.options = {};
     exchange.unread = 0;
     exchange.unreadItems = [];
-    exchange.permitted = false;
     exchange.notify = null;
 
     exchange.load = function (clear) {
-        Object.keys(defaultConfig).forEach(function(optionKey){
-            exchange.options[optionKey] = (clear || localStorage.hasOwnProperty(optionKey)) ?  localStorage.getItem(optionKey) : defaultConfig[optionKey];
+        Object.keys(defaultConfig).forEach(function (optionKey) {
+            exchange.options[optionKey] = (clear || localStorage.hasOwnProperty(optionKey)) ? localStorage.getItem(optionKey) : defaultConfig[optionKey];
         });
         return exchange;
     };
 
-    exchange.save = function ( options ) {
+    exchange.save = function (options) {
         $.extend(localStorage, options);
         exchange.load();
         return exchange;
@@ -45,21 +42,21 @@ function Exchange() {
 
     exchange.isValid = function () {
         exchange.load(true);
-        return Object.keys(defaultConfig).every(function(optionKey) {
+        return Object.keys(defaultConfig).every(function (optionKey) {
             return exchange.options[optionKey] !== null;
         });
     };
 
     exchange.xmlAction = function (action, callback) {
         $.ajax({
-            type    : "GET",
-            url     : chrome.extension.getURL('xml/' + action + '.xml'),
+            type: "GET",
+            url: chrome.extension.getURL('xml/' + action + '.xml'),
             dataType: "text",
-            success : function (data) {
+            success: function (data) {
                 exchange.data = data;
                 callback();
             },
-            error   : function () {
+            error: function () {
                 chrome.browserAction.setBadgeText({text: 'error'});
             }
         })
@@ -76,15 +73,15 @@ function Exchange() {
 
     exchange.update = function (callback) {
         $.ajax({
-            type    : "POST",
-            url     : exchange.options.serverEWS + '/Exchange.asmx',
+            type: "POST",
+            url: exchange.options.serverEWS + '/Exchange.asmx',
             dataType: "xml",
-            headers : {"Content-Type": "text/xml"},
-            data    : exchange.data,
+            headers: {"Content-Type": "text/xml"},
+            data: exchange.data,
             password: exchange.options.password,
             username: exchange.options.username,
-            success : callback,
-            error   : function () {
+            success: callback,
+            error: function () {
                 chrome.browserAction.setBadgeText({text: 'error'});
             }
         })
@@ -93,13 +90,13 @@ function Exchange() {
     exchange.goToInbox = function () {
         if (exchange.isValid()) {
             chrome.tabs.query({ }, function (tabs) {
-                    for (var i = 0, tab; tab = tabs[i]; i++) {
-                        if (tab.url && (tab.url.indexOf(exchange.options.serverOWA) > -1)) {
-                            chrome.tabs.update(tab.id, {selected: true, url: tab.url});
-                            return;
-                        }
+                for (var i = 0, tab; tab = tabs[i]; i++) {
+                    if (tab.url && (tab.url.indexOf(exchange.options.serverOWA) > -1)) {
+                        chrome.tabs.update(tab.id, {selected: true, url: tab.url});
+                        return;
                     }
-                    exchange.owa(exchange.options.serverOWA, exchange.options.username, exchange.options.password);
+                }
+                exchange.owa(exchange.options.serverOWA, exchange.options.username, exchange.options.password);
             });
         } else {
             chrome.tabs.create({url: chrome.extension.getURL('owa_options.html')});
@@ -121,35 +118,31 @@ function Exchange() {
         return isNaN(unread) ? -1 : unread;
     };
 
-    exchange.playSound = function(volume){
-        if(volume){
+    exchange.playSound = function (volume) {
+        if (volume) {
             cjs.volume(volume);
         }
         cjs.playSound();
     };
 
-    exchange.notification = function(url, data, onclick)
-    {
-        if (!window.webkitNotifications) {
-            console.error('Notifications are not supported for this Browser/OS version yet.');
-            return;
+    exchange.notification = function (data) {
+        var notifyOpts = {
+            type: "basic",
+            title: data.title,
+            message: data.message,
+            iconUrl: chrome.extension.getURL('images/icon128.png')
+        };
+
+        function notificationCallback(notificationId) {
+            if (exchange.options.displayTime != 0) {
+                setTimeout(function () {
+                    chrome.notifications.clear(notificationId, function (wasCleared) {
+                    });
+                }, (exchange.options.displayTime || defaultConfig.displayTime) * 1000);
+            }
         }
-        if (exchange.permitted) {
-            //TODO: change on notifications API will be updated
-            exchange.notify && exchange.notify.cancel();
-            exchange.notify = window.webkitNotifications.createNotification(chrome.extension.getURL('images/icon128.png'), data.title, data.message);
-            exchange.notify.onclick = onclick || Function.empty;
-            exchange.options.displayTime!=0 && setTimeout(function() {
-                    exchange.notify && exchange.notify.cancel();
-                }, (exchange.options.displayTime || defaultConfig.displayTime) * 1000
-            );
-            exchange.notify.onclose = function() {
-                exchange.notify = null;
-            };
-            exchange.notify.show();
-        } else {
-            window.webkitNotifications.requestPermission();
-        }
+
+        chrome.notifications.create("", notifyOpts, notificationCallback);
     };
 
     exchange.updateIcon = function (unread) {
@@ -167,14 +160,9 @@ function Exchange() {
                     cjs.animate();
                     exchange.enable(exchange.unread.toString());
                     exchange.notification(
-                        'notify.html',
                         {
-                            title: ('You have {0} unread mail{1}').fmt(unread, unread>1?'s':''),
+                            title: ('You have {0} unread mail{1}').fmt(unread, unread > 1 ? 's' : ''),
                             message: 'Click to view'
-                        },
-                        function() {
-                            exchange.goToInbox();
-                            exchange.notify && exchange.notify.cancel();
                         }
                     );
 
@@ -203,15 +191,15 @@ function Exchange() {
     exchange.test = function (options, onSuccess, onError) {
         exchange.xmlAction('folders', function () {
             $.ajax({
-                type    : "POST",
-                url     : options.serverEWS + '/Exchange.asmx',
+                type: "POST",
+                url: options.serverEWS + '/Exchange.asmx',
                 dataType: "xml",
-                headers : {"Content-Type": "text/xml"},
-                data    : exchange.data,
+                headers: {"Content-Type": "text/xml"},
+                data: exchange.data,
                 password: options.password,
                 username: options.username,
-                success : onSuccess,
-                error   : function (jqXHR, textStatus, errorThrown) {
+                success: onSuccess,
+                error: function (jqXHR, textStatus, errorThrown) {
                     if (errorThrown == 'Unauthorized') {
                         onError(
                             [
@@ -231,8 +219,7 @@ function Exchange() {
 
     exchange.saveForm = function (formSelector, onSuccess, onError) {
         var options = {};
-        $(formSelector).find('[data-options]').each(function()
-        {
+        $(formSelector).find('[data-options]').each(function () {
             var $this = $(this),
                 filter = window[$this.data('filter')] || Function.self;
             options[$this.data('options')] = filter($this.val());
@@ -248,8 +235,7 @@ function Exchange() {
 
     exchange.loadForm = function (formSelector) {
         exchange.load();
-        $(formSelector).find('[data-options]').each(function()
-        {
+        $(formSelector).find('[data-options]').each(function () {
             var $this = $(this);
             $this.val(exchange.options[$this.data('options')]).trigger('change');
         });
@@ -258,14 +244,14 @@ function Exchange() {
 
     exchange.validForm = function (formSelector) {
         var val = '';
-        return $(formSelector).find('[data-options]').toArray().every(function(element){
+        return $(formSelector).find('[data-options]').toArray().every(function (element) {
             val = $(element).val();
             return val !== '' && val !== null;
         });
     };
 
-    exchange.owa = function(server, login, password){
-        var form = $('<form>',{action: server + '/auth.owa', target: 'owa', method: 'post', id: 'owaAuthForm'})
+    exchange.owa = function (server, login, password) {
+        var form = $('<form>', {action: server + '/auth.owa', target: 'owa', method: 'post', id: 'owaAuthForm'})
             .append($('<input>', {name: 'forcedownlevel', value: '0'}))
             .append($('<input>', {name: 'flags', value: 4}))
             .append($('<input>', {name: 'trusted', value: 4}))
@@ -273,23 +259,21 @@ function Exchange() {
             .append($('<input>', {name: 'username', value: login}))
             .append($('<input>', {name: 'password', value: password}))
             .append($('<input>', {name: 'isUtf8', value: 1}));
-        try{
+        try {
             $.post(server + '/auth.owa', form.serialize());
-        }catch (e){
+        } catch (e) {
         }
         form.remove();
         window.open(server, 'owa');
     };
 
-    exchange.work = function() {
+    exchange.work = function () {
         clearTimeout(timerId);
-        if ( !exchange.isValid() )
-        {
+        if (!exchange.isValid()) {
             timerId = setTimeout(exchange.work, 1000);
             window.chrome.browserAction.setBadgeText({text: 'setup'});
         }
-        else
-        {
+        else {
             timerId = setTimeout(exchange.work, exchange.options.updateInterval * 1000);
             exchange.xmlAction('folders', function () {
                 exchange.getUnread();
@@ -304,27 +288,34 @@ function Exchange() {
         return exchange;
     };
 
-    exchange.permitted = window.webkitNotifications.checkPermission() === 0;
     exchange.load();
-    window.chrome.browserAction.onClicked.addListener(exchange.goToInbox);
 
-    if (localStorage.getItem('version')!=chrome.app.getDetails().version)
-    {
+    function onClickListener(notificationId) {
+        if (notificationId == "webstore") {
+            chrome.tabs.create(
+                {
+                    url: 'https://chrome.google.com/webstore/detail/owa-notifier/hldldpjjjagjfikfknadmnnmpbbhgihg/details'
+                }
+            );
+        } else {
+            exchange.goToInbox();
+        }
+    }
+
+    chrome.browserAction.onClicked.addListener(exchange.goToInbox);
+    chrome.notifications.onClicked.addListener(onClickListener);
+
+    if (localStorage.getItem('version') != chrome.app.getDetails().version) {
         localStorage.setItem('version', chrome.app.getDetails().version);
-        var notify = window.webkitNotifications.createNotification(
-            chrome.extension.getURL('images/icon128.png'),
-            'OWA Notifier updated to ' + chrome.app.getDetails().version,
-            'Click this message for viewing changes'
-        );
-        notify.onclick = function ()
-        {
-            chrome.tabs.create({url: 'https://chrome.google.com/webstore/detail/owa-notifier/hldldpjjjagjfikfknadmnnmpbbhgihg/details'});
-            this.cancel();
+
+        var notifyOpts = {
+            type: "basic",
+            title: 'OWA Notifier updated to ' + chrome.app.getDetails().version,
+            message: 'Click this message for viewing changes',
+            iconUrl: chrome.extension.getURL('images/icon128.png')
         };
-        notify.show();
+
+        chrome.notifications.create("webstore", notifyOpts, function (x) {
+        });
     }
 }
-
-
-
-
