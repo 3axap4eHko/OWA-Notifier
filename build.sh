@@ -8,11 +8,10 @@ function compress {
 }
 compress "src/js/core.js"        "build/js/core.js"
 compress "src/js/plugins.js"     "build/js/plugins.js"
-compress "src/js/chromeJS.js"    "build/js/chromeJS.js"
 compress "src/js/exchange.js"    "build/js/exchange.js"
-compress "src/js/owa.js"         "build/js/owa.js"
-compress "src/js/owa_options.js" "build/js/owa_options.js"
-compress "src/js/notify.js"      "build/js/notify.js"
+compress "src/js/background.js"  "build/js/background.js"
 compress "src/js/popup.js"       "build/js/popup.js"
+compress "src/js/settings.js"    "build/js/settings.js"
+
 zip -r owa.zip src>/dev/null
 echo Build owa.zip complete!

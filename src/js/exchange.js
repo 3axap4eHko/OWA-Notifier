@@ -63,7 +63,7 @@
     }
 
     function getXML(action, callback) {
-        if(!actionsData[action] || true)
+        if(!actionsData[action])
         {
             $.ajax({
                 type    : "GET",
@@ -295,32 +295,43 @@
 
             },
             notify: isOldAPI ?
-                function(parameters){
-                    var n12 = window.webkitNotifications.createNotification(parameters.icon, parameters.title, parameters.message);
-                    n12.onclick = function()
+                (function(parameters) {
+                    parameters.onclick || (this.notification && this.notification.cancel());
+                    this.notification = window.webkitNotifications.createNotification(parameters.icon, parameters.title, parameters.message);
+                    this.notification.onclick = parameters.onclick || (function()
                     {
                         for(var idx in accounts)
                         {
-                            if (parseInt(accounts[idx].unread)>0)
+                            if (accounts.hasOwnProperty(idx) && parseInt(accounts[idx].unread)>0)
                             {
                                 E.$.web.open(accounts[idx]);
-                                n12.cancel();
+                                this.notification.cancel();
                                 return;
                             }
                         }
-                    };
-                    n12.show();
-                } :
-                function(parameters)
-                {
-                    var notificationId = 'mailNotification'+(+new Date());
-                    chrome.notifications.create(notificationId, {
+                    }).bind(this);
+                    this.notification.show();
+                    var displayTime = parameters.displayTime || options.displayTime;
+                    displayTime>0 && setTimeout((function(){
+                        this.notification && this.notification.cancel();
+                    }).bind(this), displayTime * 1000);
+                }).bind({notification: null})
+                :
+                (function(parameters) {
+                    parameters.notificationId || chrome.notifications.clear(this.notificationId);
+                    this.notificationId = parameters.notificationId || 'mailNotification'+(+new Date());
+                    var displayTime = parameters.displayTime || options.displayTime;
+                    chrome.notifications.create(this.notificationId, {
                         type: 'basic',
                         title: parameters.title,
                         message: parameters.message,
                         iconUrl: parameters.icon
-                    }, Function.true);
-                }
+                    }, function(notificationId){
+                        displayTime>0 && setTimeout((function(){
+                            chrome.notifications.clear(notificationId);
+                        }).bind(this), displayTime * 1000);
+                    });
+                }).bind({notificationId: null})
         },
         worker: {
             main: function()
@@ -365,14 +376,25 @@
     if (!isOldAPI)
     {
         chrome.notifications.onClicked.addListener(function(notificationId){
-            for(var idx in accounts)
+            switch (notificationId)
             {
-                if (accounts.hasOwnProperty(idx) && parseInt(accounts[idx].unread)>0)
-                {
-                    E.$.web.open(accounts[idx]);
-                    chrome.notifications.clear(notificationId);
-                    return;
-                }
+                case 'about':
+                    openUrl('https://chrome.google.com/webstore/detail/outlook-web-access-notifi/hldldpjjjagjfikfknadmnnmpbbhgihg');
+                    break;
+
+                case 'settings':
+                    E.$.options.open();
+                    break;
+                default :
+                    for(var idx in accounts)
+                    {
+                        if (accounts.hasOwnProperty(idx) && parseInt(accounts[idx].unread)>0)
+                        {
+                            E.$.web.open(accounts[idx]);
+                            chrome.notifications.clear(notificationId);
+                            return;
+                        }
+                    }
             }
         });
     }
@@ -385,14 +407,18 @@
             Object.keys(config.defaultOptions).forEach(function(key){
                 options[key] = localStorage.getItem(key) || config.defaultOptions[key];
             });
-            accounts = [{
-                serverEWS: localStorage.getItem('serverEWS'),
-                serverOWA: localStorage.getItem('serverOWA'),
-                username:  localStorage.getItem('username'),
-                password:  localStorage.getItem('password'),
-                unread: 0
+            accounts = [];
+            if (localStorage.hasOwnProperty('serverEWS'))
+            {
+                accounts.push({
+                    serverEWS: localStorage.getItem('serverEWS'),
+                    serverOWA: localStorage.getItem('serverOWA'),
+                    username:  localStorage.getItem('username'),
+                    password:  localStorage.getItem('password'),
+                    unread: 0
 
-            }];
+                });
+            }
             Object.keys(localStorage).forEach(function(name){
                 localStorage.removeItem(name);
             });
@@ -400,6 +426,19 @@
             E.$.accounts.save(accounts);
         }
         localStorage.setItem('version', chrome.app.getDetails().version);
+
+        E.$.notification.notify({
+            title: 'New version',
+            message: 'Outlook Web Access updated to 2.0',
+            icon: chrome.extension.getURL(config.icon.image),
+            displayTime: 0,
+            notificationId: 'about',
+            onclick: function()
+            {
+                openUrl('https://chrome.google.com/webstore/detail/outlook-web-access-notifi/hldldpjjjagjfikfknadmnnmpbbhgihg');
+            }
+        });
+
     }
     E.$.icon.enable(true);
     E.$.options.load();
