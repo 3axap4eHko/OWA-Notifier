@@ -9,7 +9,6 @@
             </FolderShape>
             <FolderIds>
                 <t:DistinguishedFolderId Id="inbox"/>
-                <t:DistinguishedFolderId Id="root"/>
             </FolderIds>
         </GetFolder>
     </soap:Body>

@@ -1,10 +1,37 @@
+.container {
+    width: 800px;
+}
+
 .navbar-header .navbar-brand {
+    padding: 0;
     font-size: 32px;
     text-transform: uppercase;
     font-weight: bold;
 }
 .navbar-header img { height: 64px;}
 
+.container .jumbotron {
+    padding: 10px 20px 10px 20px;
+}
+
+.container .jumbotron p {
+    padding: 0;
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.tab-content {
+    padding: 10px 10px 20px 10px;
+}
+
+tbody#account-list {
+    white-space: nowrap;
+    table-layout: fixed;
+}
+
+tbody#account-list>tr>td {
+    text-overflow: ellipsis;
+}
 
 input[type=range] {
     -webkit-appearance: none;
@@ -63,4 +90,8 @@ form#interval-picker>div>input {
 
 form#interval-picker>div>button {
     margin: 5px 0 5px 0;
+}
+
+.fake-button {
+    display: none;
 }

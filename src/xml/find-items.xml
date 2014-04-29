@@ -3,7 +3,7 @@
     <soap:Body>
         <FindItem xmlns="http://schemas.microsoft.com/exchange/services/2006/messages" xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" Traversal="Shallow">
             <ItemShape>
-                <t:BaseShape>IdOnly</t:BaseShape>
+                <t:BaseShape>AllProperties</t:BaseShape>
                 <t:AdditionalProperties>
                     <t:FieldURI FieldURI="item:Subject"/>
                     <t:FieldURI FieldURI="item:DateTimeReceived"/>
@@ -21,6 +21,7 @@
                 </t:IsEqualTo>
             </Restriction>
             <ParentFolderIds>
+                <t:DistinguishedFolderId Id="root"/>
                 <t:DistinguishedFolderId Id="inbox"/>
             </ParentFolderIds>
         </FindItem>

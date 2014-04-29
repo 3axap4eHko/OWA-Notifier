@@ -1,12 +1,13 @@
 {
     "author": "3axap4eHko",
-    "version": "1.4.8",
+    "version": "2.0",
     "manifest_version": 2,
     "name": "Outlook Web Access notifier",
     "short_name": "OWA notifier",
     "description": "Outlook Web Access notifier Chrome Extension.",
     "browser_action": {
-        "default_icon": "images/icon.png"
+        "default_icon": "images/icon.png",
+        "default_popup": "popup.html"
     },
     "icons": {
         "256": "images/icon256.png",
@@ -24,9 +25,9 @@
         "tabs",
         "background"
     ],
-    "options_page": "owa_options.html",
+    "options_page": "settings.html",
     "background": {
-        "page": "owa.html",
+        "page": "background.html",
         "persistent": false
     }
 }

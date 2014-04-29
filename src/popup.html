@@ -4,44 +4,24 @@
     <title>OWA notifier - Popup</title>
     <link rel="stylesheet" href="css/bootstrap.min.css"/>
     <link rel="stylesheet" href="css/popup.css"/>
-    <script type="text/javascript" src="js/jquery.min.js"></script>
-    <script type="text/javascript" src="js/core.js"></script>
-    <script type="text/javascript" src="js/chromeJS.js"></script>
-    <script type="text/javascript" src="js/exchange.js"></script>
 </head>
 
 <body>
 <div class="navbar">
-    <a href="https://chrome.google.com/webstore/detail/owa-notifier/hldldpjjjagjfikfknadmnnmpbbhgihg" class="navbar-brand">
+    <a href="https://chrome.google.com/webstore/detail/owa-notifier/hldldpjjjagjfikfknadmnnmpbbhgihg" class="pull-left">
         <img src="images/icon32.png">OWA Notifier
     </a>
     <ul class="nav topbar pull-right">
-        <li><a href="#" title="settings" data-action="settings"><span class="glyphicon glyphicon-cog"></span></a></li>
-        <li><a href="#" title="On/Off sounds" data-action="volume-change"><span class="glyphicon glyphicon-volume-up"></span></a></li>
-        <li><a href="#" title="update mail list" data-action="update"><span class="glyphicon glyphicon-repeat"></span></a></li>
+        <li><a href="#" title="Settings" data-action="settings"><span class="glyphicon glyphicon-cog"></span></a></li>
+        <li><a href="#" title="Update mail list" data-action="update"><span class="glyphicon glyphicon-repeat"></span></a></li>
     </ul>
 </div>
-<div class="mail-section" data-mail="3axap4eHko.development@gmail.com">
-    <div class="info">
-        3axap4eHko.development@gmail.com (1)
-        <a href="#new-letter" class="pull-right"><span class="glyphicon glyphicon-envelope"></span></a>
-    </div>
-    <ul class="mail-list">
-        <li>
-            <ul class="mail">
-                <li>Subject</li>
-                <li><a href="#">Sender@gmail.com</a></li>
-                <li>
-                    <a href="#view" title="read"><span class="glyphicon glyphicon-eye-open"></span></a>
-                    <a href="#mark-as-read" title="mark as read"><span class="glyphicon glyphicon-ok-circle"></span></a>
-                    <a href="#delete" title="delete"><span class="glyphicon glyphicon-trash"></span></a>
-                </li>
-            </ul>
-        </li>
-    </ul>
+<div id="mailbox-list">
 </div>
 
-
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/core.js"></script>
+<script type="text/javascript" src="js/exchange.js"></script>
 <script type="text/javascript" src="js/popup.js"></script>
 </body>
 </html>

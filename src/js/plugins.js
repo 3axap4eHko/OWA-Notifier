@@ -131,10 +131,33 @@
         return false;
     });
 
+    $(document).on('click','[data-trigger]', function()
+    {
+        var $this = $(this);
+        $($this.data('target')).trigger($this.data('trigger'));
+
+        return false;
+    });
+
+
     $(document).on('change', 'input[data-interval-view]', function(){
         var $this = $(this),
             view = $($this.data('interval-view'));
         view.val(secondsToStr($this.val()));
     });
 
+    $(document).on('change', "input[type='range']", function() {
+        var el, newPoint, newPlace, width, offset;
+        el = $(this);
+        width = el.width();
+        newPoint = (el.val() - el.attr("min")) / (el.attr("max") - el.attr("min"));
+        offset = -1.3;
+        if (newPoint < 0) { newPlace = 0; }
+        else if (newPoint > 1) { newPlace = width; }
+        else { newPlace = width * newPoint + offset; offset -= newPoint; }
+        el.next("output").css({
+            left: newPlace,
+            marginLeft: offset + '%'
+        });
+    });
 })(jQuery);

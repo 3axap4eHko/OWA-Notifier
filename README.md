@@ -7,6 +7,12 @@ Need to enabled the Exchange Web Services (EWS).
 P.S. Please, help me to improve extension. If you have a bug or idea, just send me email or report on GitHub with your case. Thnx.
 
 Changes:
+#### Version 2.0.0 beta
+ - Added multi account support
+ - Support old and new notification API
+ - Now extension looking for unread emails in all directories
+ - A few changes in core
+
 #### Version 1.4.8
  - Added notification display time disable
 
