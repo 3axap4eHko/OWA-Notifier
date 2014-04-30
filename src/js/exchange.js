@@ -280,28 +280,27 @@
             }
         },
         notification: {
-            updateUnread: function(unread)
+            updateUnread: (function(unread)
             {
-                chrome.browserAction.getBadgeText({}, function(oldText){
-                    if (oldText!=unread.toString())
+                unread = unread.toInt();
+                if (unread>0)
+                {
+                    chrome.browserAction.setBadgeText({text: unread+''});
+                    if (this.unread<unread)
                     {
-                        if(unread.toInt()>0)
-                        {
-                        chrome.browserAction.setBadgeText({text: unread.toString()});
                         E.$.sound.volume(options.volume).play();
                         E.$.notification.notify({
                             title: 'Unread emails',
                             message: 'You have '+unread + ' emails',
                             icon: chrome.extension.getURL(config.icon.image)
                         });
-                        $(document).trigger('unread');
-                        } else {
-                            chrome.browserAction.setBadgeText({text: ''});
-                        }
+                        $(document).trigger('unread',[unread]);
                     }
-                });
-
-            },
+                    this.unread = unread;
+                } else {
+                    chrome.browserAction.setBadgeText({text: ''});
+                }
+            }).bind({unread: 0}),
             notify: isOldAPI ?
                 (function(parameters) {
                     parameters.onclick || (this.notification && this.notification.cancel());
@@ -320,10 +319,11 @@
                     }).bind(this);
                     this.notification.show();
                     var displayTime = parameters.displayTime || options.displayTime;
-                    displayTime>0 && setTimeout((function(){
+                    clearTimeout(this.timerId);
+                    displayTime>0 && (this.timerId = setTimeout((function(){
                         this.notification && this.notification.cancel();
-                    }).bind(this), displayTime * 1000);
-                }).bind({notification: null})
+                    }).bind(this), displayTime * 1000));
+                }).bind({notification: null, timerId: 0})
                 :
                 (function(parameters) {
                     parameters.notificationId || chrome.notifications.clear(this.notificationId);
@@ -334,16 +334,18 @@
                         title: parameters.title,
                         message: parameters.message,
                         iconUrl: parameters.icon
-                    }, function(notificationId){
-                        displayTime>0 && setTimeout((function(){
+                    }, function(notificationId) {
+                        clearTimeout(this.timerId);
+                        displayTime>0 && (this.timerId = setTimeout((function(){
                             chrome.notifications.clear(notificationId);
-                        }).bind(this), displayTime * 1000);
+                        }).bind(this), displayTime * 1000));
                     });
-                }).bind({notificationId: null})
+                }).bind({notificationId: null, timerId: 0})
         },
         worker: {
             main: function()
             {
+                console.debug(new Date().fmt('[H:i:s] ')+'checking for emails');
                 var unread = 0,
                     accounts = (E.$.accounts.load() || []),
                     observer = new Observer(function(){

@@ -58,6 +58,59 @@
             return result;
         }
     });
+
+    Object.defineProperty(Number.prototype, 'fmt', {
+        value: function (iSize) {
+            iSize = (iSize || 0).toInt();
+            var s = this+"";
+            while (s.length < iSize) s = "0" + s;
+            return s;
+        }
+    });
+
+    var dateFilters = {
+        'y': function(){
+            return this.getFullYear().toString().substr(-2);
+        },
+        'Y': function(){
+            return this.getFullYear();
+        },
+        'm': function(){
+            return (this.getMonth()+1).fmt(2);
+        },
+        'd': function(){
+            return this.getDate().fmt(2);
+        },
+        'h': function(){
+            return this.getHours();
+        },
+        'H': function(){
+            return this.getHours().fmt(2);
+        },
+        'i': function(){
+            return this.getMinutes().fmt(2);
+        },
+        's': function(){
+            return this.getSeconds().fmt(2);
+        },
+        'u': function(){
+            return this.getMilliseconds();
+        }
+    };
+
+    Object.defineProperty(Date.prototype, 'fmt', {
+        value: function (format) {
+            var date = this;
+            return format.toArray().map(function(sign){
+                if (dateFilters.hasOwnProperty(sign))
+                {
+                    sign = dateFilters[sign].call(date)
+                }
+                return sign;
+            }).join('');
+        }
+    });
+
     window.Filter = {
         toInt: function (value) {
             return value.toInt();
