@@ -93,8 +93,15 @@ $(document).ready(function () {
     });
 
     formOptions.on('submit', function(e){
+        var filter, element, value;
         Object.keys(options).forEach(function(name){
-            options[name] = formOptions.find('[data-options="'+name+'"]').val();
+            element=formOptions.find('[data-options="'+name+'"]');
+            filter = element.data('filter');
+            value = element.val();
+            if (Filter[filter]) {
+                value = Filter[filter].call(null, value);
+            }
+            options[name] = value;
         });
         E.$.options.save(options);
         $('div.alert.alert-success').slideDown();

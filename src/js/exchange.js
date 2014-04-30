@@ -91,8 +91,16 @@
                 password: parameters.password,
                 username: parameters.username,
                 success : callback,
-                error   : function () {
-                    chrome.browserAction.setBadgeText({text: 'error'});
+                complete   : function (response) {
+                    var code = response.status/100| 0;
+                    if (code!==2)
+                    {
+                        if (response.statusText=='error')
+                        {
+                            response.status = 444;
+                        }
+                        chrome.browserAction.setBadgeText({text: 'e' + response.status});
+                    }
                 }
             })
         });
@@ -429,7 +437,7 @@
 
         E.$.notification.notify({
             title: 'New version',
-            message: 'Outlook Web Access updated to 2.0',
+            message: 'Outlook Web Access updated to ' + chrome.app.getDetails().version,
             icon: chrome.extension.getURL(config.icon.image),
             displayTime: 0,
             notificationId: 'about',

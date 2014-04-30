@@ -58,6 +58,24 @@
             return result;
         }
     });
+    window.Filter = {
+        toInt: function (value) {
+            return value.toInt();
+        },
+        toFloat: function (value) {
+            return value.toFloat();
+        },
+        parse: function (value) {
+            return JSON.parse(value).toString();
+        },
+        toJson: function (value) {
+            return JSON.stringify(value);
+        },
+        toString: function (value) {
+            return value.toString();
+        }
+    };
+
 })();
 
 function Observer(onComplete, count) {

@@ -44,7 +44,7 @@
                     <label class="col-lg-4 control-label" for="update-interval">Update interval</label>
                     <div class="col-lg-3">
                         <input type="text" id="update-interval" class="interval-picker input-lg form-control" value="00:00:10" placeholder="Interval" readonly required>
-                        <input type="hidden" value="10" data-options="updateInterval" data-interval-view="#update-interval" data-filter="parseInt" required>
+                        <input type="hidden" value="10" data-options="updateInterval" data-interval-view="#update-interval" data-filter="toInt" required>
                     </div>
                 </div>
 
@@ -52,7 +52,7 @@
                     <label class="col-lg-4 control-label" for="display-time">Display time</label>
                     <div class="col-lg-3">
                         <input type="text" id="display-time" class="interval-picker input-lg form-control" value="00:00:15" placeholder="Interval" readonly required title="Set 00:00:00 to disable timeout">
-                        <input type="hidden" value="15" data-options="displayTime" data-interval-view="#display-time" data-filter="parseInt" required>
+                        <input type="hidden" value="15" data-options="displayTime" data-interval-view="#display-time" data-filter="toInt" required>
                     </div>
                 </div>
 
@@ -60,7 +60,7 @@
                     <label class="col-lg-4 control-label" for="volume">Sound Volume</label>
                     <div class="col-lg-6">
                         <div class="input-group">
-                            <input type="range" name="volume" id="volume" min="0" max="1" step="0.01" class="input-lg form-control col-lg-8" data-display="#volumeDisplay" data-options="volume" data-filter="parseFloat" data-unit="%"/>
+                            <input type="range" name="volume" id="volume" min="0" max="1" step="0.01" class="input-lg form-control col-lg-8" data-display="#volumeDisplay" data-options="volume" data-filter="toFloat" data-unit="%"/>
                             <output for="volume"></output>
                             <span id="volumeDisplay" class="input-group-addon"></span>
                         </div>
