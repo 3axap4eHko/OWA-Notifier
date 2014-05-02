@@ -14,6 +14,7 @@ $(document).ready(function () {
 
     function updateAccountList()
     {
+        E.$.worker.main();
         accounts = E.$.accounts.load() || [];
         accountList.empty();
         accounts.forEach(function(account, idx){
@@ -53,6 +54,7 @@ $(document).ready(function () {
             folder: $this.find('[name="folder"]').val(),
             unread: 0
         };
+
         E.$.accounts.save(accounts);
         updateAccountList();
 
@@ -97,17 +99,19 @@ $(document).ready(function () {
     });
 
     formOptions.on('submit', function(e){
-        var filter, element, value;
-        Object.keys(options).forEach(function(name){
-            element=formOptions.find('[data-options="'+name+'"]');
-            filter = element.data('filter');
-            value = element.val();
+        var $this, filter, value, name;
+        formOptions.find('input[name],select[name]').each(function(){
+            $this = $(this);
+            name = $this.attr('name');
+            filter = $this.data('filter');
+            value = $this.val();
             if (Filter[filter]) {
                 value = Filter[filter].call(null, value);
             }
             options[name] = value;
         });
         E.$.options.save(options);
+        E.$.worker.main();
         $('div.alert.alert-success').slideDown();
         setTimeout(function () {
             $('div.alert.alert-success').slideUp();

@@ -95,10 +95,6 @@
                     var code = response.status/100| 0;
                     if (code!==2)
                     {
-                        if (response.statusText=='error')
-                        {
-                            response.status = 444;
-                        }
                         chrome.browserAction.setBadgeText({text: 'e' + response.status});
                     }
                 }
@@ -326,7 +322,7 @@
                 }).bind({notification: null, timerId: 0})
                 :
                 (function(parameters) {
-                    parameters.notificationId || (this.notificationId && chrome.notifications.clear(this.notificationId));
+                    parameters.notificationId || (this.notificationId && chrome.notifications.clear(this.notificationId, Function.empty));
                     this.notificationId = parameters.notificationId || 'mailNotification'+(+new Date());
                     var displayTime = parameters.displayTime || options.displayTime;
                     chrome.notifications.create(this.notificationId, {
@@ -337,7 +333,7 @@
                     }, function(notificationId) {
                         clearTimeout(this.timerId);
                         displayTime>0 && (this.timerId = setTimeout((function(){
-                            notificationId && chrome.notifications.clear(notificationId);
+                            notificationId && chrome.notifications.clear(notificationId, Function.empty);
                         }).bind(this), displayTime * 1000));
                     });
                 }).bind({notificationId: null, timerId: 0})
@@ -401,7 +397,7 @@
                         if (accounts.hasOwnProperty(idx) && parseInt(accounts[idx].unread)>0)
                         {
                             E.$.web.open(accounts[idx]);
-                            notificationId && chrome.notifications.clear(notificationId);
+                            notificationId && chrome.notifications.clear(notificationId, Function.empty);
                             return;
                         }
                     }
