@@ -25,6 +25,9 @@ $(document).ready(function () {
                     html: account.serverEWS
                 }))
                 .append($('<td>', {
+                    html: account.folder
+                }))
+                .append($('<td>', {
                     html: account.username
                 }))
                 .append($('<td>', {
@@ -47,6 +50,7 @@ $(document).ready(function () {
             serverOWA: $this.find('[name="serverOWA"]').val(),
             username:  $this.find('[name="username"]').val(),
             password:  $this.find('[name="password"]').val(),
+            folder: $this.find('[name="folder"]').val(),
             unread: 0
         };
         E.$.accounts.save(accounts);
@@ -70,7 +74,7 @@ $(document).ready(function () {
         target.find('form')[0].reset();
         account['idx'] = idx;
         Object.keys(account).forEach(function(name){
-            target.find('input[name="'+name+'"]').val(account[name]);
+            target.find('[name="'+name+'"]').val(account[name]);
         });
         target.modal('show');
     });

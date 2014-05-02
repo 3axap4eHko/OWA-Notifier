@@ -80,8 +80,9 @@
                 <thead>
                 <tr>
                     <th class="col-lg-1">#</th>
-                    <th class="col-lg-5">Server</th>
-                    <th class="col-lg-4">Username</th>
+                    <th class="col-lg-4">Server</th>
+                    <th class="col-lg-2">Folder</th>
+                    <th class="col-lg-3">Username</th>
                     <th class="col-lg-2"><button class="btn btn-primary col-lg-8" data-action="account-add" data-target="#accountSettings"><i class="glyphicon glyphicon-plus"></i></button></th>
                 </tr>
                 </thead>
@@ -121,6 +122,15 @@
                         <label class="control-label" for="password">Password</label>
                         <input type="password" id="password" class="form-control" placeholder="password" name="password">
                     </div>
+
+                    <div class="form-group">
+                        <label class="control-label" for="folder">Check folder</label>
+                        <select id="folder" class="form-control" name="folder" required="required">
+                            <option value="inbox">Only Inbox folder</option>
+                            <option value="root">All folders</option>
+                        </select>
+                    </div>
+
                     <button type="submit" class="fake-button"></button>
                 </form>
             </div>

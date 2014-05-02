@@ -238,7 +238,7 @@
         service: {
             updateUnread: function(account, callback)
             {
-                var parameters = $.extend({action: 'find-folders', format: ['root']},account);
+                var parameters = $.extend({action: 'find-folders', format: [account.folder || 'inbox']},account);
                 doAction(parameters,
                     function (data) {
                         callback($(data).find('DisplayName:contains("AllItems")').parent().find('UnreadCount').text().toInt());
@@ -326,7 +326,7 @@
                 }).bind({notification: null, timerId: 0})
                 :
                 (function(parameters) {
-                    parameters.notificationId && chrome.notifications.clear(this.notificationId);
+                    parameters.notificationId || (this.notificationId && chrome.notifications.clear(this.notificationId));
                     this.notificationId = parameters.notificationId || 'mailNotification'+(+new Date());
                     var displayTime = parameters.displayTime || options.displayTime;
                     chrome.notifications.create(this.notificationId, {
@@ -337,7 +337,7 @@
                     }, function(notificationId) {
                         clearTimeout(this.timerId);
                         displayTime>0 && (this.timerId = setTimeout((function(){
-                            chrome.notifications.clear(notificationId);
+                            notificationId && chrome.notifications.clear(notificationId);
                         }).bind(this), displayTime * 1000));
                     });
                 }).bind({notificationId: null, timerId: 0})
@@ -401,7 +401,7 @@
                         if (accounts.hasOwnProperty(idx) && parseInt(accounts[idx].unread)>0)
                         {
                             E.$.web.open(accounts[idx]);
-                            chrome.notifications.clear(notificationId);
+                            notificationId && chrome.notifications.clear(notificationId);
                             return;
                         }
                     }
@@ -425,6 +425,7 @@
                     serverOWA: localStorage.getItem('serverOWA'),
                     username:  localStorage.getItem('username'),
                     password:  localStorage.getItem('password'),
+                    folder: 'inbox',
                     unread: 0
 
                 });
