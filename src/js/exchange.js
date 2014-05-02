@@ -256,16 +256,6 @@
 
                 return E.$.service;
             },
-            updateUnreadInbox: function(account)
-            {
-                var parameters = $.extend({action: 'find-folders', format: ['inbox']},account);
-                doAction(parameters,
-                    function (data) {
-                    });
-
-                return E.$.service;
-            },
-
             updateItems: function(account)
             {
                 var parameters = $.extend({action: 'find-items'},account);
