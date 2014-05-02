@@ -7,13 +7,13 @@
     Object.defineProperty(Object.prototype, 'toInt', {
         value: function (defaultValue) {
             var value;
-            return isFinite(value = parseInt(this.toString())) ? value : parseInt(defaultValue);
+            return isFinite(value = parseInt(this.toString())) ? value : parseInt(defaultValue || 0);
         }
     });
     Object.defineProperty(Object.prototype, 'toFloat', {
         value: function (defaultValue) {
             var value;
-            return isFinite(value = parseFloat(this.toString())) ? value : parseFloat(defaultValue);
+            return isFinite(value = parseFloat(this.toString())) ? value : parseFloat(defaultValue || 0);
         }
     });
 

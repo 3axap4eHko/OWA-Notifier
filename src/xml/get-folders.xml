@@ -8,7 +8,7 @@
                 <t:BaseShape>Default</t:BaseShape>
             </FolderShape>
             <FolderIds>
-                <t:DistinguishedFolderId Id="inbox"/>
+                <t:DistinguishedFolderId Id="{0}"/>
             </FolderIds>
         </GetFolder>
     </soap:Body>

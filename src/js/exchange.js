@@ -234,11 +234,25 @@
         service: {
             updateUnread: function(account, callback)
             {
-                var parameters = $.extend({action: 'find-folders', format: [account.folder || 'inbox']},account);
-                doAction(parameters,
-                    function (data) {
-                        callback($(data).find('DisplayName:contains("AllItems")').parent().find('UnreadCount').text().toInt());
-                    });
+                var parameters;
+                switch (account.folder.toLowerCase())
+                {
+                    case 'inbox':
+                        parameters = $.extend({action: 'get-folders', format: ['inbox']},account);
+                        doAction(parameters,
+                            function (data) {
+                                callback($(data).find('DisplayName:contains("Inbox")').parent().find('UnreadCount').text().toInt());
+                            });
+                        break;
+                    default :
+                        parameters = $.extend({action: 'find-folders', format: ['root']},account);
+                        doAction(parameters,
+                            function (data) {
+                                callback($(data).find('DisplayName:contains("AllItems")').parent().find('UnreadCount').text().toInt());
+                            });
+                }
+
+
 
                 return E.$.service;
             },
@@ -276,27 +290,29 @@
             }
         },
         notification: {
-            updateUnread: (function(unread)
+            updateUnread: function(unread)
             {
                 unread = unread.toInt();
-                if (unread>0)
-                {
-                    chrome.browserAction.setBadgeText({text: unread+''});
-                    if (this.unread<unread)
+                chrome.browserAction.getBadgeText({}, function(text){
+                    if (unread>0)
                     {
-                        E.$.sound.volume(options.volume).play();
-                        E.$.notification.notify({
-                            title: 'Unread emails',
-                            message: 'You have '+unread + ' emails',
-                            icon: chrome.extension.getURL(config.icon.image)
-                        });
-                        $(document).trigger('unread',[unread]);
+                        chrome.browserAction.setBadgeText({text: unread+''});
+                        if (text.toInt()<unread)
+                        {
+                            E.$.sound.volume(options.volume).play();
+                            E.$.notification.notify({
+                                title: 'Unread emails',
+                                message: 'You have '+unread + ' emails',
+                                icon: chrome.extension.getURL(config.icon.image)
+                            });
+                            $(document).trigger('unread',[unread]);
+                        }
+                    } else {
+                        chrome.browserAction.setBadgeText({text: ''});
                     }
-                    this.unread = unread;
-                } else {
-                    chrome.browserAction.setBadgeText({text: ''});
-                }
-            }).bind({unread: 0}),
+
+                });
+            },
             notify: isOldAPI ?
                 (function(parameters) {
                     parameters.onclick || (this.notification && this.notification.cancel());
@@ -421,7 +437,7 @@
                     serverOWA: localStorage.getItem('serverOWA'),
                     username:  localStorage.getItem('username'),
                     password:  localStorage.getItem('password'),
-                    folder: 'inbox',
+                    folder: 'root',
                     unread: 0
 
                 });
