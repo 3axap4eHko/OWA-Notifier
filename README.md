@@ -8,6 +8,7 @@ P.S. Please, help me to improve extension. If you have a bug or idea, just send 
 
 Changes:
 #### Version 2.0.0.x beta
+ - Inactive background page fixed
  - Added displaying error number
  - Settings improvements
  - Added multi account support

@@ -2,13 +2,13 @@
 (function(){
     var config = {
             icon: {
-                disable                    : {
-                    image     : 'images/icon_d.png',
-                    background: [190,190,190,230]
+                disable: {
+                    image: 'images/icon_d.png',
+                    background: [190, 190, 190, 230]
                 },
-                enable                     : {
-                    image     : 'images/icon.png',
-                    background:[208,0,24,255]
+                enable: {
+                    image: 'images/icon.png',
+                    background: [208, 0, 24, 255]
                 },
                 animation: {
                     frames: 36,
@@ -27,7 +27,7 @@
         },
         audio = document.createElement('audio'),
         canvas = document.createElement('canvas'),
-        canvasContext = audio.setAttribute('height', config.icon.height+'px') || audio.setAttribute('width',config.icon.width+'px') || canvas.getContext('2d'),
+        canvasContext = audio.setAttribute('height', config.icon.height + 'px') || audio.setAttribute('width', config.icon.width + 'px') || canvas.getContext('2d'),
         image = document.createElement('img'),
         options = {},
         accounts = [],
@@ -35,7 +35,7 @@
         E = {},
         items = [],
         folders = [],
-        isOldAPI = !!chrome.notifications;
+        isOldAPI = !chrome.notifications;
 
     audio.setAttribute('preload', 'auto');
     audio.setAttribute('src',config.sound);
@@ -326,7 +326,7 @@
                 }).bind({notification: null, timerId: 0})
                 :
                 (function(parameters) {
-                    parameters.notificationId || chrome.notifications.clear(this.notificationId);
+                    parameters.notificationId && chrome.notifications.clear(this.notificationId);
                     this.notificationId = parameters.notificationId || 'mailNotification'+(+new Date());
                     var displayTime = parameters.displayTime || options.displayTime;
                     chrome.notifications.create(this.notificationId, {
