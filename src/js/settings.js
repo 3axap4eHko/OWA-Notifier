@@ -2,7 +2,11 @@ $(document).ready(function () {
 
     var accounts = [],
         accountList = $('#account-list'),
+        confirmDialog = $('#confirmationDialog'),
         actions = $('<div>', { 'class': 'btn-group'});
+    confirmDialog.on('click', '.btn.btn-primary', function(){
+        (confirmDialog.data('confirmed') || Function.empty).call($(this));
+    });
 
     actions.append($('<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Action <span class="caret"></span></button>'));
     actions.append(
@@ -84,12 +88,16 @@ $(document).ready(function () {
     $(document).on('click','[data-action="account-delete"]', function(){
         var $this = $(this),
             idx = $this.parents('[data-idx]').data('idx').toInt();
-        accounts.splice(idx,1);
-        E.$.accounts.save(accounts);
-        updateAccountList();
+        confirmDialog.find('.modal-body').text('Are you sure you want to delete item?');
+        confirmDialog.data('confirmed', function() {
+            accounts.splice(idx,1);
+            E.$.accounts.save(accounts);
+            updateAccountList();
+        });
+        confirmDialog.modal('show');
+
+        return false;
     });
-
-
 
     var formOptions = $('form#notifier-options'),
         options = E.$.options.load() || {};
