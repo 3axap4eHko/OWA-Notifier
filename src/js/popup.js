@@ -27,12 +27,12 @@ function updateList()
     if (options && accounts.length!=0)
     {
         accounts.forEach(function(account, idx) {
-            server = new URL(account.serverEWS);
+            server = account.serverEWS.match(/:\/\/([^\/]+)/)[1];
             mailBoxList.append(
                 $('<div>', {'class': 'mail-section', 'data-idx': idx})
                     .append(
                         $('<div>', {'class': 'info'})
-                            .append($('<a href="#" data-action="open-owa" title="Open Outlook Web Access">'+account.username+('({0}) <span class="pull-right">{1} <i class="glyphicon glyphicon-envelope"></i></span>').fmt(server.hostname, isFinite(account.unread) ? account.unread : '?' )+' </a>'))
+                            .append($('<a href="#" data-action="open-owa" title="Open Outlook Web Access">'+account.username+('({0}) <span class="pull-right">{1} <i class="glyphicon glyphicon-envelope"></i></span>').fmt(server, isFinite(account.unread) ? account.unread : '?' )+' </a>'))
                     )
             );
         });
