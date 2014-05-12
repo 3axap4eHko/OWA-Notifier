@@ -117,7 +117,7 @@
 
     E.$ = {
         icon : {
-            enable: function(enable){
+            enable: function(enable) {
                 if(enable){
                     chrome.browserAction.setIcon({path: config.icon.enable.image});
                     chrome.browserAction.setBadgeBackgroundColor({color:config.icon.enable.background});
@@ -127,7 +127,7 @@
                 }
             },
             animate: {
-                rotate: animation(function(){
+                rotate: animation(function() {
                     this.context.clearRect(0, 0, this.width, this.height);
                     this.context.translate(Math.ceil(this.width / 2), Math.ceil(this.height / 2));
                     this.context.rotate(2 * Math.PI * ((1 - Math.sin(Math.PI / 2 + this.iteration * Math.PI)) / 2));
@@ -139,7 +139,7 @@
                     height: config.icon.height,
                     width: config.icon.width
                 }),
-                collapse: animation(function(){
+                collapse: animation(function() {
                     var delta = 2* Math.PI * this.iteration;
                     this.context.clearRect(0, 0, this.width, this.height);
                     this.context.scale(1, 0.5 + 0.5*Math.cos(delta));
@@ -235,7 +235,7 @@
             updateUnread: function(account, callback)
             {
                 var parameters;
-                switch (account.folder.toLowerCase())
+                switch ((account.folder || 'root').toLowerCase())
                 {
                     case 'inbox':
                         parameters = $.extend({action: 'get-folders', format: ['inbox']},account);
