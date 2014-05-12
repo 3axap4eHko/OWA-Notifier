@@ -199,11 +199,12 @@
             },
             load : function()
             {
-                return options=JSON.parse(localStorage.getItem('options'));
+                return options=(JSON.parse(localStorage.getItem('options')) || config.defaultOptions);
             },
             save: function(opts)
             {
                 localStorage.setItem('options', JSON.stringify(options=opts));
+                return options;
             }
         },
         web: {
@@ -416,27 +417,7 @@
         var version = parseFloat(localStorage.getItem('version'));
         if(!isFinite(version) || version<2)
         {
-            Object.keys(config.defaultOptions).forEach(function(key){
-                options[key] = localStorage.getItem(key) || config.defaultOptions[key];
-            });
-            accounts = [];
-            if (localStorage.hasOwnProperty('serverEWS'))
-            {
-                accounts.push({
-                    serverEWS: localStorage.getItem('serverEWS'),
-                    serverOWA: localStorage.getItem('serverOWA'),
-                    username:  localStorage.getItem('username'),
-                    password:  localStorage.getItem('password'),
-                    folder: 'root',
-                    unread: 0
-
-                });
-            }
-            Object.keys(localStorage).forEach(function(name){
-                localStorage.removeItem(name);
-            });
-            E.$.options.save(options);
-            E.$.accounts.save(accounts);
+            localStorage.clear();
         }
         localStorage.setItem('version', chrome.app.getDetails().version);
 

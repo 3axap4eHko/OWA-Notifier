@@ -100,7 +100,7 @@ $(document).ready(function () {
     });
 
     var formOptions = $('form#notifier-options'),
-        options = E.$.options.load() || {};
+        options = E.$.options.save(E.$.options.load());
 
     Object.keys(options).forEach(function(name) {
         formOptions.find('[name="'+name+'"]').val(options[name]).trigger('change');

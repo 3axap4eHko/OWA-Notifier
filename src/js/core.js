@@ -1,19 +1,31 @@
 (function () {
+
     Object.defineProperty(Object.prototype, 'toArray', {
         value: function () {
             return Array.prototype.slice.apply(this, [0]);
         }
     });
+
     Object.defineProperty(Object.prototype, 'toInt', {
         value: function (defaultValue) {
             var value;
             return isFinite(value = parseInt(this.toString())) ? value : parseInt(defaultValue || 0);
         }
     });
+
     Object.defineProperty(Object.prototype, 'toFloat', {
         value: function (defaultValue) {
             var value;
             return isFinite(value = parseFloat(this.toString())) ? value : parseFloat(defaultValue || 0);
+        }
+    });
+
+    Object.defineProperty(Object.prototype, 'each', {
+        value: function (callback) {
+            Object.keys(this).forEach(function(name) {
+                this[name] = callback(this[name], name);
+            });
+            return this;
         }
     });
 
