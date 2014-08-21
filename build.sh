@@ -12,6 +12,6 @@ compress "src/js/exchange.js"    "build/js/exchange.js"
 compress "src/js/background.js"  "build/js/background.js"
 compress "src/js/popup.js"       "build/js/popup.js"
 compress "src/js/settings.js"    "build/js/settings.js"
-
-zip -r owa.zip src>/dev/null
+cd build
+zip -r owa.zip *>/dev/null
 echo Build owa.zip complete!
