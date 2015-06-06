@@ -1,26 +1,73 @@
+function Observer(onComplete, count) {
+    var _count = count || 0;
+    this.started = function() {
+        _count++;
+    };
+    this.finished = function() {
+        (--_count==0) && onComplete();
+    };
+    this.count = function() {
+        return _count;
+    }
+}
+
 (function () {
 
-    Object.defineProperty(Object.prototype, 'toArray', {
+    var _defaultOptions = {
+        writable : true,
+        enumerable : false,
+        configurable : false
+    };
+
+    var extend = function () {
+        var self = this,
+            objects = Array.prototype.slice.call(arguments);
+        objects.forEach(function(object){
+            Object.keys(object).forEach(function(key){
+                if (object.hasOwnProperty(key)) {
+                    self[key] = object[key];
+                }
+            });
+            function __() { this.constructor = self; }
+            __.prototype = object.prototype;
+            self.prototype = new __();
+        });
+
+        return self;
+    };
+
+    var define = function (object, property, options) {
+        options = extend({}, _defaultOptions, options);
+        return Object.defineProperty(object, property, options);
+    };
+
+    define(Object.prototype, 'extend', {
+        value: function (){
+            return extend.apply({}, [this].concat(arguments.toArray()));
+        }
+    });
+
+    define(Object.prototype, 'toArray', {
         value: function () {
             return Array.prototype.slice.apply(this, [0]);
         }
     });
 
-    Object.defineProperty(Object.prototype, 'toInt', {
+    define(Object.prototype, 'toInt', {
         value: function (defaultValue) {
             var value;
             return isFinite(value = parseInt(this.toString())) ? value : parseInt(defaultValue || 0);
         }
     });
 
-    Object.defineProperty(Object.prototype, 'toFloat', {
+    define(Object.prototype, 'toFloat', {
         value: function (defaultValue) {
             var value;
             return isFinite(value = parseFloat(this.toString())) ? value : parseFloat(defaultValue || 0);
         }
     });
 
-    Object.defineProperty(Object.prototype, 'each', {
+    define(Object.prototype, 'each', {
         value: function (callback) {
             Object.keys(this).forEach(function(name) {
                 this[name] = callback(this[name], name);
@@ -29,38 +76,38 @@
         }
     });
 
-    Object.defineProperty(Object.prototype, 'is', {
+    define(Object.prototype, 'is', {
         value: function (type) {
             return Object.prototype.toString.apply(this).slice(8,-1)==type;
         }
     });
 
-    Object.defineProperty(Function, 'empty', {
+    define(Function, 'empty', {
         value: function () {
         }
     });
-    Object.defineProperty(Function, 'true', {
-        value: function () {
-            return true;
-        }
-    });
-    Object.defineProperty(Function, 'false', {
+    define(Function, 'true', {
         value: function () {
             return true;
         }
     });
-    Object.defineProperty(Function, 'args', {
+    define(Function, 'false', {
+        value: function () {
+            return true;
+        }
+    });
+    define(Function, 'args', {
         value: function (value) {
             return value;
         }
     });
-    Object.defineProperty(Function, 'log', {
+    define(Function, 'log', {
         value: function () {
             console.log(arguments);
         }
     });
 
-    Object.defineProperty(String.prototype, 'fmt', {
+    define(String.prototype, 'fmt', {
         value: function () {
             var result = this.toString();
             arguments.toArray().forEach(function (value, idx) {
@@ -71,11 +118,15 @@
         }
     });
 
-    Object.defineProperty(Number.prototype, 'fmt', {
+    define(Number.prototype, 'fmt', {
         value: function (iSize) {
             iSize = (iSize || 0).toInt();
-            var s = this+"";
+            var isNegative = this < 0,
+                s = Math.abs(this)+"";
             while (s.length < iSize) s = "0" + s;
+            if (isNegative) {
+                s = "-" + s;
+            }
             return s;
         }
     });
@@ -107,10 +158,17 @@
         },
         'u': function(){
             return this.getMilliseconds();
+        },
+        'z': function(){
+            return this.getTimezoneOffset();
+        },
+        'Z': function(){
+            var diff = this.getTimezoneOffset()/60;
+            return (diff|0).fmt(2) + ":" + (diff%1*60).fmt(2);
         }
     };
 
-    Object.defineProperty(Date.prototype, 'fmt', {
+    define(Date.prototype, 'fmt', {
         value: function (format) {
             var date = this;
             return format.toArray().map(function(sign){
@@ -122,6 +180,50 @@
             }).join('');
         }
     });
+
+    define(Date.prototype, 'addYears', {
+        value: function (years) {
+            var date = new Date(this);
+            date.setFullYear(date.getFullYear() + years);
+            return date;
+        }
+    });
+    define(Date.prototype, 'addMonths', {
+        value: function (months) {
+            var date = new Date(this);
+            date.setMonth(date.getMonth() + months);
+            return date;
+        }
+    });
+    define(Date.prototype, 'addDays', {
+        value: function (days) {
+            var date = new Date(this);
+            date.setDate(date.getDate() + days);
+            return date;
+        }
+    });
+    define(Date.prototype, 'addHours', {
+        value: function (hours) {
+            var date = new Date(this);
+            date.setHours(date.getHours() + hours);
+            return date;
+        }
+    });
+    define(Date.prototype, 'addMinutes', {
+        value: function (minutes) {
+            var date = new Date(this);
+            date.setMinutes(date.getMinutes() + minutes);
+            return date;
+        }
+    });
+    define(Date.prototype, 'addSeconds', {
+        value: function (seconds) {
+            var date = new Date(this);
+            date.setSeconds(date.getSeconds() + seconds);
+            return date;
+        }
+    });
+
 
     window.Filter = {
         toInt: function (value) {
@@ -142,16 +244,3 @@
     };
 
 })();
-
-function Observer(onComplete, count) {
-    var _count = count || 0;
-    this.started = function() {
-        _count++;
-    };
-    this.finished = function() {
-        (--_count==0) && onComplete();
-    };
-    this.count = function() {
-        return _count;
-    }
-}

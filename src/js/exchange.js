@@ -35,6 +35,7 @@
         E = {},
         items = [],
         folders = [],
+        remindedAppointments = {},
         isOldAPI = !chrome.notifications;
 
     audio.setAttribute('preload', 'auto');
@@ -233,6 +234,36 @@
             }
         },
         service: {
+
+            getAppointments: function(account, callback)
+            {
+                var parameters = $.extend({action: 'get-folders', format: ['calendar']},account);
+                doAction(parameters,
+                    function (folderData) {
+                       var folder = $(folderData).find('FolderId'),
+                           id = folder.attr('Id'),
+                           changeKey = folder.attr('ChangeKey'),
+                           calendarParameters = $.extend({action: 'get-appointment', format: [id, changeKey]}, account);
+                        doAction(calendarParameters,function (calendarData) {
+                            var appointments = [];
+                            $(calendarData).find('CalendarItem').each(function(id, element){
+                                element = $(element);
+                                appointments.push({
+                                    id: element.find('ItemId').attr('Id'),
+                                    changeKey: element.find('ItemId').attr('ChangeKey'),
+                                    subject: element.find('Subject').text(),
+                                    start: new Date(element.find('Start').text()),
+                                    end: new Date(element.find('End').text()),
+                                    remind: element.find('ReminderMinutesBeforeStart').text().toInt(),
+                                    location: element.find('Location').text()
+                                });
+                            });
+                            callback(appointments);
+                        });
+                    });
+
+                return E.$.service;
+            },
             updateUnread: function(account, callback)
             {
                 var parameters;
@@ -242,7 +273,7 @@
                         parameters = $.extend({action: 'get-folders', format: ['inbox']},account);
                         doAction(parameters,
                             function (data) {
-                                callback($(data).find('DisplayName:contains("Inbox")').parent().find('UnreadCount').text().toInt());
+                                callback($(data).find('DisplayName').parent().find('UnreadCount').text().toInt());
                             });
                         break;
                     default :
@@ -252,8 +283,6 @@
                                 callback($(data).find('DisplayName:contains("AllItems")').parent().find('UnreadCount').text().toInt());
                             });
                 }
-
-
 
                 return E.$.service;
             },
@@ -281,6 +310,25 @@
             }
         },
         notification: {
+            showAppointments: function(appointments)
+            {
+                appointments.forEach(function(appointment){
+                    if (appointment.start >= new Date() &&
+                        appointment.start <= (new Date()).addMinutes(appointment.remind) &&
+                        !remindedAppointments.hasOwnProperty(appointment.id)
+                    ){
+                        remindedAppointments[appointment.id] = appointment;
+                        E.$.sound.volume(options.volume).play();
+                        E.$.notification.notify({
+                            title: 'Appointment notification',
+                            message: appointment.subject,
+                            icon: chrome.extension.getURL(config.icon.image)
+                        });
+                    } else if (appointment.start < new Date() && remindedAppointments.hasOwnProperty(appointment.id) ) {
+                        delete remindedAppointments[appointment.id];
+                    }
+                });
+            },
             updateUnread: function(unread)
             {
                 unread = unread.toInt();
@@ -348,11 +396,13 @@
         worker: {
             main: function()
             {
-                console.debug(new Date().fmt('[H:i:s] ')+'checking for emails');
+                console.debug(new Date().fmt('[H:i:s] ')+'checking...');
                 var unread = 0,
+                    appointments = [],
                     accounts = (E.$.accounts.load() || []),
                     observer = new Observer(function(){
                         E.$.notification.updateUnread(unread);
+                        E.$.notification.showAppointments(appointments);
                         E.$.accounts.save(accounts);
                     },1);
                 accounts.forEach(function(account){
@@ -360,6 +410,11 @@
                     E.$.service.updateUnread(account, function(count){
                         account.unread = count;
                         unread+=count;
+                        observer.finished();
+                    });
+                    observer.started();
+                    E.$.service.getAppointments(account, function(appointment){
+                        appointments = appointments.concat(appointment);
                         observer.finished();
                     });
                 });
@@ -383,7 +438,6 @@
                 }
             }
         }
-
     };
 
     if (!isOldAPI)
