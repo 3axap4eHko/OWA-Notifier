@@ -234,10 +234,9 @@
             }
         },
         service: {
-
             getAppointments: function(account, callback)
             {
-                var parameters = $.extend({action: 'get-folders', format: ['calendar']},account);
+                var parameters = $.extend({action: 'get-folder', format: ['calendar']},account);
                 doAction(parameters,
                     function (folderData) {
                        var folder = $(folderData).find('FolderId'),
@@ -270,17 +269,17 @@
                 switch ((account.folder || 'root').toLowerCase())
                 {
                     case 'inbox':
-                        parameters = $.extend({action: 'get-folders', format: ['inbox']},account);
+                        parameters = $.extend({action: 'get-folder', format: ['inbox']},account);
                         doAction(parameters,
                             function (data) {
                                 callback($(data).find('DisplayName').parent().find('UnreadCount').text().toInt());
                             });
                         break;
                     default :
-                        parameters = $.extend({action: 'find-folders', format: ['root']},account);
+                        parameters = $.extend({action: 'get-folder', format: ['root']},account);
                         doAction(parameters,
                             function (data) {
-                                callback($(data).find('DisplayName:contains("AllItems")').parent().find('UnreadCount').text().toInt());
+                                callback($(data).find('DisplayName').parent().find('UnreadCount').text().toInt());
                             });
                 }
 
