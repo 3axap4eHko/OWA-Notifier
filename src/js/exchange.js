@@ -211,26 +211,29 @@
         web: {
             open: function(account)
             {
-                var form = $('<form>',{action: account.serverOWA + '/auth.owa', target: 'owa', method: 'post', id: 'owaAuthForm'})
+                var submit,
+                    form = $('<form>',{action: account.serverOWA + '/auth/owaauth.dll', target: '_owa'+account.username, method: 'post', id: 'owaAuthForm'})
                     .append($('<input>', {name: 'forcedownlevel', value: '0'}))
                     .append($('<input>', {name: 'flags', value: 4}))
                     .append($('<input>', {name: 'trusted', value: 4}))
                     .append($('<input>', {name: 'destination', value: account.serverOWA + '/'}))
                     .append($('<input>', {name: 'username', value: account.username}))
                     .append($('<input>', {name: 'password', value: account.password}))
-                    .append($('<input>', {name: 'isUtf8', value: 1}));
+                    .append($('<input>', {name: 'isUtf8', value: 1}))
+                    .append(submit = $('<input>', {type: 'submit'}));
                 try{
-                    $.ajax({
+                    submit.click();
+                    /*$.ajax({
                         url: account.serverOWA + '/auth.owa',
                         data: form.serialize(),
                         type: 'post',
                         username: account.username,
                         password: account.password
-                    });
+                    });*/
                 }catch (e){
                 }
                 form.remove();
-                openUrl(account.serverOWA);
+                //openUrl(account.serverOWA);
             }
         },
         service: {
