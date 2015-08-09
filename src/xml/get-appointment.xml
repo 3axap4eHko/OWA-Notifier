@@ -15,8 +15,9 @@
                     <t:FieldURI FieldURI="calendar:Location" />
                 </t:AdditionalProperties>
             </m:ItemShape>
+            <m:CalendarView MaxEntriesReturned="{MaxEntriesReturned}" StartDate="{StartDate}" EndDate="{EndDate}" />
             <m:ParentFolderIds>
-                <t:FolderId Id="{0}" ChangeKey="{1}" />
+                <t:DistinguishedFolderId Id="calendar"/>
             </m:ParentFolderIds>
         </m:FindItem>
     </soap:Body>

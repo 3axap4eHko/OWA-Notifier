@@ -1,0 +1,262 @@
+.time-picker {
+    top: 200px;
+}
+.time-picker > .modal-dialog {
+    width: 300px;
+}
+
+.time-picker > .modal-dialog > .modal-content {
+    height: 350px;
+}
+
+.time-picker .time-picker-table {
+    position: relative;
+    width: 250px;
+    height: 250px;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    border-radius: 100%;
+    margin: 0 auto 0 auto;
+    background-color: #eee;
+}
+
+.time-picker .time-picker-table:after {
+    content: " ";
+    position: absolute;
+    height: 15px;
+    width: 15px;
+    background-color: #303F9F;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    border-radius: 100%;
+    z-index: 50;
+    left: 118px;
+    top: 118px;
+}
+
+.time-picker .time-picker-table > .time-picker-number {
+    position: absolute;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    cursor: pointer;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    border-radius: 100%;
+    text-align: center;
+    z-index: 2;
+    padding: 10px 0 0 0;
+}
+.time-picker .time-picker-table > .time-picker-number:before {
+    content: " ";
+    position: absolute;
+    height: 80px;
+    width: 2px;
+    z-index: -1;
+    -webkit-transform-origin: center top;
+    -moz-transform-origin: center top;
+    -o-transform-origin: center top;
+    -ms-transform-origin: center top;
+    transform-origin: center top;
+}
+
+.time-picker .time-picker-table > .time-picker-number.active {
+    color: #fff;
+    background-color: #3f51b5;
+}
+.time-picker .time-picker-table > .time-picker-number.active:before {
+    background-color: #3f51b5;
+}
+.time-picker .time-picker-table > .time-picker-number:hover {
+    color: #fff;
+    background-color: #303F9F;
+}
+
+.time-picker .time-picker-table > .time-picker-number:hover:before {
+    background-color: #303F9F;
+}
+
+.time-picker .time-picker-display {
+    margin: 30px auto 0 auto;
+    font-size: 50px;
+    color: #303F9F;
+}
+.time-picker .time-picker-display-time {
+    margin: 0 -15px 0 0;
+    width: 50px;
+}
+.time-picker .time-picker-display-time.active {
+    background-color: #3f51b5;
+    color: #fff;
+}
+.time-picker .time-picker-display-time.active:after {
+    color: #303F9F;
+    background-color: #fff;
+}
+.time-picker .time-picker-display-time:nth-child(1):after {
+    content: ":";
+    margin: 0 0 0 0;
+    padding: 0 0 0 0;
+}
+.time-picker .time-picker-display-time:nth-child(2):after {
+    content: ":";
+}
+
+
+
+.time-picker .time-picker-table>.time-picker-number:nth-child(1) {
+    left:105px;
+    top:5px;
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(1):before {
+    left: 19px;
+    top: 38px;
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    transform: rotate(0deg);
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(2) {
+    left:155px;
+    top:18px;
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(2):before {
+    left: 10px;
+    top: 35px;
+    -webkit-transform: rotate(30deg);
+    -moz-transform: rotate(30deg);
+    -o-transform: rotate(30deg);
+    -ms-transform: rotate(30deg);
+    transform: rotate(30deg);
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(3) {
+    left:191px;
+    top:54px;
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(3):before {
+    left: 3px;
+    top: 29px;
+    -webkit-transform: rotate(60deg);
+    -moz-transform: rotate(60deg);
+    -o-transform: rotate(60deg);
+    -ms-transform: rotate(60deg);
+    transform: rotate(60deg);
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(4) {
+    left:205px;
+    top:105px;
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(4):before {
+    left: 1px;
+    top: 20px;
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(5) {
+    left:191px;
+    top:154px;
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(5):before {
+    left: 3px;
+    top: 11px;
+    -webkit-transform: rotate(120deg);
+    -moz-transform: rotate(120deg);
+    -o-transform: rotate(120deg);
+    -ms-transform: rotate(120deg);
+    transform: rotate(120deg);
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(6) {
+    left:155px;
+    top:191px;
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(6):before {
+    left: 10px;
+    top: 4px;
+    -webkit-transform: rotate(150deg);
+    -moz-transform: rotate(150deg);
+    -o-transform: rotate(150deg);
+    -ms-transform: rotate(150deg);
+    transform: rotate(150deg);
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(7) {
+    left:105px;
+    top:205px;
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(7):before {
+    left: 19px;
+    top: 2px;
+    -webkit-transform: rotate(180deg);
+    -moz-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    transform: rotate(180deg);
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(8) {
+    left:55px;
+    top:191px;
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(8):before {
+    left: 27px;
+    top: 4px;
+    -webkit-transform: rotate(210deg);
+    -moz-transform: rotate(210deg);
+    -o-transform: rotate(210deg);
+    -ms-transform: rotate(210deg);
+    transform: rotate(210deg);
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(9) {
+    left:18px;
+    top:155px;
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(9):before {
+    left: 34px;
+    top: 10px;
+    -webkit-transform: rotate(240deg);
+    -moz-transform: rotate(240deg);
+    -o-transform: rotate(240deg);
+    -ms-transform: rotate(240deg);
+    transform: rotate(240deg);
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(10) {
+    left:5px;
+    top:105px;
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(10):before {
+    left: 37px;
+    top: 19px;
+    -webkit-transform: rotate(270deg);
+    -moz-transform: rotate(270deg);
+    -o-transform: rotate(270deg);
+    -ms-transform: rotate(270deg);
+    transform: rotate(270deg);
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(11) {
+    left:18px;
+    top:54px;
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(11):before {
+    left: 34px;
+    top: 29px;
+    -webkit-transform: rotate(300deg);
+    -moz-transform: rotate(300deg);
+    -o-transform: rotate(300deg);
+    -ms-transform: rotate(300deg);
+    transform: rotate(300deg);
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(12) {
+    left:54px;
+    top:18px;
+}
+.time-picker .time-picker-table>.time-picker-number:nth-child(12):before {
+    left: 28px;
+    top: 35px;
+    -webkit-transform: rotate(330deg);
+    -moz-transform: rotate(330deg);
+    -o-transform: rotate(330deg);
+    -ms-transform: rotate(330deg);
+    transform: rotate(330deg);
+}

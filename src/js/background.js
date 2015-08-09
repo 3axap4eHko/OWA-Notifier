@@ -1,3 +1,5 @@
 $(function() {
-    setInterval(E.$.worker.controller, 1000);
+    setInterval(function(){
+        Extension.process();
+    }, 1000);
 });

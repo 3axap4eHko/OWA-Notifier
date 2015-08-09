@@ -1,0 +1,23 @@
+{
+  "name": "owa",
+  "version": "1.0.0",
+  "description": "This extension does check of unread emails in Index folder of MS Exchange's Outlook Web Access.\r Need to enabled the Exchange Web Services (EWS).",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://3axap4eHko@github.com/3axap4eHko/OWA-Notifier.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/3axap4eHko/OWA-Notifier/issues"
+  },
+  "homepage": "https://github.com/3axap4eHko/OWA-Notifier#readme"
+}

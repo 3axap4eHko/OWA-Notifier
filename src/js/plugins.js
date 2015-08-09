@@ -1,163 +1,116 @@
-(function(jQuery) {
-
-    function secondsToTime(seconds) {
-        return {
-            hours: (seconds/3600|0),
-            minutes: ((seconds-seconds%60)/60|0)%60,
-            seconds: seconds % 60
-        };
-    }
-    function timeToSeconds(time) {
-        return parseInt(time.hours) * 3600 + parseInt(time.minutes) * 60 + parseInt(time.seconds);
-    }
-
-    function timeToStr(time) {
-        return Object.keys(time).map(function(key){return time[key].toString().length<2 ? ('0'+time[key]) : time[key] ;}).join(':');
-    }
-
-    function secondsToStr(seconds){
-        var time = secondsToTime(seconds);
-        return timeToStr(time);
-    }
-
-
-    jQuery.fn.rawData = function(options)
-    {
-        var $this = $(this),
-            data = {};
-        if (options){
-            Object.keys(options).forEach(function(key){
-                data = options[key];
-                if (data.is('Array')){
-                    $this.find('[name="'+key+'[]"]').each(function(idx){
-                        $(this).val(data[idx]);
-                    });
-                }else {
-                    $this.find('[name="'+key+'"]').val(data);
-                }
-            });
-            return this;
-        }else {
-            $this.serializeArray().forEach(function(input) {
-                if (data.hasOwnProperty(input.name)) {
-                    if (!data[input.name].is('Array')) {
-                        data[input.name]=[data[input.name]];
-                    }
-                    data[input.name].push(input.value);
-                }
-                data[input.name] = input.value;
-            });
-            return data;
+(function() {
+    var filters = {
+        Time: function(value){
+            var date = new Date(1970,0,1);
+            date.setSeconds(value);
+            return _.fmtDate(date, 'i:s');
+        },
+        Percent: function(value) {
+            return _.toInt(value*100) + '%';
         }
     };
+    $(document).on('click submit change','[data-trigger]', function(){
+        var $target = $(this);
+        $target.trigger($target.data('trigger'), $target.data());
+        return false;
+    });
+    $(document).on('mousemove change', '[data-display]', function(event){
+        var source = $(event.target);
+        var label = $('label[for="'+source.attr('id')+'"]');
+        var display = label.find('span');
+        if(!display.length) {
+            display = $('<span>');
+            label.append(display);
+        }
+        var filterName = source.data('display');
+        display.html(filters[filterName](source.val()));
+    });
 
-    var interval=null,
-        popover=null;
+    $(document).on('focus', '[data-picker]', function(event){
+        $(event.target).pickTime();
+    });
 
-    $(function(){
-        var htmlForm = $('<form id="interval-picker" class="form-inline" role="form">' +
-            '<div class="form-group">' +
-                '<input type="number" class="form-control input-sm" name="hours" min="0" max="48" value="00">' +
-            '</div> :' +
-            '<div class="form-group">' +
-                '<input type="number" class="form-control input-sm" name="minutes" min="0" max="60" value="00">' +
-            '</div> :' +
-            '<div class="form-group">' +
-                '<input type="number" class="form-control input-sm" name="seconds" min="0" max="60" value="00">' +
-            '</div>' +
-            '<div class="form-group pull-right">' +
-                '<button class="btn btn-xs btn-default" data-action="reset" title="Reset to 0"><i class="glyphicon glyphicon-ban-circle"></i></button>' +
-                '<button class="btn btn-xs btn-success" data-action="apply"><i class="glyphicon glyphicon-ok"></i></button>' +
-            '</div>' +
-            '</form>');
+    $(document).on('set', function(event){
+        var $this = $(event.target),
+            $target = $($this.data('target')),
+            value = $this.data('value');
+        $target.val(value);
+        $target.change();
+    });
 
-        $('.interval-picker').popover({
-            animation: false,
-            html: true,
-            container: 'body',
-            placement: 'right',
-            trigger: 'manual',
-            content: function() {
-                popover = $(this);
-                var dataCtrl = $(this).next(),
-                    seconds = parseInt(dataCtrl.val());
-                interval = secondsToTime(isNaN(seconds) ? 0 : seconds);
-                htmlForm.rawData(interval);
 
-                return htmlForm;
-            }
-        }).on('shown.bs.popover', function (e) {
-            htmlForm.find('input').trigger('focus');
-        }).on('hide.bs.popover', function (e) {
-            var dataCtrl = popover.next();
-            popover.val(timeToStr(interval));
-            dataCtrl.val(timeToSeconds(interval));
+}.call(this.global || this.window || global || window));
+
+function drawClock(timePickerTable, options, onSelect) {
+    options = options || {};
+    options.start = _.toInt(options.start);
+    options.step = _.toInt(options.step, 1);
+    options.value = _.toInt(options.value, options.start-1);
+    timePickerTable.empty();
+    var callback = function() {
+        onSelect($(this).data('value'));
+    };
+    for(var i=options.start; i<(options.start+12); i++) {
+        var value = options.start + options.step*i;
+        var number = $('<div>',{
+            'class': 'time-picker-number mdl-js-button mdl-button--raised mdl-js-ripple-effect',
+            'html': value,
+            'data-value': value
         });
-        $('input[data-interval-view]').trigger('change');
-    });
-
-    $(document).on('focus','.interval-picker', function(e){
-        popover && (e.target!=popover[0]) && popover.popover('hide');
-        $(this).popover('show');
-    });
-
-    $(document).on('click', function(e) {
-        var target = $(e.target);
-        if (!target.hasClass('interval-picker') && !target.hasClass('popover') && !target.parents('.popover').length) {
-            popover && (e.target!=popover[0]) && popover.popover('hide');
+        timePickerTable.append(number);
+        number.on('click', callback);
+        if (options.value>=options.start && value == options.value) {
+            number.addClass('active');
         }
-    });
+    }
+}
 
-    $(document).on('click', 'form#interval-picker button', function() {
-        var $this = $(this),
-            form = $this.parents('form'),
-            action = $this.data('action');
-        switch (action) {
-            case 'reset':
-                form[0].reset();
-                return;
-                break;
-            case 'apply':
-                interval=form.rawData();
-                break;
-        }
-        popover.popover('hide');
-        return false;
-    });
+function setValueDisplayTime(timePickerDisplayTime, id, value) {
+    value = _.fmtNumber(value,2);
+    $(timePickerDisplayTime[id]).html(value);
+    return value;
+}
 
+function setActiveDisplayTime(timePickerDisplayTime, id) {
+    timePickerDisplayTime.removeClass('active');
+    $(timePickerDisplayTime[id]).addClass('active');
+}
 
-    $(document).on('submit','form#interval-picker', function(){
-
-        return false;
-    });
-
-    $(document).on('click','[data-trigger]', function()
-    {
-        var $this = $(this);
-        $($this.data('target')).trigger($this.data('trigger'));
-
-        return false;
-    });
-
-
-    $(document).on('change', 'input[data-interval-view]', function(){
-        var $this = $(this),
-            view = $($this.data('interval-view'));
-        view.val(secondsToStr($this.val()));
-    });
-
-    $(document).on('change', "input[type='range']", function() {
-        var el, newPoint, newPlace, width, offset;
-        el = $(this);
-        width = el.width();
-        newPoint = (el.val() - el.attr("min")) / (el.attr("max") - el.attr("min"));
-        offset = -1.3;
-        if (newPoint < 0) { newPlace = 0; }
-        else if (newPoint > 1) { newPlace = width; }
-        else { newPlace = width * newPoint + offset; offset -= newPoint; }
-        el.next("output").css({
-            left: newPlace,
-            marginLeft: offset + '%'
+function pickTime(timePicker, id, step, value) {
+    return new Promise(function(resolve){
+        var timePickerTable = timePicker.find('.time-picker-table');
+        var timePickerDisplayTime = timePicker.find('.time-picker-display-time');
+        setActiveDisplayTime(timePickerDisplayTime, id);
+        drawClock(timePickerTable, { step: step, value: value }, function(value) {
+            setValueDisplayTime(timePickerDisplayTime, id, value);
+            resolve(value);
         });
     });
-})(jQuery);
+}
+
+
+$.fn.pickTime = function() {
+    var $timePicker = $('#time-picker');
+    var $this = $(this);
+    var format = $this.data('picker');
+    var timePickerDisplayTime = $timePicker.find('.time-picker-display-time');
+    var values = $(this).val().split(':').map(function(value, id){
+        return setValueDisplayTime(timePickerDisplayTime, id, value);
+    });
+    pickTime($timePicker, 0, 1, values[0]).then(function(hours){
+        return pickTime($timePicker, 1, 5, values[1]).then(function(minutes){
+            return pickTime($timePicker, 2, 5, values[2]).then(function(seconds){
+                return new Date(0,0,0, hours, minutes, seconds);
+            })
+        })
+    }).then(function(date){
+        $this.val(_.fmtDate(date, format));
+        $this.change();
+        $timePicker.modal('hide');
+    });
+    $timePicker.modal('show');
+};
+
+$(function(){
+    $('[data-display]').change();
+});

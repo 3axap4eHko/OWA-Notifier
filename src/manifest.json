@@ -1,6 +1,6 @@
 {
     "author": "3axap4eHko",
-    "version": "2.1.1.1",
+    "version": "3.0.0.0",
     "manifest_version": 2,
     "name": "Outlook Web Access notifier",
     "short_name": "OWA notifier",
@@ -17,15 +17,18 @@
         "images/icon128.png"
     ],
     "permissions": [
+        "storage",
         "tts",
         "idle",
         "notifications",
         "webNavigation",
         "<all_urls>",
+        "activeTab",
         "tabs",
-        "background"
+        "background",
+        "alarms"
     ],
-    "options_page": "settings.html",
+    "options_page": "options.html",
     "background": {
         "page": "background.html"
     }

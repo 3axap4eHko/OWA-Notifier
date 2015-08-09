@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<soap:Envelope
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-        xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+               xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types"
+               xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
     <soap:Body>
-        <GetItem
-                xmlns="http://schemas.microsoft.com/exchange/services/2006/messages"
-                xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
-            <ItemShape>
+        <m:GetItem>
+            <m:ItemShape>
                 <t:BaseShape>Default</t:BaseShape>
                 <t:IncludeMimeContent>true</t:IncludeMimeContent>
-            </ItemShape>
-            <ItemIds>
-                <t:ItemId Id="" ChangeKey="CQAAAB" />
-            </ItemIds>
-        </GetItem>
+            </m:ItemShape>
+            <m:ItemIds>
+                <t:ItemId Id="{Id}" ChangeKey="{ChangeKey}" />
+            </m:ItemIds>
+        </m:GetItem>
     </soap:Body>
 </soap:Envelope>

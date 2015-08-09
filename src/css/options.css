@@ -1,0 +1,112 @@
+.mdl-container {
+    width: 900px;
+    margin: 20px auto 0 auto;
+}
+
+.mdl-ribbon {
+    position: absolute;
+    width: 100%;
+    height: 40vh;
+    background-color: rgb(48, 63, 159);
+    -webkit-flex-shrink: 0;
+    -ms-flex-negative: 0;
+    flex-shrink: 0;
+}
+
+.page-content {
+    padding: 50px;
+}
+
+.mdl-list label {
+    color: #3f51b5;
+    font-size: 12px;
+}
+
+.mdl-list label:after {
+    bottom: 14px;
+}
+
+.mdl-list>.mdl-list__item_vertical {
+    display: block;
+    margin: 20px 0 20px 0;
+}
+
+.mdl-list>.mdl-list__item_horizontal {
+    position: relative;
+    display: inline;
+    min-height: 28px;
+}
+
+.time-picker {
+
+}
+
+/* Overrides */
+a:hover, a:active {
+    color: #ff4081;
+}
+
+.mdl-layout__tab-bar {
+    height: 48px!important;
+}
+
+.mdl-mega-footer__link-list a {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.mdl-data-table tbody td.mdl-data-table__cell--icon {
+    text-align: center;
+}
+
+.mdl-data-table tbody td > .material-icons {
+    margin-top: -2px;
+}
+.mdl-data-table tbody td > button {
+    margin-top: -2px;
+    top: -5px;
+}
+
+.mdl-menu__item > a > .material-icons {
+    padding-top: 10px;
+}
+
+.active .material-icons {
+    color: #aaa;
+}
+
+.account-record > .mdl-data-table__cell--non-numeric {
+    overflow: hidden;
+}
+
+.account-record > *:nth-child(1) {
+    max-width: 70px;
+    width: 70px;
+}
+.account-record > *:nth-child(2) {
+    max-width: 250px;
+    width: 250px;
+}
+.account-record > *:nth-child(3) {
+    max-width: 170px;
+    width: 170px;
+}
+.account-record > *:nth-child(4) {
+    max-width: 250px;
+    width: 250px;
+}
+.account-record > *:nth-child(5) {
+    max-width: 80px;
+    width: 80px;
+}
+.account-record > *:nth-child(6) .mdl-menu__container, .account-record > *:nth-child(6) .mdl-menu__outline {
+    width: 60px!important;
+}
+
+.mdl-menu-actions {
+    width: 50px;
+    clip: rect(0px 60px 112px 0px)!important;
+}
+[data-trigger="account.add"] {
+    float: right;
+}
