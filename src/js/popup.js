@@ -1,45 +1,50 @@
-$(document).on('click','[data-action]', function()
-{
-    switch ($(this).data('action'))
-    {
-        case 'settings':
-            window.open(chrome.extension.getURL('settings.html'), 'settings');
-            break;
-        case 'update':
-            E.$.worker.main();
-            break;
-        case  'open-owa':
-            var idx = $(this).parents('.mail-section').data('idx').toInt();
-            var accounts = E.$.accounts.load();
-            E.$.web.open(accounts[idx]);
-            break;
-    }
-    return false;
-});
+(function(){
+    function updateMails() {
+        var mailContainer = $('#mails');
+        mailContainer.empty();
 
-function updateList()
-{
-    var options = E.$.options.load(),
-        accounts = E.$.accounts.load(),
-        mailBoxList = $('#mailbox-list'),
-        server;
-    mailBoxList.empty();
-    if (options && accounts.length!=0)
-    {
-        accounts.forEach(function(account, idx) {
-            server = account.serverEWS.match(/:\/\/([^\/]+)/)[1];
-            mailBoxList.append(
-                $('<div>', {'class': 'mail-section', 'data-idx': idx})
-                    .append(
-                        $('<div>', {'class': 'info'})
-                            .append($('<a href="#" data-action="open-owa" title="Open Outlook Web Access">'+account.username+('({0}) <span class="pull-right">{1} <i class="glyphicon glyphicon-envelope"></i></span>').fmt(server, isFinite(account.unread) ? account.unread : '?' )+' </a>'))
-                    )
-            );
+        Extension.getAccounts().then(function(accounts){
+            Extension.getUnreadEmails(accounts).then(function(result){
+                _.each(result, function(accountMails){
+                    var account = accountMails[0],
+                        mails = accountMails[1];
+                    mailContainer.append(
+                        $('<li>', {'class': 'mdl-shadow--2dp mdl-card__actions'}).append(
+                            $('<a>', {
+                                href: '#',
+                                'data-trigger': 'account.owa',
+                                'data-idx': account.idx,
+                                html: account.email + _.fmtString('<span class="counter">{count} <i class="material-icons">mail</i></span>', {count: mails.length})
+                            })
+                        )
+                    );
+                });
+            });
         });
-    } else {
-        E.$.options.open();
     }
-}
 
-$(document).on('unread', updateList);
-$(updateList);
+    $(document).on('account.owa', function(event, data){
+        var idx = _.toInt(data.idx);
+        Extension.getAccounts().then(function(accounts){
+            Extension.openOwa(accounts[idx]);
+        })
+    });
+
+    $(document).on('settings.general', function(){
+        Extension.openSettingsGeneral();
+    });
+
+    $(document).on('settings.accounts', function(){
+        Extension.openSettingsAccounts();
+    });
+
+    $(document).on('report.bug', function(){
+        Extension.openUrl('https://github.com/3axap4eHko/OWA-Notifier/issues');
+    });
+
+
+    $(function(){
+        updateMails();
+    })
+
+})();

@@ -1,0 +1,39 @@
+@font-face {
+    font-family: 'socicon';
+    src: url('../fonts/socicon.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    text-transform: initial;
+}
+
+[class^="socicon-"], [class*=" socicon-"] { /* Change to your class name, eg: icon, socicon, social... */
+	font-family: 'socicon';
+	speak: none;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+
+	/* Better Font Rendering =========== */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.socicon-facebook:hover {
+    background-color: #3E5B98;
+    color: #fff
+}
+
+.socicon-twitter:hover {
+    background-color: #4DA7DE;
+    color: #fff
+}
+.socicon-google:hover {
+    background-color: #D93E2D;
+    color: #fff
+}
+.socicon-vkontakte:hover {
+    background-color: #5A7FA6;
+    color: #fff
+}

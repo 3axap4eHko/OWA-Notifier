@@ -17,54 +17,46 @@
             }
         }
     };
+
     function formToObject(form) {
-        var $form = $(form),
-            object = {};
-        $form.find('[name]').each(function(id, field){
+        form = $(form);
+        return form.serializeArray().reduce(function(obj, fieldData){
+            var field = form.find('[name="' + fieldData.name + '"]');
             var filter = field.data('filter');
-            var key = field.attr('name');
-            var value = field.val();
             if (filters[filter]) {
-                value = filters[filter].get(value);
+                fieldData.value = filters[filter].get(fieldData.value);
             }
-            switch (field.attr('type')) {
-                case 'checkbox':
-                    break;
-                default:
-                    object[key] = value;
+            obj[fieldData.name] = fieldData.value;
+            return obj;
+        }, {});
+    }
+
+    function objectToForm(form, object) {
+        form = $(form);
+        form[0].reset();
+        var evt = new Event('input',{bubbles: true, cancelable: false});
+        _.each(object, function(value, key){
+            var field = form.find('[name="' + key + '"]');
+            if (field.length) {
+                var filter = field.data('filter');
+                if (filters[filter]) {
+                    value = filters[filter].set(value);
+                }
+                field.val(value);
+                field.trigger('change');
+                field[0].dispatchEvent(evt);
             }
         });
-        return object;
+        return form;
     }
 
 
     function applyConfig(config) {
-        var form = $('#notifier-config');
-        _.each(config, function(value, key) {
-            var field = form.find('[name="' + key + '"]');
-            var filter = field.data('filter');
-            if (filters[filter]) {
-                value = filters[filter].set(value);
-            }
-            field.val(value);
-            field.change();
-        });
+        objectToForm('#notifier-config', config);
     }
 
     function exportConfig() {
-        var fields = $('#notifier-config').find('[name]');
-        var config = {};
-        fields.each(function(id, field){
-            field = $(field);
-            var filter = field.data('filter');
-            var key = field.attr('name');
-            var value = field.val();
-            if (filters[filter]) {
-                value = filters[filter].get(value);
-            }
-            config[key] = value;
-        });
-        return config;
+        return formToObject('#notifier-config');
     }
 
     function buildActions(idx) {
@@ -75,7 +67,7 @@
             )
         ).append(
             $('<ul>', {'class': 'mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect mdl-menu-actions', 'for': id}).append(
-                $('<li>',{'class': 'mdl-menu__item', 'data-trigger': 'account.edit', 'data-account-idx': idx}).append(
+                $('<li>',{'class': 'mdl-menu__item', 'data-trigger': 'account.form', 'data-account-idx': idx}).append(
                     $('<a>',{'html':'<i class="material-icons">settings</i>'})
                 )
             ).append(
@@ -86,12 +78,13 @@
         );
     }
 
-    function buildAccountRow(account, idx) {
-        var server = _.url(account.serverEWS);
+    function buildAccountRow(account) {
+        var server = _.url(account.serverEWS),
+            idx = account.idx;
         return $('<tr class="account-record">').append(
             $('<td>', {'class': 'mdl-data-table__cell--icon'}).append(
                 $('<button>',{'class': 'mdl-button mdl-js-button mdl-button--icon mdl-button--colored', 'data-trigger': 'account.switch', 'data-account-idx': idx}).append(
-                    $('<i>', {'class': 'material-icons','html': account.enabled ? 'notifications' : 'notifications_off'})
+                    $('<i>', {'class': 'material-icons' + (account.enabled ? '' : ' disabled'),'html': account.enabled ? 'notifications' : 'notifications_off'})
                 )
             )
         )
@@ -103,29 +96,24 @@
     }
 
     function loadAccounts(accounts) {
-        var table = $('#accounts'),
-            idx = 0;
+        var table = $('#accounts');
         table.empty();
         _.each(accounts, function(account){
-            table.append(buildAccountRow(account, idx++));
+            table.append(buildAccountRow(account));
         });
-    }
-
-    function exportAccount() {
-        var form = $('#account-form'),
-            idx = _.toInt(form.find('#account-idx').val(), -1),
-            account = new Account();
-        form.find('[name]').each(function(id, field){
-            //account[field.attr('name')] = field.val();
-        })
-
     }
 
     $(function() {
-
-        Extension.getAccounts().then(loadAccounts).then(function(){
-
+        $('.mdl-layout__tab').each(function(idx, element){
+            element = $(element);
+            if (element.attr('href')===(document.location.hash || '#settings-general')) {
+                element.addClass('is-active');
+                $(element.attr('href')).addClass('is-active');
+                return true;
+            }
         });
+
+        Extension.getAccounts().then(loadAccounts);
 
         Extension.getConfig().then(applyConfig).then(function() {
             $('#notifier-config').on('change', 'input,select', function(){
@@ -153,59 +141,86 @@
         });
     });
 
-    $(document).on('account.edit', function(event, data){
-        var idx = _.toInt(data.accountIdx);
+    $(document).on('account.form', function(event, data){
+        var idx = _.toInt(data.accountIdx, -1),
+            account;
         Extension.getAccounts().then(function(accounts){
-            var form = $('#account-form'),
-                account = accounts[Object.keys(accounts)[idx]];
-            form.find('#account-idx').val(idx);
-            form.find('[name]').each(function(id, field){
-                field = $(field);
-                var value = account[field.attr('name')];
-                switch (field.attr('type')) {
-                    case 'checkbox':
-                        value = !!value;
-                        if(value) {
-                            field.prop('checked', true);
-                            field.attr('checked','checked');
-                            //field.parents('.mdl-checkbox').addClass('is-checked');
-                        } else {
-                            field.prop('checked', false);
-                            field.removeAttr('checked');
-                            //field.parents('.mdl-checkbox').removeClass('is-checked');
-                        }
-                        break;
-                    default:
-                        field.val(value);
-                }
-                field.change();
-            });
+            if (idx === -1) {
+                account = new Account();
+                account.idx = -1;
+            } else {
+                account = accounts[idx];
+            }
+            objectToForm('#account-form', account);
             $('#account-modal').modal('show');
         });
         return false;
     });
 
     $(document).on('account.save', function(event){
-        var form = $('#account-form'),
-            idx = _.toInt(form.find('#account-idx').val(), -1);
-        debugger;
-        form.find('[name]').each(function(){
-
-        })
+        var account = formToObject('#account-form'),
+            idx = _.toInt(account.idx, -1);
+        Extension.getAccounts().then(function(accounts){
+            if (idx === -1) {
+                accounts.push(account);
+                account.idx = accounts.length - 1;
+                account.enabled = true;
+            } else {
+                _.extend(accounts[idx],account);
+            }
+            Extension.setAccounts(accounts).then(function(){
+                document.location.reload(true);
+            });
+        });
     });
+
+    $(document).on('account.delete', function(event, data){
+        var idx = _.toInt(data.accountIdx);
+        $('#confirmation-modal').confirm({
+            body: 'Are you sure you want to delete record ?',
+            buttons: [
+                {
+                    title: 'OK',
+                    attr: {
+                        'class': 'mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent pull-left'
+                    },
+                    click: function(){
+                        Extension.getAccounts().then(function(accounts){
+                            accounts.splice(idx,1);
+                            accounts.forEach(function(account, idx){
+                                account.idx = idx;
+                            });
+                            Extension.setAccounts(accounts).then(function(){
+                                document.location.reload(true);
+                            });
+                        });
+                    }
+                },
+                {
+                    title: 'Cancel',
+                    attr: {
+                        'class': 'mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect pull-right',
+                        'data-dismiss': 'modal'
+                    }
+                }
+            ]
+        });
+    });
+
 
     $(document).on('account.switch', function(event, data){
         var idx = _.toInt(data.accountIdx);
         Extension.getAccounts().then(function(accounts){
-            var account = accounts[Object.keys(accounts)[idx]];
-            account.enabled = !account.enabled;
-            Extension.setAccount(account).then(function(accounts){
-                loadAccounts(accounts);
+            accounts[idx].enabled = !accounts[idx].enabled;
+            Extension.setAccounts(accounts).then(function(){
+                document.location.reload(true);
             });
         });
-        return false;
+    });
+
+    $(document).on('account.reload', function(){
+        document.location.reload(true);
     });
 
 
 }.call(this.global || this.window || global || window));
-

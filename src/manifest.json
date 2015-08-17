@@ -1,6 +1,6 @@
 {
     "author": "3axap4eHko",
-    "version": "3.0.0.0",
+    "version": "3.0.0.3",
     "manifest_version": 2,
     "name": "Outlook Web Access notifier",
     "short_name": "OWA notifier",
@@ -28,7 +28,7 @@
         "background",
         "alarms"
     ],
-    "options_page": "options.html",
+    "options_page": "options.html#settings-general",
     "background": {
         "page": "background.html"
     }

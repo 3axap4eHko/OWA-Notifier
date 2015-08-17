@@ -5,56 +5,98 @@
 ::-webkit-scrollbar-button {width: 0;height: 0;display: none;}
 ::-webkit-scrollbar-corner {background-color: transparent}
 
-a:focus{
-    outline: none;
-}
-
 body {
     min-width: 500px;
+    min-height: 180px;
     max-width: 500px;
 }
-.navbar {
-    margin-bottom: 0;
-    min-height: 24px;
-}
-.nav>li>a {
-    padding: 5px 5px;
+
+.mdl-menu__container, .mdl-menu__outline {
+    width: 60px!important;
 }
 
-.navbar-brand {
-    padding: 5px 0 0 0;
-    text-transform: uppercase;
-    font-weight: bold;
-    font-size: 14px;
-}
-.navbar-brand img {
-    height: 22px;
-    margin-top: -7px;
+.mdl-menu--share.mdl-menu--bottom-right {
+    left: 0;
+    width: 60px;
 }
 
-.topbar li {
-    display: inline-block;
+.mdl-menu--share>.mdl-menu__item {
+    height: 24px;
+    line-height: 24px;
+    font-size: 24px;
+    width: 60px;
 }
 
-.mail-section {
-    border-radius: 5px;
-    border: 1px solid #777;
-    background-color: #eee;
-    min-height: 22px;
-    margin-bottom: -1px;
+.circle {
+    background-color: #999;
+    border-radius: 100%;
 }
 
-.mail-section>.info {
-    margin-bottom: -10px;
-    padding: 0 10px 0 25px;
-    font-weight: bold;
+.mdl-card.mails-card {
+    margin: 0 0 0 0;
+    width: 500px;
+    min-height: 180px;
 }
 
-.mail-section>.info>a {
-    padding: 0 0 0 5px;
+.mdl-bar {
+    position: relative;
+    width: 100%;
+    padding: 0;
+}
+.mdl-bar > li {
+    padding: 3px 0 3px 0;
+    background-color: #3f51b5;
+    color: #fff;
+    margin-bottom: 5px;
+    display: block;
+    width: 100%;
+    height: 32px;
 }
 
-.mail-section>.info>a:hover {
-    padding: 0 0 0 5px;
-    text-decoration: none;
+.mdl-bar > li > a {
+    color: #fff;
+    margin: 0 0 0 15px;
+    overflow: hidden;
+    height: 32px;
+    min-width: 100%;
+    position: relative;
+    top: 3px;
+}
+
+.mdl-bar > li > a > .counter {
+    float: right;
+    margin: -6px 20px 0 0;
+    max-width: 150px;
+    overflow: hidden;
+}
+
+.mdl-bar > li > a  .material-icons {
+    position: relative;
+    top: 3px;
+}
+
+
+/* Overwrites */
+.mdl-layout__drawer {
+    width: 100px;
+}
+
+.mdl-list label {
+    color: #3f51b5;
+    font-size: 12px;
+}
+
+.mdl-list label:after {
+    bottom: 14px;
+}
+
+.mdl-list>.mdl-list__item_vertical {
+    display: block;
+    margin: 20px 0 20px 0;
+}
+
+.mdl-list>.mdl-list__item_horizontal {
+    position: relative;
+    display: inline;
+    min-height: 28px;
 }

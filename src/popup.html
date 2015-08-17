@@ -1,28 +1,78 @@
-<!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/html">
+<!doctype html>
+<html lang="en">
 <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>OWA notifier - Popup</title>
-    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <!-- Tile icon for Win8 (144x144 + tile color) -->
+    <meta name="msapplication-TileImage" content="images/icon128.png">
+    <meta name="msapplication-TileColor" content="#3372DF">
+    <link href="css/material-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/material.min.css">
+    <link rel="stylesheet" href="css/plugins.css">
+    <link rel="stylesheet" href="css/socicon.css">
     <link rel="stylesheet" href="css/popup.css"/>
 </head>
-
 <body>
-<div class="navbar">
-    <a href="https://chrome.google.com/webstore/detail/owa-notifier/hldldpjjjagjfikfknadmnnmpbbhgihg" class="pull-left">
-        <img src="images/icon32.png">OWA Notifier
-    </a>
-    <ul class="nav topbar pull-right">
-        <li><a href="#" title="Settings" data-action="settings"><span class="glyphicon glyphicon-cog"></span></a></li>
-        <li><a href="#" title="Update mail list" data-action="update"><span class="glyphicon glyphicon-repeat"></span></a></li>
+
+<div class="mdl-card mdl-shadow--2dp mails-card">
+    <div class="mdl-card__title">
+        <h2 class="mdl-card__title-text">OWA Notifier</h2>
+    </div>
+    <ul class="mdl-bar" id="mails">
     </ul>
-</div>
-<div id="mailbox-list">
+    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
+        <input type="hidden" name="cmd" value="_s-xclick">
+        <input type="hidden" name="hosted_button_id" value="565UELFLJVA8S">
+        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent pull-right" id="donate">
+            Donate
+        </button>
+        <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1"
+             height="1">
+    </form>
+
+    <div class="mdl-card__menu">
+        <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" id="btn-share">
+            <i class="material-icons">share</i>
+        </button>
+        <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect mdl-menu--share"
+            for="btn-share">
+            <li class="mdl-menu__item share socicon-facebook" data-trigger="share" data-url="https://www.facebook.com/sharer/sharer.php?display=popup&u=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Foutlook-web-access-notifi%2Fhldldpjjjagjfikfknadmnnmpbbhgihg">
+                b
+            </li>
+            <li class="mdl-menu__item socicon-twitter" data-trigger="share" data-url="https://twitter.com/intent/tweet?hashtags=OWA-Notifier&url=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Foutlook-web-access-notifi%2Fhldldpjjjagjfikfknadmnnmpbbhgihg&text=OWA%20Notifier">
+                a
+            </li>
+            <li class="mdl-menu__item socicon-google" data-trigger="share" data-url="https://plus.google.com/share?url=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Foutlook-web-access-notifi%2Fhldldpjjjagjfikfknadmnnmpbbhgihg">
+                c
+            </li>
+            <li class="mdl-menu__item socicon-vkontakte" data-trigger="share" data-url="http://vk.com/share.php?url=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Foutlook-web-access-notifi%2Fhldldpjjjagjfikfknadmnnmpbbhgihg">
+                ;
+            </li>
+        </ul>
+        <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-trigger="settings.general">
+            <i class="material-icons">settings</i>
+        </button>
+        <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-trigger="settings.accounts">
+            <i class="material-icons">people</i>
+        </button>
+        <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-trigger="report.bug">
+            <i class="material-icons">bug_report</i>
+        </button>
+    </div>
 </div>
 
-<script type="text/javascript" src="js/jquery.min.js"></script>
 <script type="text/javascript" src="js/core.js"></script>
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/material.min.js"></script>
 <script type="text/javascript" src="js/Promise.min.js"></script>
 <script type="text/javascript" src="js/ExchangeAPI.js"></script>
+<script type="text/javascript" src="js/notify.js"></script>
+<script type="text/javascript" src="js/Extension.js"></script>
+<script type="text/javascript" src="js/plugins.js"></script>
 <script type="text/javascript" src="js/popup.js"></script>
 </body>
 </html>

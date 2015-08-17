@@ -67,15 +67,17 @@
     }
     Notify.prototype.constructor = null;
     Notify.prototype.update = function(options) {
+        var self = this;
         return new Promise(function(resolve){
-            chrome.notifications.update(this.id, options, resolve);
+            chrome.notifications.update(self.id, options, resolve);
         });
     };
     Notify.prototype.remove = function() {
+        var self = this;
         return new Promise(function(resolve){
-            chrome.notifications.clear(this.id, resolve);
+            chrome.notifications.clear(self.id, resolve);
         }).then(function(removed){
-                return removed ? _releaseNotify(this.id) : false;
+                return removed ? _releaseNotify(self.id) : false;
             });
     };
     Notify.getAll = function() {

@@ -50,12 +50,12 @@
         </div>
         <!-- Tabs -->
         <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
-            <a href="#settings-general" class="mdl-layout__tab is-active">General</a>
-            <a href="#settings-accounts" class="mdl-layout__tab">Accounts</a>
+            <a href="#settings-general" class="mdl-layout__tab" data-trigger="tab-switch">General</a>
+            <a href="#settings-accounts" class="mdl-layout__tab" data-trigger="tab-switch">Accounts</a>
         </div>
     </header>
     <main class="mdl-layout__content mdl-container mdl-color--white mdl-shadow--4dp content mdl-color-text--grey-800 mdl-cell mdl-cell--8-col">
-        <section class="mdl-layout__tab-panel is-active" id="settings-general">
+        <section class="mdl-layout__tab-panel" id="settings-general">
             <div class="page-content">
                 <form id="notifier-config" action="#">
                     <ul class="mdl-list mdl-grid">
@@ -129,7 +129,7 @@
                         <li class="mdl-list__item_horizontal mdl-cell--6-col">
                             <label for="volume">Sound Volume: </label>
                             <input class="mdl-slider mdl-js-slider" id="volume" type="range"
-                                   name="volume" min="0" max="1" step="0.01" value="0.5" tabindex="0"
+                                   name="volume" min="0" max="1" step="0.01" value="0" tabindex="0"
                                    data-display="Percent"/>
                         </li>
                     </ul>
@@ -152,7 +152,7 @@
                     <tbody id="accounts">
                     </tbody>
                 </table>
-                <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored" data-trigger="account.add">
+                <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored pull-right" data-trigger="account.form">
                     <i class="material-icons">add</i>
                 </button>
             </div>
@@ -179,47 +179,41 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-body">
-                <form id="account-form" data-trigger="account.form">
-                    <input type="hidden" id="account-idx">
+                <form id="account-form" data-trigger="account.save" data-trigger-on="submit">
+                    <input type="hidden" id="account-idx" name="idx">
                     <ul class="mdl-list">
                         <li class="mdl-list__item_vertical mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                            <input type="email" id="account-email" name="email" class="mdl-textfield__input" value="Email@domain.com">
+                            <input type="email" id="account-email" name="email" class="mdl-textfield__input" required>
                             <label for="account-email" class="mdl-textfield__label">Email</label>
-                            <span class="mdl-textfield__error">Invalid Email!</span>
+                            <!--<span class="mdl-textfield__error">Invalid Email!</span>-->
                         </li>
                         <li class="mdl-list__item_vertical mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                             <label for="account-serverEWS" class="mdl-textfield__label">Exchange Server URL</label>
-                            <input type="url" id="account-serverEWS" name="serverEWS" class="mdl-textfield__input" value="https://domain.com/ews">
+                            <input type="url" id="account-serverEWS" name="serverEWS" class="mdl-textfield__input" required>
                         </li>
                         <li class="mdl-list__item_vertical mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                             <label for="account-serverOWA" class="mdl-textfield__label">Web Access URL</label>
-                            <input type="url" id="account-serverOWA" name="serverOWA" class="mdl-textfield__input" value="https://domain.com/owa">
+                            <input type="url" id="account-serverOWA" name="serverOWA" class="mdl-textfield__input" required>
                         </li>
                         <li class="mdl-list__item_vertical mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                             <label for="account-username" class="mdl-textfield__label">Username</label>
-                            <input type="text" id="account-username" name="username" class="mdl-textfield__input" value="DOMAIN\username">
+                            <input type="text" id="account-username" name="username" class="mdl-textfield__input" required>
                         </li>
                         <li class="mdl-list__item_vertical mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                             <label for="account-password" class="mdl-textfield__label">Password</label>
-                            <input type="password" id="account-password" name="password" class="mdl-textfield__input" value="1234567890">
+                            <input type="password" id="account-password" name="password" class="mdl-textfield__input" required>
                         </li>
                         <li class="mdl-list__item_vertical">
                             <label for="account-folder">Check folder</label>
-                            <select class="" id="account-folder" name="folder">
-                                <option value="root">Root</option>
+                            <select class="" id="account-folder" name="folder" required>
+                                <option value="root" selected>Root</option>
                                 <option value="inbox">Inbox</option>
                             </select>
                         </li>
                         <li class="mdl-list__item_vertical">
-                            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="account-enabled">
-                                <input type="checkbox" name="enabled" id="account-enabled" class="mdl-checkbox__input" value="0"/>
-                                <span class="mdl-checkbox__label">Enabled</span>
-                            </label>
-                        </li>
-                        <li class="mdl-list__item_vertical">
                             <ul class="mdl-list mdl-grid">
                                 <li class="mdl-list__item_horizontal mdl-cell--3-col">
-                                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" data-trigger="account.save">
+                                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
                                         OK
                                     </button>
                                 </li>
@@ -227,7 +221,7 @@
 
                                 </li>
                                 <li class="mdl-list__item_horizontal mdl-cell--3-col">
-                                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" data-dismiss="modal">
+                                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" data-dismiss="modal" data-trigger="account.reload">
                                         Cancel
                                     </button>
                                 </li>
@@ -235,6 +229,33 @@
                         </li>
                     </ul>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="confirmation-modal modal fade" id="confirmation-modal" tabindex="-1" role="dialog" aria-labelledby="confirmation-modal-label">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <ul class="mdl-list mdl-grid">
+                    <li class="mdl-list__item_horizontal mdl-cell--3-col">
+                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" data-trigger="confirmation.ok">
+                            OK
+                        </button>
+                    </li>
+                    <li class="mdl-list__item_horizontal mdl-cell--6-col">
+
+                    </li>
+                    <li class="mdl-list__item_horizontal mdl-cell--3-col">
+                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" data-dismiss="modal" data-trigger="confirmation.cancel">
+                            Cancel
+                        </button>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>

@@ -9,11 +9,18 @@
             return _.toInt(value*100) + '%';
         }
     };
-    $(document).on('click submit change','[data-trigger]', function(){
-        var $target = $(this);
-        $target.trigger($target.data('trigger'), $target.data());
-        return false;
-    });
+    function trigger(event) {
+        var $this = $(this),
+            $target = $($this.data('target') || this),
+            onEvent = $this.data('trigger-on');
+        if (!onEvent || onEvent === event.type) {
+            $target.trigger($this.data('trigger'), $this.data());
+            return false;
+        }
+    }
+
+    $(document).on('click submit change','[data-trigger]', trigger);
+
     $(document).on('mousemove change', '[data-display]', function(event){
         var source = $(event.target);
         var label = $('label[for="'+source.attr('id')+'"]');
@@ -38,6 +45,13 @@
         $target.change();
     });
 
+    $(document).on('tab-switch', function(event){
+        document.location.hash = $(event.target).attr('href');
+    });
+
+    $(document).on('share', function(event, data){
+        Extension.openUrl(data.url);
+    });
 
 }.call(this.global || this.window || global || window));
 
@@ -109,6 +123,28 @@ $.fn.pickTime = function() {
         $timePicker.modal('hide');
     });
     $timePicker.modal('show');
+};
+
+$.fn.confirm = function(options){
+    options = options || {};
+    var $this = $(this),
+        $body = $this.find('.modal-body'),
+        $footer = $this.find('.modal-footer');
+    $body.html(options.body);
+    $footer.empty();
+    _.each(options.buttons || [], function(button){
+        var btn = $('<button>', {
+            html: button.title
+        });
+        _.each(button.attr || {}, function(attr, name){
+            btn.attr(name, attr);
+        });
+        if (button.click) {
+            btn.click(button.click);
+        }
+        $footer.append(btn);
+    });
+    $this.modal('show');
 };
 
 $(function(){

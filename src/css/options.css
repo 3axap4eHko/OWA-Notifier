@@ -41,7 +41,17 @@
 
 }
 
+#account-form .mdl-textfield {
+    width: 450px;
+}
+
+.confirmation-modal {}
+
 /* Overrides */
+.material-icons.disabled {
+    color: #777;
+}
+
 a:hover, a:active {
     color: #ff4081;
 }
@@ -106,7 +116,4 @@ a:hover, a:active {
 .mdl-menu-actions {
     width: 50px;
     clip: rect(0px 60px 112px 0px)!important;
-}
-[data-trigger="account.add"] {
-    float: right;
 }

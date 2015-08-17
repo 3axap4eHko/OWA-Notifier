@@ -167,6 +167,9 @@
     var urlParse = /^(\w+):\/\/(.*?)\/(.*)$/;
     _.url = function(url) {
         var matches = url.match(urlParse);
+        if (!matches) {
+            return {};
+        }
         return {
             schema: matches[1],
             host: matches[2],

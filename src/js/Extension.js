@@ -77,7 +77,6 @@
     }
 
     function openUrl(url) {
-        debugger;
         chrome.tabs.query({}, function(tabs) {
             for (var i = 0, tab; tab = tabs[i]; i++) {
                 if (tab.url && ~tab.url.indexOf(url)) {
@@ -89,15 +88,10 @@
         });
     }
 
-    function openSettings() {
-        var optionsUrl = chrome.extension.getURL('settings.html');
-        openUrl(optionsUrl);
-    }
-
     function openOwa(account) {
         var submit,
             form = $('<form>', {
-                action: account.serverOWA + '/owa/',
+                action: account.serverOWA + '/auth.owa',
                 target: '_owa' + account.username,
                 method: 'post',
                 id: 'owaAuthForm'
@@ -126,13 +120,14 @@
     function notifyEmails(accountsMails) {
         var total = 0;
         var notifyMails = accountsMails.filter(function(accountMails) {
+            if (!accountMails.length) return;
             var account = accountMails[0],
                 mails = accountMails[1],
                 mailsCount = (mails || []).length;
             total += mailsCount;
             if (mailsCount > account.unread) {
                 account.unread = mailsCount;
-                Notify.createBasic('email_' + account.email, {
+                Notify.createBasic('email_' + account.idx, {
                     title: account.email,
                     message: mailsCount + ' unread mail(s)',
                     iconUrl: chrome.extension.getURL(icon.image),
@@ -144,8 +139,10 @@
         if (total !== 0) {
             chrome.browserAction.setBadgeText({text: total + ''});
             if (notifyMails.length > 0) {
-                soundVolume(config.volume);
-                soundPlay(config.mailSound);
+                Extension.getConfig().then(function(config){
+                    soundVolume(config.volume);
+                    soundPlay(config.mailSound);
+                });
             }
         } else {
             chrome.browserAction.setBadgeText({text: ''});
@@ -156,6 +153,7 @@
     function notifyAppointments(accountsAppointments) {
         var toRemind = [];
         accountsAppointments.forEach(function(accountAppointments) {
+            if (!accountAppointments.length) return;
             var account = accountAppointments[0],
                 appointments = accountAppointments[1];
             appointments = appointments.filter(function(appointment) {
@@ -171,7 +169,7 @@
                 return Notify.item(appointment.subject, 'At ' + appointment.start);
             });
             if (appointments.length) {
-                Notify.createList('appointment_' + account.email, {
+                Notify.createList('appointment_' + account.idx, {
                     title: 'Appointment(s) for ' + account.email,
                     message: '',
                     iconUrl: chrome.extension.getURL(icon.image),
@@ -183,8 +181,10 @@
             return appointments.length;
         });
         if (toRemind.length > 0) {
-            soundVolume(config.volume);
-            soundPlay(config.mailSound);
+            Extension.getConfig().then(function(config){
+                soundVolume(config.volume);
+                soundPlay(config.mailSound);
+            });
         }
 
         return toRemind;
@@ -208,7 +208,7 @@
         ExchangeAccount.call(this, username, password, serverEWS, serverOWA);
         this.enabled = true;
         this.email = email;
-        this.folder = folder;
+        this.folder = folder || 'root';
         this.unread = 0;
     }
 
@@ -235,30 +235,27 @@
         },
         getAccounts: function() {
             return storageLoad('accounts').then(function(loadedAccounts) {
-                return (loadedAccounts || {});
+                return (loadedAccounts || []);
             });
         },
         setAccounts: function(accounts) {
-            return storageSave('accounts', accounts || {}).then(function(savedAccounts) {
+            if (!accounts[0].unread) {
+                debugger;
+            }
+            return storageSave('accounts', accounts || []).then(function(savedAccounts) {
                 return savedAccounts;
             });
         },
-        getAccount: function(email) {
-            return Extension.getAccounts().then(function(loadedAccounts) {
-                return loadedAccounts[email];
-            });
+        openUrl: function(url){
+            openUrl(url);
         },
-        setAccount: function(account) {
-            return Extension.getAccounts().then(function(loadedAccounts) {
-                loadedAccounts[account.email] = account;
-                return Extension.setAccounts(loadedAccounts);
-            });
+        openSettingsGeneral: function(){
+            var optionsUrl = chrome.extension.getURL('options.html#settings-general');
+            openUrl(optionsUrl);
         },
-        deleteAccount: function(email) {
-            return Extension.getAccounts().then(function(loadedAccounts) {
-                delete loadedAccounts[email];
-                return Extension.setAccounts(loadedAccounts);
-            });
+        openSettingsAccounts: function(){
+            var optionsUrl = chrome.extension.getURL('options.html#settings-accounts');
+            openUrl(optionsUrl);
         },
         openOwa: function(account) {
             return new Promise(function(resolve) {
@@ -267,8 +264,8 @@
             });
         },
         getUnreadEmails: function(accounts) {
-            return Promise.all(Object.keys(accounts).map(function(email) {
-                var account = accounts[email];
+            return Promise.all(Object.keys(accounts).map(function(idx) {
+                var account = accounts[idx];
                 if (account.folder === 'root') {
                     return api.getAllItemsFolder(account).then(function(folder) {
                         return api.getFolderUnreadMailsById(folder, account).then(function(mails) {
@@ -283,10 +280,10 @@
             }));
         },
         getAppointments: function(accounts) {
-            return Promise.all(Object.keys(accounts).map(function(email) {
-                var account = accounts[email];
-                return api.getAppointments(accounts[email]).then(function(appointments) {
-                    return [account, appointments]
+            return Promise.all(Object.keys(accounts).map(function(idx) {
+                var account = accounts[idx];
+                return api.getAppointments(account).then(function(appointments) {
+                    return [account, appointments];
                 }).catch(logErrorDefault([]));
             }));
         },
@@ -324,24 +321,22 @@
         Notify.createBasic(null, {
             title: 'New version',
             message: 'Outlook Web Access updated to ' + chrome.app.getDetails().version,
-            icon: chrome.extension.getURL(config.icon.image)
+            iconUrl: chrome.extension.getURL(icon.image)
         }, function() {
             openUrl('https://chrome.google.com/webstore/detail/outlook-web-access-notifi/hldldpjjjagjfikfknadmnnmpbbhgihg');
         });
     }
 
     Extension.getAccounts().then(function(accounts) {
-        if (Array.isArray(accounts)) {
-            var accountReplacer = /[^a-zA-Z0-9\._-]+/;
-            accounts = accounts.reduce(function(accounts, account) {
+        var accountReplacer = /[^a-zA-Z0-9\._-]+/;
+        accounts.forEach(function(account, idx) {
+            if (!account.email) {
+                account.idx = idx;
                 account.email = account.username.replace(accountReplacer,'') + '@' + _.url(account.serverEWS).host;
                 account.enabled = 1;
-                accounts[account.email] = account;
-
-                return accounts;
-            }, {});
-            Extension.setAccounts(accounts);
-        }
+            }
+        });
+        Extension.setAccounts(accounts);
     });
     this.Account = Account;
     this.Extension = Extension;
