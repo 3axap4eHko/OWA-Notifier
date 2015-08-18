@@ -193,14 +193,19 @@
 
     function storageSave(name, value) {
         return new Promise(function(resolve) {
-            localStorage.setItem(name, JSON.stringify(value));
-            resolve(value);
+            var data = {};
+            data[name] = value;
+            chrome.storage.local.set(data, function() {
+                resolve(value)
+            });
         });
     }
 
     function storageLoad(name) {
         return new Promise(function(resolve) {
-            resolve(JSON.parse(localStorage.getItem(name)));
+            chrome.storage.local.get(name, function(value) {
+                resolve(value[name]);
+            });
         });
     }
 
@@ -323,20 +328,29 @@
         }, function() {
             openUrl('https://chrome.google.com/webstore/detail/outlook-web-access-notifi/hldldpjjjagjfikfknadmnnmpbbhgihg');
         });
-    }
 
-    Extension.getAccounts().then(function(accounts) {
-        var accountReplacer = /[^a-zA-Z0-9\._-]+/;
-        accounts.forEach(function(account, idx) {
-            if (!account.email) {
+        /** Migration */
+        var oldData = localStorage.getItem('accounts');
+        if (oldData) {
+            oldData = JSON.parse(oldData);
+            var accountReplacer = /[^a-zA-Z0-9\._-]+/;
+            Extension.setAccounts(oldData.map(function(account, idx){
                 account.idx = idx;
                 account.email = account.username.replace(accountReplacer,'') + '@' + _.url(account.serverEWS).host;
                 account.enabled = 1;
                 account.unread = 0;
-            }
-        });
-        Extension.setAccounts(accounts);
-    });
+                return account;
+            })).then(function(){
+                localStorage.removeItem('accounts');
+            });
+        }
+
+        oldData = localStorage.getItem('options');
+        if (oldData) {
+            localStorage.removeItem('options');
+        }
+    }
+
     this.Account = Account;
     this.Extension = Extension;
 

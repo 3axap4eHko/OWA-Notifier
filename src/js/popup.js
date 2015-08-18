@@ -1,6 +1,5 @@
 (function(){
     function buildAccountBar(account) {
-        debugger;
         return $('<li>', {'class': 'mdl-shadow--2dp mdl-card__actions'}).append(
             $('<a>', {
                 href: '#',

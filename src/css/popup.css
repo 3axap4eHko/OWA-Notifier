@@ -11,6 +11,15 @@ body {
     max-width: 500px;
 }
 
+.mails-card .logo {
+    color: #0472C3;
+    font-weight: bold;
+}
+
+.mails-card .logo img {
+    margin: 0 10px 0 0;
+}
+
 .mdl-menu__container, .mdl-menu__outline {
     width: 60px!important;
 }

@@ -1,13 +1,9 @@
 var fs = require('fs');
-var glob = require('glob');
 var gulp = require('gulp');
-var concatCss = require('gulp-concat-css');
 var minifyCss = require('gulp-minify-css');
 var minifyHtml = require('gulp-minify-html');
-var rename = require('gulp-rename');
 var autoprefixer = require('gulp-autoprefixer');
 var uglify = require('gulp-uglify');
-var concat = require('gulp-concat');
 var del = require('del');
 
 gulp.task('clean', function(cb) {
