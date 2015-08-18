@@ -113,6 +113,8 @@
             }
         });
 
+        Extension.update();
+
         Extension.getAccounts().then(loadAccounts);
 
         Extension.getConfig().then(applyConfig).then(function() {
