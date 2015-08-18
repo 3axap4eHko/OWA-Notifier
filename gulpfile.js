@@ -25,7 +25,7 @@ gulp.task('css', ['clean'], function() {
 });
 
 gulp.task('js', ['clean'], function() {
-    gulp.src(['./src/js/*.js', '!./src/js/*.min.js'])
+    gulp.src(['./src/js/*.js', '!./src/js/*.min.js', '!./src/js/*.dev.js'])
         .pipe(uglify())
         .pipe(gulp.dest('./build/js/'));
     gulp.src(['./src/js/*.min.js'])
