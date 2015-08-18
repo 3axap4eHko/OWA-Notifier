@@ -89,6 +89,8 @@
     }
 
     function openOwa(account) {
+        return openUrl(account.serverOWA);
+        /*
         var submit,
             form = $('<form>', {
                 action: account.serverOWA + '/auth.owa',
@@ -109,6 +111,7 @@
         } catch (e) {
         }
         form.remove();
+        */
     }
 
     function openOwaClosure(account) {
@@ -347,7 +350,10 @@
 
         oldData = localStorage.getItem('options');
         if (oldData) {
-            localStorage.removeItem('options');
+            oldData = JSON.parse(oldData);
+            Extension.setConfig(oldData).then(function(){
+                localStorage.removeItem('options');
+            });
         }
     }
 

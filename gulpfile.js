@@ -6,13 +6,6 @@ var autoprefixer = require('gulp-autoprefixer');
 var uglify = require('gulp-uglify');
 var del = require('del');
 
-function dbg(){
-    Array.prototype.slice.call(arguments).forEach(function (arg) {
-        console.log(arg);
-    });
-    process && process.exit(0);
-}
-
 gulp.task('clean', function(cb) {
     del(['build','build.zip'], function(){
         fs.mkdir('build', cb);
@@ -78,7 +71,12 @@ gulp.task('manifest-generate', ['clean'], function() {
         .pipe(gulp.dest('./build/'));
 });
 
-gulp.task('packing', ['clean', 'html-minify', 'css-minify', 'css-copy', 'js-minify', 'js-copy', 'fonts-copy', 'images-copy', 'sounds-copy','xml-copy', 'manifest-generate'], function(cb){
+gulp.task('other-files', ['clean'], function() {
+    return gulp.src(['./LICENSE.txt', './README.md'])
+        .pipe(gulp.dest('./build/'));
+});
+
+gulp.task('packing', ['clean', 'html-minify', 'css-minify', 'css-copy', 'js-minify', 'js-copy', 'fonts-copy', 'images-copy', 'sounds-copy','xml-copy', 'manifest-generate', 'other-files'], function(cb){
     var JSZip = require("jszip");
     var zip = new JSZip();
     var replacer = /^build(\\|\/)/;

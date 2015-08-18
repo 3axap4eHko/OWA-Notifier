@@ -14,6 +14,7 @@ Changes:
  - New notification sounds
  - Ability to help the project
  - New extension build system
+ - License Updated
 
 Changes:
 #### Version 2.1.0.x beta
