@@ -19,5 +19,17 @@
   "bugs": {
     "url": "https://github.com/3axap4eHko/OWA-Notifier/issues"
   },
-  "homepage": "https://github.com/3axap4eHko/OWA-Notifier#readme"
+  "homepage": "https://github.com/3axap4eHko/OWA-Notifier#readme",
+  "devDependencies": {
+    "del": "^1.2.1",
+    "gulp": "^3.9.0",
+    "gulp-autoprefixer": "^2.3.1",
+    "gulp-concat": "^2.6.0",
+    "gulp-minify-css": "^1.2.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sass": "^2.0.4",
+    "gulp-uglify": "^1.2.0",
+    "gulp-uncss": "^1.0.3",
+    "gulp-util": "^3.0.6"
+  }
 }
