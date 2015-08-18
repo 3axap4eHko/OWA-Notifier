@@ -123,18 +123,19 @@
             if (!accountMails.length) return;
             var account = accountMails[0],
                 mails = accountMails[1],
-                mailsCount = (mails || []).length;
+                mailsCount = (mails || []).length,
+                doNotify = mailsCount > _.toInt(account.unread);
             total += mailsCount;
-            if (mailsCount > account.unread) {
-                account.unread = mailsCount;
+            account.unread = mailsCount;
+            if (doNotify) {
                 Notify.createBasic('email_' + account.idx, {
                     title: account.email,
                     message: mailsCount + ' unread mail(s)',
                     iconUrl: chrome.extension.getURL(icon.image),
                     isClickable: true
                 }, openOwaClosure(account));
-                return true;
             }
+            return doNotify;
         });
         if (total !== 0) {
             chrome.browserAction.setBadgeText({text: total + ''});
@@ -239,9 +240,6 @@
             });
         },
         setAccounts: function(accounts) {
-            if (!accounts[0].unread) {
-                debugger;
-            }
             return storageSave('accounts', accounts || []).then(function(savedAccounts) {
                 return savedAccounts;
             });
@@ -334,6 +332,7 @@
                 account.idx = idx;
                 account.email = account.username.replace(accountReplacer,'') + '@' + _.url(account.serverEWS).host;
                 account.enabled = 1;
+                account.unread = 0;
             }
         });
         Extension.setAccounts(accounts);

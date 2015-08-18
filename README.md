@@ -7,6 +7,11 @@ Need to enabled the Exchange Web Services (EWS).
 P.S. Please, help me to improve extension. If you have a bug or idea, just send me email or report on GitHub with your case. Thnx.
 
 Changes:
+#### Version 3.0.0.x beta
+ - Material design applied
+ - Notification logic improvements
+
+Changes:
 #### Version 2.1.0.x beta
  - Added appointment notifications
 

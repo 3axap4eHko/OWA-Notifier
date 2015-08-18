@@ -1,24 +1,23 @@
 (function(){
+    function buildAccountBar(account) {
+        debugger;
+        return $('<li>', {'class': 'mdl-shadow--2dp mdl-card__actions'}).append(
+            $('<a>', {
+                href: '#',
+                'data-trigger': 'account.owa',
+                'data-idx': account.idx,
+                html: account.email + _.fmtString('<span class="counter">{count} <i class="material-icons">mail</i></span>', {count: _.toInt(account.unread)})
+            })
+        )
+    }
+
     function updateMails() {
         var mailContainer = $('#mails');
         mailContainer.empty();
 
         Extension.getAccounts().then(function(accounts){
-            Extension.getUnreadEmails(accounts).then(function(result){
-                _.each(result, function(accountMails){
-                    var account = accountMails[0],
-                        mails = accountMails[1];
-                    mailContainer.append(
-                        $('<li>', {'class': 'mdl-shadow--2dp mdl-card__actions'}).append(
-                            $('<a>', {
-                                href: '#',
-                                'data-trigger': 'account.owa',
-                                'data-idx': account.idx,
-                                html: account.email + _.fmtString('<span class="counter">{count} <i class="material-icons">mail</i></span>', {count: mails.length})
-                            })
-                        )
-                    );
-                });
+            _.each(accounts, function(account){
+                mailContainer.append(buildAccountBar(account));
             });
         });
     }
