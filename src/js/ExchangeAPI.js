@@ -126,7 +126,7 @@
             });
         },
         getFolder: function(folderName, account) {
-            return this.doAction('get-folder', account, {Id: folderName});
+            return this.doAction('get-folder', account, {Id: folderName}).then(getFolderInfo);
         },
         getFolderById: function(folder, account) {
             return this.doAction('get-folder-id', account, {Id: folder.id, ChangeKey: folder.changeKey});
