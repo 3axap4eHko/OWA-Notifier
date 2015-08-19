@@ -21,10 +21,12 @@
 
     function _releaseNotify(id) {
         var notify = notifications[id];
+        if (notify.timerId) {
+            clearTimeout(notify.timerId);
+        }
         delete notifications[id];
         return notify;
     }
-
 
     function define(object, property, value, writable) {
         Object.defineProperty(object, property, {
@@ -53,11 +55,18 @@
         var self = this;
         options = options || {};
         options.eventTime = Date.now();
+        if (options.expired) {
+            options.timerId = setTimeout(function(){
+                self.remove();
+            }, _.toInt(options.expired)*1000);
+        }
+        delete options.expired;
         _.extend(self, defaultOptions, options);
         if (id == null) {
             id = _generateId();
         }
         define(self, 'id', id);
+        define(self, 'timerId', options.timerId);
         define(self, 'onClick', onClick);
         define(self, 'onClose', onClose);
         chrome.notifications.create(id, self, function(id){
@@ -66,10 +75,14 @@
         });
     }
     Notify.prototype.constructor = null;
-    Notify.prototype.update = function(options) {
+    Notify.prototype.refresh = function() {
         var self = this;
-        return new Promise(function(resolve){
-            chrome.notifications.update(self.id, options, resolve);
+       return new Promise(function(resolve){
+            chrome.notifications.clear(self.id, function(removed){
+                chrome.notifications.create(self.id, self, function(id){
+                    resolve(notifications[id] = self);
+                });
+            });
         });
     };
     Notify.prototype.remove = function() {
@@ -86,11 +99,10 @@
         });
     };
     Notify.createCustom = function(id, options, onClick, onClose) {
-        if (notifications[id]) {
-            return notifications[id].update(options);
-        }
-        return new Promise(function(resolve){
-            new Notify(id, options, onClick, onClose, resolve)
+        return Promise.resolve(notifications[id] ? notifications[id].remove() : 1).then(function(ready){
+            return new Promise(function(resolve){
+                new Notify(id, options, onClick, onClose, resolve)
+            });
         });
     };
     Notify.createBasic = function(id, options, onClick, onClose) {
@@ -120,10 +132,17 @@
     Notify.button = function (title, icon, onClick) {
         return new NotifyButton(title, icon, onClick);
     };
+    Notify.refreshAll  = function(){
+        _.each(notifications, function(notification){
+            notification.refresh();
+        });
+    };
 
     chrome.notifications.onClosed.addListener(function(id, byUser) {
         try {
-            _releaseNotify(id).onClose();
+            if (byUser) {
+                _releaseNotify(id).onClose();
+            }
         } catch(e) {
             console.log(e.stack);
         }

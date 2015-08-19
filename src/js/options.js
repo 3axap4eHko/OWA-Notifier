@@ -2,18 +2,10 @@
     var filters = {
         time: {
             set: function(value) {
-                var d = new Date(0,0,0,0,0,0,0);
-                d.setSeconds(_.toInt(value));
-                return _.fmtDate(d, 'H:i:s');
+                return Time.fromSeconds(value);
             },
             get: function(value){
-                var d= new Date();
-                d.setTime(0);
-                value = value.split(':').map(_.toInt);
-                d.setHours(d.getHours() + value[0]);
-                d.setMinutes(d.getMinutes() + value[1]);
-                d.setSeconds(d.getSeconds() + value[2]);
-                return _.toInt(d.getTime()/1000);
+                return Time.fromString(value).getTotalSeconds();
             }
         }
     };

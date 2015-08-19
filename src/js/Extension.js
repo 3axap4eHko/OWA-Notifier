@@ -126,6 +126,7 @@
             if (!accountMails.length) return;
             var account = accountMails[0],
                 mailsCount = _.toInt(accountMails[1]),
+                displayTime = _.toInt(accountMails[2]),
                 doNotify = mailsCount > _.toInt(account.unread);
             total += mailsCount;
             account.unread = mailsCount;
@@ -134,8 +135,9 @@
                     title: account.email,
                     message: mailsCount + ' unread mail(s)',
                     iconUrl: chrome.extension.getURL(icon.image),
-                    isClickable: true
-                }, openOwaClosure(account));
+                    isClickable: true,
+                    expired: displayTime
+                }, openOwaClosure(account), _.fnEmpty);
             }
             return doNotify;
         });
@@ -158,7 +160,8 @@
         accountsAppointments.forEach(function (accountAppointments) {
             if (!accountAppointments.length) return;
             var account = accountAppointments[0],
-                appointments = accountAppointments[1];
+                appointments = accountAppointments[1],
+                displayTime = _.toInt(accountAppointments[2]);
             appointments = appointments.filter(function (appointment) {
                 if (appointment.start >= new Date() &&
                     appointment.start <= _.dateAddMinutes(new Date(), appointment.remind) && !remindedAppointments.hasOwnProperty(appointment.id)
@@ -177,8 +180,9 @@
                     message: '',
                     iconUrl: chrome.extension.getURL(icon.image),
                     items: appointments,
-                    isClickable: true
-                }, openOwaClosure(account));
+                    isClickable: true,
+                    expired: displayTime
+                }, openOwaClosure(account), _.fnEmpty);
             }
 
             return appointments.length;
@@ -284,37 +288,38 @@
                 }
             }));
         },
-        getFolderInfo: function (accounts) {
+        getFolderInfo: function (accounts, displayTime) {
             return Promise.all(Object.keys(accounts).map(function (idx) {
                 var account = accounts[idx];
                 if (account.folder === 'root') {
                     return api.getFolders(account).then(function(folders){
-                        return [account, folders.filter(function(folder){ return folder.folderClass === 'IPF'}).shift().unreadCount];
+                        return [account, folders.filter(function(folder){ return folder.folderClass === 'IPF'}).shift().unreadCount, displayTime];
                     });
                 } else {
                     return api.getFolder(account.folder, account).then(function (folder) {
-                        return [account, folder.unreadCount];
+                        return [account, folder.unreadCount, displayTime];
                     }).catch(logErrorDefault([]));
                 }
             }));
         },
-        getAppointments: function (accounts) {
+        getAppointments: function (accounts, displayTime) {
             return Promise.all(Object.keys(accounts).map(function (idx) {
                 var account = accounts[idx];
                 return api.getAppointments(account).then(function (appointments) {
-                    return [account, appointments];
+                    return [account, appointments, displayTime];
                 }).catch(logErrorDefault([]));
             }));
         },
         update: function () {
+            var self = this;
             return Extension.getAccounts().then(function (accounts) {
                 if (accounts.length === 0) {
                     chrome.browserAction.setBadgeText({text: 'setup'});
                     return [];
                 }
                 return Promise.all([
-                    Extension.getFolderInfo(accounts).then(notifyEmails),
-                    Extension.getAppointments(accounts).then(notifyAppointments)
+                    Extension.getFolderInfo(accounts, self.displayTime).then(notifyEmails),
+                    Extension.getAppointments(accounts, self.displayTime).then(notifyAppointments)
                 ]).then(function (result) {
                     return Extension.setAccounts(accounts).then(function () {
                         return result;
@@ -324,6 +329,9 @@
         },
         process: function () {
             return Extension.getConfig().then(function (config) {
+                if (Extension.update.displayTime !== config.displayTime) {
+                    Extension.update.displayTime = config.displayTime;
+                }
                 if (Extension.update.interval !== config.updateInterval) {
                     Extension.update.interval = config.updateInterval;
                     clearInterval(updateTimer);
@@ -343,7 +351,7 @@
             iconUrl: chrome.extension.getURL(icon.image)
         }, function () {
             openUrl('https://chrome.google.com/webstore/detail/outlook-web-access-notifi/hldldpjjjagjfikfknadmnnmpbbhgihg');
-        });
+        }, _.fnEmpty);
 
         /** Migration */
         var oldData = localStorage.getItem('accounts');

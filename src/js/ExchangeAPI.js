@@ -129,10 +129,10 @@
             return this.doAction('get-folder', account, {Id: folderName}).then(getFolderInfo);
         },
         getFolderById: function(folder, account) {
-            return this.doAction('get-folder-id', account, {Id: folder.id, ChangeKey: folder.changeKey});
+            return this.doAction('get-folder-id', account, {Id: folder.id, ChangeKey: folder.changeKey}).then(getFolderInfo);
         },
         getItem: function(id, changeKey, account) {
-            return this.doAction('get-item', account, {Id: id, ChangeKey: changeKey});
+            return this.doAction('get-item', account, {Id: id, ChangeKey: changeKey}).then(getItemInfo);
         },
         getAppointments: function(account) {
             var self = this;

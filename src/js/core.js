@@ -307,8 +307,39 @@
         }
     };
     Date.begin = function(){
-        var d = Date.now;
+        var d = new Date();
         d.setTime(0);
         return d;
+    };
+    Date.end = function(){
+        var d = new Date();
+        d.setTime(0);
+        return d;
+    };
+    function Time(hours, minutes, seconds){
+        var self = this;
+
+        this.hours = _.toInt(hours);
+        this.minutes = _.toInt(minutes);
+        this.seconds = _.toInt(seconds);
+
+        this.getTotalSeconds = function(){
+            return _.toInt(self.seconds) + 60*_.toInt(self.minutes) + 3600*_.toInt(self.hours);
+        };
+        this.toString = function(){
+            return _.fmtNumber(self.hours,2) + ':' + _.fmtNumber(self.minutes,2) + ':' + _.fmtNumber(self.seconds,2);
+        }
     }
+    Time.fromString = function(string){
+        return _.create(Time,string.split(':'));
+    };
+    Time.fromSeconds = function(seconds){
+        var time = new Time();
+        time.seconds = seconds % 60;
+        time.minutes = _.toInt(( seconds - time.seconds ) % 3600 / 60);
+        time.hours = _.toInt(seconds / 3600);
+        return time;
+    };
+    global.Time = Time;
+
 }.call(this.global || this.window || global || window));
