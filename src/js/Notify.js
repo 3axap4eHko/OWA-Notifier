@@ -149,14 +149,22 @@
     });
     chrome.notifications.onClicked.addListener(function(id) {
         try {
-            _releaseNotify(id).onClick();
+            if (notifications[id]) {
+                notifications[id].remove().then(function(notification){
+                    notification.onClick();
+                });
+            }
         } catch(e) {
             console.log(e.stack);
         }
     });
     chrome.notifications.onButtonClicked.addListener(function(id, buttonId) {
         try {
-            _releaseNotify(id).buttons[buttonId].onClick();
+            if (notifications[id]) {
+                notifications[id].remove().then(function(notification){
+                    notification.buttons[buttonId].onClick();
+                });
+            }
         } catch(e) {
             console.log(e.stack);
         }

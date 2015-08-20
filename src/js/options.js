@@ -39,6 +39,7 @@
                 field[0].dispatchEvent(evt);
             }
         });
+        componentHandler.upgradeDom();
         return form;
     }
 
@@ -54,7 +55,7 @@
     function buildActions(idx) {
         var id = 'action-' + idx;
         return $('<td>', {'class': 'mdl-data-table__cell--icon'}).append(
-            $('<button>', {'class': 'mdl-button mdl-js-button mdl-button--icon mdl-js-ripple-effect mdl-button--colored', 'id': id}).append(
+                $('<button>', {'class': 'mdl-button mdl-js-button mdl-button--icon mdl-js-ripple-effect mdl-button--colored', 'id': id}).append(
                 $('<i>', {'class': 'material-icons','html': 'more_vert'})
             )
         ).append(
@@ -93,6 +94,7 @@
         _.each(accounts, function(account){
             table.append(buildAccountRow(account));
         });
+        componentHandler.upgradeDom();
     }
 
     $(function() {
@@ -162,9 +164,8 @@
             } else {
                 _.extend(accounts[idx],account);
             }
-            Extension.setAccounts(accounts).then(function(){
-                document.location.reload(true);
-            });
+            Extension.setAccounts(accounts).then(loadAccounts);
+            $('#account-modal').modal('hide');
         });
     });
 
@@ -184,9 +185,8 @@
                             accounts.forEach(function(account, idx){
                                 account.idx = idx;
                             });
-                            Extension.setAccounts(accounts).then(function(){
-                                document.location.reload(true);
-                            });
+                            Extension.setAccounts(accounts).then(loadAccounts);
+                            $('#account-modal').modal('hide');
                         });
                     }
                 },
@@ -201,20 +201,13 @@
         });
     });
 
-
     $(document).on('account.switch', function(event, data){
         var idx = _.toInt(data.accountIdx);
         Extension.getAccounts().then(function(accounts){
             accounts[idx].enabled = !accounts[idx].enabled;
-            Extension.setAccounts(accounts).then(function(){
-                document.location.reload(true);
-            });
+            Extension.setAccounts(accounts).then(loadAccounts);
+            $('#account-modal').modal('hide');
         });
     });
-
-    $(document).on('account.reload', function(){
-        document.location.reload(true);
-    });
-
 
 }.call(this.global || this.window || global || window));

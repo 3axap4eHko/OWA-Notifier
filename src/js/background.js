@@ -1,6 +1,10 @@
 $(function() {
     setInterval(function(){
-        Extension.process();
+        try {
+            Extension.process();
+        } catch (e) {
+            Extension.logError(e);
+        }
     }, 1000);
 });
 
