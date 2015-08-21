@@ -1,7 +1,7 @@
 (function(){
     function buildAccountBar(account) {
         var count = _.toInt(account.unread),
-            icon = $('<i>', {'class': 'material-icons', html: 'mail', id: 'account-'+account.idx+'-info'}),
+            icon = $('<i>', {'class': 'material-icons', html: 'mail'}),
             hint = '';
 
         if (account.hasErrors) {
@@ -19,7 +19,7 @@
                 'data-trigger': 'account.owa',
                 'data-idx': account.idx
             }).append(account.email)
-                .append($('<span>', {'class': 'counter', html: count + ' ' + icon}))
+                .append($('<span>', {'class': 'counter', html: count + ' ' + icon, id: 'account-'+account.idx+'-info'}))
         )
     }
 
