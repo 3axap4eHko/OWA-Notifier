@@ -26,7 +26,6 @@
     function objectToForm(form, object) {
         form = $(form);
         form[0].reset();
-        var evt = new Event('input',{bubbles: true, cancelable: false});
         _.each(object, function(value, key){
             var field = form.find('[name="' + key + '"]');
             if (field.length) {
@@ -35,8 +34,7 @@
                     value = filters[filter].set(value);
                 }
                 field.val(value);
-                field.trigger('change');
-                field[0].dispatchEvent(evt);
+                field.triggerInput();
             }
         });
         componentHandler.upgradeDom();
@@ -153,19 +151,35 @@
         return false;
     });
 
-    $(document).on('account.save', function(event){
+    $(document).on('account.save', function(){
         var account = formToObject('#account-form'),
             idx = _.toInt(account.idx, -1);
-        Extension.getAccounts().then(function(accounts){
-            if (idx === -1) {
-                accounts.push(account);
-                account.idx = accounts.length - 1;
-                account.enabled = true;
+        $('#screen-locker').lockScreen();
+        Extension.testAccount(account).then(function(){
+            return Extension.getAccounts().then(function(accounts){
+                if (idx === -1) {
+                    accounts.push(account);
+                    account.idx = accounts.length - 1;
+                    account.enabled = true;
+                } else {
+                    _.extend(accounts[idx],account);
+                }
+                $('#account-modal').modal('hide');
+                return Extension.setAccounts(accounts).then(loadAccounts);
+            });
+        }).catch(function(err){
+            if (~[0, 404].indexOf(err.status) ) {
+                $('#account-serverEWS').parent().addClass('is-invalid');
+            } else if (~[401].indexOf(err.status)) {
+                $('#account-username').parent().addClass('is-invalid');
+                $('#account-password').parent().addClass('is-invalid');
             } else {
-                _.extend(accounts[idx],account);
+
             }
-            Extension.setAccounts(accounts).then(loadAccounts);
-            $('#account-modal').modal('hide');
+            componentHandler.upgradeDom();
+            return false;
+        }).then(function(){
+            $('#screen-locker').unlockScreen();
         });
     });
 

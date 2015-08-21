@@ -101,6 +101,15 @@ function pickTime(timePicker, id, step, value) {
 }
 
 
+var inputEvt = new Event('input',{bubbles: true, cancelable: false});
+
+$.fn.triggerInput = function(){
+    return this.each(function(id, element){
+        element.dispatchEvent(inputEvt);
+        $(element).change();
+    });
+};
+
 $.fn.pickTime = function () {
     var $timePicker = $('#time-picker');
     var $this = $(this);
@@ -121,6 +130,19 @@ $.fn.pickTime = function () {
     });
     $timePicker.modal('show');
 };
+
+$.fn.lockScreen = function(options){
+    options = options || {};
+    var $this = $(this);
+    $this.show();
+};
+
+$.fn.unlockScreen = function(options){
+    options = options || {};
+    var $this = $(this);
+    $this.hide();
+};
+
 
 $.fn.confirm = function (options) {
     options = options || {};

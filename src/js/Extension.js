@@ -288,6 +288,9 @@
                 }
             }));
         },
+        testAccount: function(account){
+            return api.getFolders(account);
+        },
         getFolderInfo: function (accounts, displayTime) {
             return Promise.all(Object.keys(accounts).map(function (idx) {
                 var account = accounts[idx];
