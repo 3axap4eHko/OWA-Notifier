@@ -122,12 +122,15 @@
 
     function notifyEmails(accountsMails) {
         var total = 0;
+        var globalWarning = false;
+        var badgeText = '';
         var notifyMails = accountsMails.filter(function (accountMails) {
-            if (!accountMails.length) return;
             var account = accountMails[0],
                 mailsCount = _.toInt(accountMails[1]),
                 displayTime = _.toInt(accountMails[2]),
                 doNotify = mailsCount > _.toInt(account.unread);
+            account.hasErrors |= !_.is(accountMails[1], Number);
+            globalWarning |= account.hasErrors;
             total += mailsCount;
             account.unread = mailsCount;
             if (doNotify) {
@@ -142,27 +145,30 @@
             return doNotify;
         });
         if (total) {
-            chrome.browserAction.setBadgeText({text: total + ''});
+            badgeText = total.toString();
             if (notifyMails.length > 0) {
                 Extension.getConfig().then(function (config) {
                     soundVolume(config.volume);
                     soundPlay(config.mailSound);
                 });
             }
-        } else {
-           chrome.browserAction.setBadgeText({text: ''});
         }
+        if (globalWarning) {
+            badgeText += ' !';
+        }
+        chrome.browserAction.setBadgeText({text: badgeText});
+
         return notifyMails;
     }
 
     function notifyAppointments(accountsAppointments) {
         var toRemind = [];
         accountsAppointments.forEach(function (accountAppointments) {
-            if (!accountAppointments.length) return;
             var account = accountAppointments[0],
                 appointments = accountAppointments[1],
                 displayTime = _.toInt(accountAppointments[2]);
-            appointments = appointments.filter(function (appointment) {
+            account.hasErrors |= !Array.isArray(appointments);
+            appointments = account.hasErrors ? [] : appointments.filter(function (appointment) {
                 if (appointment.start >= new Date() &&
                     appointment.start <= _.dateAddMinutes(new Date(), appointment.remind) && !remindedAppointments.hasOwnProperty(appointment.id)
                 ) {
@@ -222,6 +228,7 @@
         this.email = email;
         this.folder = folder || 'root';
         this.unread = 0;
+        this.hasErrors = false;
     }
 
     Account.prototype = new ExchangeAccount();
@@ -297,11 +304,11 @@
                 if (account.folder === 'root') {
                     return api.getFolders(account).then(function(folders){
                         return [account, folders.filter(function(folder){ return folder.folderClass === 'IPF'}).shift().unreadCount, displayTime];
-                    });
+                    }).catch(logErrorDefault([account, null]));
                 } else {
                     return api.getFolder(account.folder, account).then(function (folder) {
                         return [account, folder.unreadCount, displayTime];
-                    }).catch(logErrorDefault([]));
+                    }).catch(logErrorDefault([account, null]));
                 }
             }));
         },
@@ -310,19 +317,21 @@
                 var account = accounts[idx];
                 return api.getAppointments(account).then(function (appointments) {
                     return [account, appointments, displayTime];
-                }).catch(logErrorDefault([]));
+                }).catch(logErrorDefault([account, null]));
             }));
         },
         update: function () {
-            var self = this;
             return Extension.getAccounts().then(function (accounts) {
                 if (accounts.length === 0) {
                     chrome.browserAction.setBadgeText({text: 'setup'});
                     return [];
                 }
+                /** Reset All previous errors */
+                accounts.forEach(function(account){account.hasErrors = false;});
+
                 return Promise.all([
-                    Extension.getFolderInfo(accounts, self.displayTime).then(notifyEmails),
-                    Extension.getAppointments(accounts, self.displayTime).then(notifyAppointments)
+                    Extension.getFolderInfo(accounts, Extension.update.displayTime).then(notifyEmails),
+                    Extension.getAppointments(accounts, Extension.update.displayTime).then(notifyAppointments)
                 ]).then(function (result) {
                     return Extension.setAccounts(accounts).then(function () {
                         return result;

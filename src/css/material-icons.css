@@ -37,6 +37,14 @@
 .material-icons.md-36 { font-size: 36px; }
 .material-icons.md-48 { font-size: 48px; }
 
+.material-icons.md-attention {
+    color: #ff4081;
+}
+
+.material-icons.md-info {
+    color: rgb(76, 175, 80);
+}
+
 .material-icons.md-dark { color: rgba(0, 0, 0, 0.54); }
 .material-icons.md-dark.md-inactive { color: rgba(0, 0, 0, 0.26); }
 

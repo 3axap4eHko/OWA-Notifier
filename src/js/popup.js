@@ -1,12 +1,25 @@
 (function(){
     function buildAccountBar(account) {
+        var count = _.toInt(account.unread),
+            icon = $('<i>', {'class': 'material-icons', html: 'mail', id: 'account-'+account.idx+'-info'}),
+            hint = '';
+
+        if (account.hasErrors) {
+            icon.addClass('md-attention blink');
+            hint = '<div class="mdl-tooltip" for="account-'+account.idx+'-info">Has a problem</div>';
+        } else if (count) {
+            icon.addClass('md-info blink');
+            hint = '<div class="mdl-tooltip" for="account-'+account.idx+'-info">Has unread mails</div>';
+        }
+        icon = icon[0].outerHTML + hint;
+
         return $('<li>', {'class': 'mdl-shadow--2dp mdl-card__actions'}).append(
             $('<a>', {
                 href: '#',
                 'data-trigger': 'account.owa',
-                'data-idx': account.idx,
-                html: account.email + _.fmtString('<span class="counter">{count} <i class="material-icons">mail</i></span>', {count: _.toInt(account.unread)})
-            })
+                'data-idx': account.idx
+            }).append(account.email)
+                .append($('<span>', {'class': 'counter', html: count + ' ' + icon}))
         )
     }
 

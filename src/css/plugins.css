@@ -1,3 +1,21 @@
+.blink {
+    animation: blink 1s steps(5, start) infinite;
+    -webkit-animation: blink 1s steps(5, start) infinite;
+    transition-delay: 1s;
+}
+@keyframes blink {
+    to {
+        color: #fff;
+        transition-delay: 1s;
+    }
+}
+@-webkit-keyframes blink {
+    to {
+        color: #fff;
+        transition-delay: 1s;
+    }
+}
+
 /** Screen locker */
 .screen-locker {
     display: none;
