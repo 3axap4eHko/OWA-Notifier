@@ -186,8 +186,9 @@
                 return folders;
             });
         },
-        markAsRead: function(item) {
-            return this.doAction('read-item', account, {Id: item.id, ChangeKey: item.changeKey}).then(function(response){
+        markAsRead: function(account, folder) {
+            return this.doAction('mark-as-read', account, {Id: folder}).then(function(response){
+                debugger;
                 return getItemInfo($(response).find('Message'));
             });
         }

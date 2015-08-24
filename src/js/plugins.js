@@ -3,7 +3,7 @@
     var global = this,
         filters = {
             Percent: function (value) {
-                return (value * 100) + '%';
+                return _.toInt(value * 100) + '%';
             }
         };
 
@@ -35,12 +35,10 @@
         $(event.target).pickTime();
     });
 
-    $(document).on('set', function (event) {
-        var $this = $(event.target),
-            $target = $($this.data('target')),
-            value = $this.data('value');
-        $target.val(value);
-        $target.change();
+    $(document).on('set', function (event, data) {
+        var $this = $(event.target);
+        $this.val(data.value);
+        $this.change();
     });
 
     $(document).on('tab-switch', function (event) {

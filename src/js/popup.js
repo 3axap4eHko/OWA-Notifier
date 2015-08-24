@@ -1,17 +1,18 @@
 (function(){
     function buildAccountBar(account) {
         var count = _.toInt(account.unread),
-            icon = $('<i>', {'class': 'material-icons', html: 'mail'}),
-            hint = '';
+            icon = $('<i>', {'class': 'material-icons', html: 'mail'})
+        //,hint = ''
+            ;
 
         if (account.hasErrors) {
             icon.addClass('md-attention blink');
-            hint = '<div class="mdl-tooltip" for="account-'+account.idx+'-info">Has a problem</div>';
+            //hint = '<div class="mdl-tooltip" for="account-'+account.idx+'-info">Has a problem</div>';
         } else if (count) {
             icon.addClass('md-info blink');
-            hint = '<div class="mdl-tooltip" for="account-'+account.idx+'-info">Has unread mails</div>';
+            //hint = '<div class="mdl-tooltip" for="account-'+account.idx+'-info">Has unread mails</div>';
         }
-        icon = icon[0].outerHTML + hint;
+        icon = icon[0].outerHTML;// + hint;
 
         return $('<li>', {'class': 'mdl-shadow--2dp mdl-card__actions'}).append(
             $('<a>', {
@@ -19,7 +20,11 @@
                 'data-trigger': 'account.owa',
                 'data-idx': account.idx
             }).append(account.email)
-                .append($('<span>', {'class': 'counter', html: count + ' ' + icon, id: 'account-'+account.idx+'-info'}))
+                .append($('<span>', {
+                    'class': 'counter',
+                    html: count + ' ' + icon,
+                    id: 'account-'+account.idx+'-info'
+                }))
         )
     }
 

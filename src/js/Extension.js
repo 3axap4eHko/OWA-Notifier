@@ -22,7 +22,8 @@
             appointmentSound: 'sounds/sound3.ogg',
             updateInterval: 30,
             displayTime: 15,
-            volume: 0.3
+            volume: 0.3,
+            popupClosing: 'automatically'
         },
         audio = document.createElement('audio'),
         api = new ExchangeAPI({
@@ -120,6 +121,10 @@
         };
     }
 
+    var _closeButton = Notify.button('Close','images/button_close.png', function(){
+        this.remove();
+    });
+
     function notifyEmails(accountsMails) {
         var total = 0;
         var globalWarning = false;
@@ -139,7 +144,8 @@
                     message: mailsCount + ' unread mail(s)',
                     iconUrl: chrome.extension.getURL(icon.image),
                     isClickable: true,
-                    expired: displayTime
+                    expired: displayTime,
+                    buttons: [Notify.button('Open OWA','images/icon_d.png', openOwaClosure(account)),  _closeButton]
                 }, openOwaClosure(account), _.fnEmpty);
             }
             return doNotify;
@@ -187,7 +193,8 @@
                     iconUrl: chrome.extension.getURL(icon.image),
                     items: appointments,
                     isClickable: true,
-                    expired: displayTime
+                    expired: displayTime,
+                    buttons: [_closeButton]
                 }, openOwaClosure(account), _.fnEmpty);
             }
 
@@ -235,6 +242,7 @@
     Account.prototype.constructor = Account;
 
     var updateTimer = 0;
+
     var Extension = {
         logError: function (error) {
             return new Promise(function (resolve) {
@@ -244,7 +252,10 @@
         },
         getConfig: function () {
             return storageLoad('config').then(function (loadedConfig) {
-                return (loadedConfig || defaultConfig);
+                if (!loadedConfig) {
+                    return Extension.setConfig(defaultConfig)
+                }
+                return loadedConfig;
             });
         },
         setConfig: function (config) {
@@ -301,6 +312,9 @@
         getFolderInfo: function (accounts, displayTime) {
             return Promise.all(Object.keys(accounts).map(function (idx) {
                 var account = accounts[idx];
+                if (!account.enabled) {
+                    return [account,0,0];
+                }
                 if (account.folder === 'root') {
                     return api.getFolders(account).then(function(folders){
                         return [account, folders.filter(function(folder){ return folder.folderClass === 'IPF'}).shift().unreadCount, displayTime];
@@ -315,6 +329,9 @@
         getAppointments: function (accounts, displayTime) {
             return Promise.all(Object.keys(accounts).map(function (idx) {
                 var account = accounts[idx];
+                if (!account.enabled) {
+                    return [account,0,0];
+                }
                 return api.getAppointments(account).then(function (appointments) {
                     return [account, appointments, displayTime];
                 }).catch(logErrorDefault([account, null]));
@@ -360,7 +377,8 @@
         Notify.createBasic(null, {
             title: 'New version',
             message: 'Outlook Web Access updated to ' + chrome.app.getDetails().version,
-            iconUrl: chrome.extension.getURL(icon.image)
+            iconUrl: chrome.extension.getURL(icon.image),
+            buttons: [_closeButton]
         }, function () {
             openUrl('https://chrome.google.com/webstore/detail/outlook-web-access-notifi/hldldpjjjagjfikfknadmnnmpbbhgihg');
         }, _.fnEmpty);

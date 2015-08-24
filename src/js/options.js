@@ -1,4 +1,8 @@
 (function() {
+    function trim(value) {
+        return value ? value.toString().replace(/\/$/,'') : '';
+    }
+
     var filters = {
         time: {
             set: function(value) {
@@ -7,6 +11,10 @@
             get: function(value){
                 return Time.fromString(value).getTotalSeconds();
             }
+        },
+        url: {
+            set: trim,
+            get: trim
         }
     };
 
@@ -87,12 +95,14 @@
     }
 
     function loadAccounts(accounts) {
-        var table = $('#accounts');
-        table.empty();
-        _.each(accounts, function(account){
-            table.append(buildAccountRow(account));
+        return Extension.update().then(function(){
+            var table = $('#accounts');
+            table.empty();
+            _.each(accounts, function(account){
+                table.append(buildAccountRow(account));
+            });
+            componentHandler.upgradeDom();
         });
-        componentHandler.upgradeDom();
     }
 
     $(function() {
@@ -104,8 +114,6 @@
                 return true;
             }
         });
-
-        Extension.update();
 
         Extension.getAccounts().then(loadAccounts);
 

@@ -1,5 +1,5 @@
 'use strict';
-(function() {
+(function () {
 
     var notifications = {};
     var defaultOptions = {
@@ -21,10 +21,13 @@
 
     function _releaseNotify(id) {
         var notify = notifications[id];
-        if (notify.timerId) {
-            clearTimeout(notify.timerId);
+        if (notify) {
+            if (notify.timerId) {
+                clearTimeout(notify.timerId);
+            }
         }
         delete notifications[id];
+
         return notify;
     }
 
@@ -42,6 +45,7 @@
         this.title = title;
         this.message = message;
     }
+
     NotifyListItem.prototype.constructor = NotifyListItem;
 
     function NotifyButton(title, icon, onClick) {
@@ -49,6 +53,7 @@
         this.iconUrl = icon;
         define(this, 'onClick', onClick || _.fnEmpty);
     }
+
     NotifyButton.prototype.constructor = NotifyButton;
 
     function Notify(id, options, onClick, onClose, onCreate) {
@@ -56,9 +61,9 @@
         options = options || {};
         options.eventTime = Date.now();
         if (options.expired) {
-            options.timerId = setTimeout(function(){
+            options.timerId = setTimeout(function () {
                 self.remove();
-            }, _.toInt(options.expired)*1000);
+            }, _.toInt(options.expired) * 1000);
         }
         delete options.expired;
         _.extend(self, defaultOptions, options);
@@ -69,59 +74,62 @@
         define(self, 'timerId', options.timerId);
         define(self, 'onClick', onClick);
         define(self, 'onClose', onClose);
-        chrome.notifications.create(id, self, function(id){
-            notifications[id] = self;
-            onCreate(self);
+        Promise.resolve(notifications[id] ? notifications[id].remove() : null).then(function(){
+            chrome.notifications.create(id, self, function (id) {
+                notifications[id] = self;
+                onCreate(self);
+            });
         });
     }
+
     Notify.prototype.constructor = null;
-    Notify.prototype.refresh = function() {
+    Notify.prototype.refresh = function () {
         var self = this;
-       return new Promise(function(resolve){
-            chrome.notifications.clear(self.id, function(removed){
-                chrome.notifications.create(self.id, self, function(id){
+        return new Promise(function (resolve) {
+            chrome.notifications.clear(self.id, function (removed) {
+                chrome.notifications.create(self.id, self, function (id) {
                     resolve(notifications[id] = self);
                 });
             });
         });
     };
-    Notify.prototype.remove = function() {
+    Notify.prototype.remove = function () {
         var self = this;
-        return new Promise(function(resolve){
+        return new Promise(function (resolve) {
             chrome.notifications.clear(self.id, resolve);
-        }).then(function(removed){
+        }).then(function (removed) {
                 return removed ? _releaseNotify(self.id) : false;
             });
     };
-    Notify.getAll = function() {
-        return new Promise(function(resolve) {
+    Notify.getAll = function () {
+        return new Promise(function (resolve) {
             chrome.notifications.getAll(resolve);
         });
     };
-    Notify.createCustom = function(id, options, onClick, onClose) {
-        return Promise.resolve(notifications[id] ? notifications[id].remove() : 1).then(function(ready){
-            return new Promise(function(resolve){
+    Notify.createCustom = function (id, options, onClick, onClose) {
+        return Promise.resolve(notifications[id] ? notifications[id].remove() : 1).then(function (ready) {
+            return new Promise(function (resolve) {
                 new Notify(id, options, onClick, onClose, resolve)
             });
         });
     };
-    Notify.createBasic = function(id, options, onClick, onClose) {
+    Notify.createBasic = function (id, options, onClick, onClose) {
         options = options || {};
         options.type = 'basic';
         return Notify.createCustom(id, options, onClick, onClose);
     };
 
-    Notify.createImage = function(id, options, onClick, onClose) {
+    Notify.createImage = function (id, options, onClick, onClose) {
         options = options || {};
         options.type = 'image';
         return Notify.createCustom(id, options, onClick, onClose);
     };
-    Notify.createList = function(id, options, onClick, onClose) {
+    Notify.createList = function (id, options, onClick, onClose) {
         options = options || {};
         options.type = 'list';
         return Notify.createCustom(id, options, onClick, onClose);
     };
-    Notify.createProgress = function(id, options, onClick, onClose) {
+    Notify.createProgress = function (id, options, onClick, onClose) {
         options = options || {};
         options.type = 'progress';
         return Notify.createCustom(id, options, onClick, onClose);
@@ -132,40 +140,40 @@
     Notify.button = function (title, icon, onClick) {
         return new NotifyButton(title, icon, onClick);
     };
-    Notify.refreshAll  = function(){
-        _.each(notifications, function(notification){
+    Notify.refreshAll = function () {
+        _.each(notifications, function (notification) {
             notification.refresh();
         });
     };
 
-    chrome.notifications.onClosed.addListener(function(id, byUser) {
+    chrome.notifications.onClosed.addListener(function (id, byUser) {
         try {
             if (byUser) {
                 _releaseNotify(id).onClose();
             }
-        } catch(e) {
+        } catch (e) {
             console.log(e.stack);
         }
     });
-    chrome.notifications.onClicked.addListener(function(id) {
+    chrome.notifications.onClicked.addListener(function (id) {
         try {
             if (notifications[id]) {
-                notifications[id].remove().then(function(notification){
+                notifications[id].remove().then(function (notification) {
                     notification.onClick();
                 });
             }
-        } catch(e) {
+        } catch (e) {
             console.log(e.stack);
         }
     });
-    chrome.notifications.onButtonClicked.addListener(function(id, buttonId) {
+    chrome.notifications.onButtonClicked.addListener(function (id, buttonId) {
         try {
             if (notifications[id]) {
-                notifications[id].remove().then(function(notification){
-                    notification.buttons[buttonId].onClick();
+                notifications[id].remove().then(function (notification) {
+                    notification.buttons[buttonId].onClick.call(notification, buttonId);
                 });
             }
-        } catch(e) {
+        } catch (e) {
             console.log(e.stack);
         }
     });
