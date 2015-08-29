@@ -231,7 +231,10 @@
         },
         'Z': function() {
             var diff = this.getTimezoneOffset() / 60;
-            return _.fmtNumber(diff|0, 2) + ":" + _.fmtNumber(diff % 1 * 60, 2);
+            if (!this.getTimezoneOffset()) {
+                return 'Z';
+            }
+            return (diff < 0 ? '-' : '+') + _.fmtNumber(diff|0, 2) + ":" + _.fmtNumber(diff % 1 * 60, 2);
         }
     };
     _.fmtDate = function(date, format) {
