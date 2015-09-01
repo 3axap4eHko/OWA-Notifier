@@ -187,13 +187,15 @@
         });
         return result;
     };
-    _.fmtNumber = function(num, iSize) {
+    _.fmtNumber = function(num, iSize, forceSign) {
         iSize = _.toInt(iSize || 0);
         var isNegative = num < 0,
             s = Math.abs(num) + "";
         while (s.length < iSize) s = "0" + s;
         if (isNegative) {
             s = "-" + s;
+        } else if (forceSign && num >0) {
+            s = "+" + s;
         }
         return s;
     };
@@ -234,7 +236,7 @@
             if (!this.getTimezoneOffset()) {
                 return 'Z';
             }
-            return (diff < 0 ? '-' : '+') + _.fmtNumber(diff|0, 2) + ":" + _.fmtNumber(diff % 1 * 60, 2);
+            return _.fmtNumber(diff|0, 2, true) + ":" + _.fmtNumber(Math.abs(diff) % 1 * 60, 2);
         }
     };
     _.fmtDate = function(date, format) {
