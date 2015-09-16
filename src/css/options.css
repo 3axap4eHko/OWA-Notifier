@@ -117,3 +117,7 @@ a:hover, a:active {
     width: 50px;
     clip: rect(0px 60px 112px 0px)!important;
 }
+
+.mdl-margin__10px {
+    margin: 10px;
+}
