@@ -109,3 +109,7 @@ body {
     display: inline;
     min-height: 28px;
 }
+
+#donate {
+    margin: 0 15px 15px;
+}
