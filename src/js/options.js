@@ -208,7 +208,7 @@
                                 account.idx = idx;
                             });
                             Extension.setAccounts(accounts).then(loadAccounts);
-                            $('#account-modal').modal('hide');
+                            $('#confirmation-modal').modal('hide');
                         });
                     }
                 },
