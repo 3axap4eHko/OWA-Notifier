@@ -1,5 +1,5 @@
-$(function() {
-    setInterval(function(){
+$(() => {
+    setInterval(() => {
         try {
             Extension.process();
         } catch (e) {
@@ -8,16 +8,16 @@ $(function() {
     }, 1000);
 });
 
-chrome.windows.onFocusChanged.addListener(function(window) {
-    Extension.getConfig().then(function(config){
+chrome.windows.onFocusChanged.addListener( window => {
+    Extension.getConfig().then(config => {
         if (config.popupClosing==='manually' && window != chrome.windows.WINDOW_ID_NONE) {
             Notify.refreshAll();
         }
     });
 });
 
-chrome.idle.onStateChanged.addListener(function(state) {
-    Extension.getConfig().then(function(config){
+chrome.idle.onStateChanged.addListener(state => {
+    Extension.getConfig().then(config => {
         if (config.popupClosing==='manually' &&  state === 'active') {
             Notify.refreshAll();
         }

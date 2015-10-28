@@ -5,12 +5,8 @@
 
     var filters = {
         time: {
-            set: function(value) {
-                return Time.fromSeconds(value);
-            },
-            get: function(value){
-                return Time.fromString(value).getTotalSeconds();
-            }
+            set: value => Time.fromSeconds(value),
+            get: value => Time.fromString(value).getTotalSeconds()
         },
         url: {
             set: trim,
@@ -20,7 +16,7 @@
 
     function formToObject(form) {
         form = $(form);
-        return form.serializeArray().reduce(function(obj, fieldData){
+        return form.serializeArray().reduce( (obj, fieldData) => {
             var field = form.find('[name="' + fieldData.name + '"]');
             var filter = field.data('filter');
             if (filters[filter]) {
@@ -34,7 +30,7 @@
     function objectToForm(form, object) {
         form = $(form);
         form[0].reset();
-        _.each(object, function(value, key){
+        _.each(object, (value, key) => {
             var field = form.find('[name="' + key + '"]');
             if (field.length) {
                 var filter = field.data('filter');
@@ -95,18 +91,16 @@
     }
 
     function loadAccounts(accounts) {
-        return Extension.update().then(function(){
+        return Extension.update().then( () => {
             var table = $('#accounts');
             table.empty();
-            _.each(accounts, function(account){
-                table.append(buildAccountRow(account));
-            });
+            _.each(accounts, account => table.append(buildAccountRow(account)) );
             componentHandler.upgradeDom();
         });
     }
 
     $(function() {
-        $('.mdl-layout__tab').each(function(idx, element){
+        $('.mdl-layout__tab').each( (idx, element) => {
             element = $(element);
             if (element.attr('href')===(document.location.hash || '#settings-general')) {
                 element.addClass('is-active');
@@ -116,17 +110,11 @@
         });
 
         Extension.getAccounts().then(loadAccounts);
-
-        Extension.getConfig().then(applyConfig).then(function() {
-            $('#notifier-config').on('change', 'input,select', function(){
-                Extension.setConfig(exportConfig());
-            });
-        });
-
+        Extension.getConfig().then(applyConfig).then( () => $('#notifier-config').on('change', 'input,select', () => Extension.setConfig(exportConfig()) ) );
 
         var sound = document.createElement('audio');
         sound.setAttribute('preload', 'auto');
-        $(document).on('play', function(event){
+        $(document).on('play', event => {
             var $this = $(event.target),
                 value = $this.val();
             try {
@@ -144,7 +132,7 @@
     });
 
     $(document).on('account.form', function(event, data){
-        var idx = _.toInt(data.accountIdx, -1),
+        var idx = _.toIntOrDefault(data.accountIdx, -1),
             account;
         Extension.getAccounts().then(function(accounts){
             if (idx === -1) {
@@ -161,7 +149,7 @@
 
     $(document).on('account.save', function(){
         var account = formToObject('#account-form'),
-            idx = _.toInt(account.idx, -1);
+            idx = _.toIntOrDefault(account.idx, -1);
         $('#screen-locker').lockScreen();
         Extension.testAccount(account).then(function(){
             return Extension.getAccounts().then(function(accounts){

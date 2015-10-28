@@ -1,32 +1,28 @@
 'use strict';
-(function($){
+( $ => {
+    var _p = _.p();
     var xmlCache = {};
 
-    function ExchangeAccount(username, password, serverEWS, serverOWA) {
-        this.username = username;
-        this.password = password;
-        this.serverEWS = serverEWS;
-        this.serverOWA = serverOWA;
+    class ExchangeAccount {
+        constructor(username, password, serverEWS, serverOWA) {
+            this.username = username;
+            this.password = password;
+            this.serverEWS = serverEWS;
+            this.serverOWA = serverOWA;
+        }
     }
-    ExchangeAccount.prototype = {
-        constructor: ExchangeAccount
-    };
 
     function getXML(actionXml) {
         actionXml = actionXml.toLowerCase();
-        return new Promise(function(resolve, reject){
+        return new Promise((resolve, reject) => {
             if(!xmlCache[actionXml])
             {
                 $.ajax({
-                    type    : "GET",
+                    type    : 'GET',
                     url     :  actionXml,
-                    dataType: "text",
-                    success: function(response){
-                        resolve(xmlCache[actionXml] = response);
-                    },
-                    error: function() {
-                        reject(arguments)
-                    }
+                    dataType: 'text',
+                    success: response => resolve(xmlCache[actionXml] = response),
+                    error: error => reject(error)
                 });
             } else {
                 resolve(xmlCache[actionXml]);
@@ -35,13 +31,13 @@
     }
 
     function exchangeRequest(method, endpoint, data, account) {
-        return new Promise(function(resolve, reject){
+        return new Promise((resolve, reject) => {
             $.ajax({
                 type    : method,
                 url     : account.serverEWS + endpoint,
-                dataType: "xml",
+                dataType: 'xml',
                 data: data,
-                headers : {"Content-Type": "text/xml"},
+                headers : {'Content-Type': 'text/xml'},
                 password: account.password,
                 username: account.username,
                 success: resolve,
@@ -98,103 +94,90 @@
             body: mail.find('Body').text()
         };
     }
-
-
-    function ExchangeAPI(options) {
-        options = options || {};
-        this.xmlFolder = options.xmlFolder;
-    }
-    ExchangeAPI.prototype = {
-        constructor: ExchangeAPI,
-        createAccount: function (username, password, serverEWS, serverOWA) {
+    class ExchangeAPI {
+        constructor (options) {
+            options = options || {};
+            _p(this, {
+                xmlFolder: options.xmlFolder
+            });
+        }
+        get xmlFolder() {
+            return _p(this).xmlFolder;
+        }
+        static createAccount (username, password, serverEWS, serverOWA) {
             return new ExchangeAccount(username, password, serverEWS, serverOWA);
-        },
-        getTypes: function(account) {
+        }
+        static getTypes (account) {
             return exchangeRequest('get', '/types.xsd', null, account);
-        },
-        getMessages: function(account) {
+        }
+        static getMessages (account) {
             return exchangeRequest('get', '/messages.xsd', null, account);
-        },
-        getServices: function (account) {
+        }
+        static getServices (account) {
             return exchangeRequest('get', '/Services.wsdl', null, account);
-        },
-        doAction: function (name, account, parameters) {
+        }
+        doAction (name, account, parameters) {
             parameters = parameters || {};
-            return getXML(this.xmlFolder + '/' + name + '.xml').then(function(xml){
+            return getXML(`${this.xmlFolder}/${name}.xml`).then( xml => {
                 xml = _.fmtString(xml, parameters);
                 return exchangeRequest('post', '/Exchange.asmx', xml, account);
             });
-        },
-        getFolder: function(folderName, account) {
+        }
+        getFolder (folderName, account) {
             return this.doAction('get-folder', account, {Id: folderName}).then(getFolderInfo);
-        },
-        getFolderById: function(folder, account) {
+        }
+        getFolderById (folder, account) {
             return this.doAction('get-folder-id', account, {Id: folder.id, ChangeKey: folder.changeKey}).then(getFolderInfo);
-        },
-        getItem: function(id, changeKey, account) {
-            return this.doAction('get-item', account, {Id: id, ChangeKey: changeKey}).then(getItemInfo);
-        },
-        getAppointments: function(account) {
+        }
+        getItem (id, changeKey, account) {
+        return this.doAction('get-item', account, {Id: id, ChangeKey: changeKey}).then(getItemInfo);
+        }
+        getAppointments (account) {
             var self = this;
             var startDate = _.toXsdDate(new Date()),
                 endDate = _.toXsdDate(_.dateAddDays(new Date(),10));
-            return self.doAction('get-appointment', account, {MaxEntriesReturned: 10, StartDate: startDate, EndDate: endDate }).then(function(response){
+            return self.doAction('get-appointment', account, {MaxEntriesReturned: 10, StartDate: startDate, EndDate: endDate }).then( response => {
                 var appointments = [];
-                $(response).find('Items').children().each(function(id, appointment){
-                    appointments.push(getAppointmentInfo(appointment));
-                });
+                $(response).find('Items').children().each((id, appointment) => appointments.push(getAppointmentInfo(appointment)) );
                 return appointments;
             });
-        },
-        getFolderUnreadMails: function(folderName, account) {
-            return this.doAction('get-unread-mails', account, {Id: folderName, MaxEntriesReturned: 10}).then(function(response){
+        }
+        getFolderUnreadMails (folderName, account) {
+            return this.doAction('get-unread-mails', account, {Id: folderName, MaxEntriesReturned: 10}).then( response => {
                 var mails = [];
-                $(response).find('Message').each(function(id, mail){
-                    mails.push(getMailInfo(mail));
-                });
+                $(response).find('Message').each( (id, mail) => mails.push(getMailInfo(mail)) );
                 return mails;
-            });
-        },
-        getFolderUnreadMailsById: function(folder, account) {
-            return this.doAction('get-unread-mails-id', account, {Id: folder.id, ChangeKey: folder.changeKey, MaxEntriesReturned: 10}).then(function(response){
-                var mails = [];
-                $(response).find('Message').each(function(id, mail){
-                    mails.push(getMailInfo(mail));
-                });
-                return mails;
-            });
-        },
-        getAllItemsFolder: function(account) {
-            return this.doAction('all-items', account).then(getFolderInfo);
-        },
-        getTotalUnreadCount: function(account) {
-            return this.getAllItemsFolder(account).then(function(folder){
-                return folder.unreadCount;
-            });
-        },
-        getFolderUnreadCount: function(folderName, account) {
-            return this.getFolder(folderName, account).then(function(response){
-                return _.toInt($(response).find('UnreadCount').text());
-            });
-        },
-        getFolders: function(account) {
-            return this.doAction('find-folder', account, {Id: 'root'}).then(function(response){
-                var folders = [];
-                $(response).find('Folders').children().each(function(id, folder){
-                    folders.push(getFolderInfo(folder));
-                });
-                return folders;
-            });
-        },
-        markAsRead: function(account, folder) {
-            return this.doAction('mark-as-read', account, {Id: folder}).then(function(response){
-                debugger;
-                return getItemInfo($(response).find('Message'));
             });
         }
-    };
+        getFolderUnreadMailsById (folder, account) {
+            return this.doAction('get-unread-mails-id', account, {Id: folder.id, ChangeKey: folder.changeKey, MaxEntriesReturned: 10}).then( response => {
+                var mails = [];
+                $(response).find('Message').each( (id, mail) => mails.push(getMailInfo(mail)) );
+                return mails;
+            });
+        }
+        getAllItemsFolder (account) {
+            return this.doAction('all-items', account).then(getFolderInfo);
+        }
+        getTotalUnreadCount (account) {
+            return this.getAllItemsFolder(account).then( folder => folder.unreadCount );
+        }
+        getFolderUnreadCount (folderName, account) {
+            return this.getFolder(folderName, account).then( response => _.toInt($(response).find('UnreadCount').text()) );
+        }
+        getFolders (account) {
+            return this.doAction('find-folder', account, {Id: 'root'}).then( response => {
+                var folders = [];
+                $(response).find('Folders').children().each( (id, folder) => folders.push(getFolderInfo(folder)));
+                return folders;
+            });
+        }
+        markAsRead (account, folder) {
+            return this.doAction('mark-as-read', account, {Id: folder}).then( response => getItemInfo($(response).find('Message')) );
+        }
+    }
 
     this.ExchangeAPI = ExchangeAPI;
     this.ExchangeAccount = ExchangeAccount;
 
-}.call(this.global || this.window || global || window, jQuery));
+}).call(this.global || this.window || global || window, jQuery);

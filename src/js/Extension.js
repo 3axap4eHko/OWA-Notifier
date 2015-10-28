@@ -29,11 +29,7 @@
         api = new ExchangeAPI({
             xmlFolder: chrome.extension.getURL('xml')
         }),
-        remindedAppointments = {},
-        isLegacyAPI = !chrome.notifications;
-
-    audio.setAttribute('preload', 'auto');
-    audio.setAttribute('src', defaultConfig.mailSound);
+        remindedAppointments = {};
 
     function logError(error) {
         console.error(error);
@@ -41,10 +37,7 @@
     }
 
     function logErrorDefault(defaultValue) {
-        return function (error) {
-            logError(error);
-            return defaultValue;
-        }
+        return error => ( logError(error), defaultValue );
     }
 
     function setIconEnabled(enabled) {
@@ -78,7 +71,7 @@
     }
 
     function openUrl(url) {
-        chrome.tabs.query({}, function (tabs) {
+        chrome.tabs.query({}, tabs => {
             for (var i = 0, tab; tab = tabs[i]; i++) {
                 if (tab.url && ~tab.url.indexOf(url)) {
                     chrome.tabs.update(tab.id, {selected: true, url: tab.url});
@@ -90,7 +83,7 @@
     }
 
     function openOwa(account) {
-        return openUrl(account.serverOWA);
+        return (openUrl(account.serverOWA), account);
         /*
          var submit,
          form = $('<form>', {
@@ -116,20 +109,16 @@
     }
 
     function openOwaClosure(account) {
-        return function () {
-            openOwa(account);
-        };
+        return () => openOwa(account);
     }
 
-    var _closeButton = Notify.button('Close','images/button_close.png', function(){
-        this.remove();
-    });
+    var _closeButton = Notify.button('Close','images/button_close.png', notification => notification.remove() );
 
     function notifyEmails(accountsMails) {
         var total = 0;
         var globalWarning = false;
         var badgeText = '';
-        var notifyMails = accountsMails.filter(function (accountMails) {
+        var notifyMails = accountsMails.filter( accountMails => {
             var account = accountMails[0],
                 mailsCount = _.toInt(accountMails[1]),
                 displayTime = _.toInt(accountMails[2]),
@@ -153,7 +142,7 @@
         if (total) {
             badgeText = total.toString();
             if (notifyMails.length > 0) {
-                Extension.getConfig().then(function (config) {
+                Extension.getConfig().then( config => {
                     soundVolume(config.volume);
                     soundPlay(config.mailSound);
                 });
@@ -169,12 +158,15 @@
 
     function notifyAppointments(accountsAppointments) {
         var toRemind = [];
-        accountsAppointments.forEach(function (accountAppointments) {
-            var account = accountAppointments[0],
-                appointments = accountAppointments[1],
-                displayTime = _.toInt(accountAppointments[2]);
+        accountsAppointments.forEach( accountAppointments =>  {
+
+            var account         = accountAppointments[0],
+                appointments    = accountAppointments[1],
+                displayTime     = _.toInt(accountAppointments[2]);
+
             account.hasErrors |= !Array.isArray(appointments);
-            appointments = account.hasErrors ? [] : appointments.filter(function (appointment) {
+
+            appointments = account.hasErrors ? [] : appointments.filter( appointment => {
                 if (appointment.start >= new Date() &&
                     appointment.start <= _.dateAddMinutes(new Date(), appointment.remind) && !remindedAppointments.hasOwnProperty(appointment.id)
                 ) {
@@ -183,9 +175,8 @@
                 } else if (appointment.start < new Date() && remindedAppointments.hasOwnProperty(appointment.id)) {
                     delete remindedAppointments[appointment.id];
                 }
-            }).map(function (appointment) {
-                return Notify.item(appointment.subject, 'At ' + appointment.start);
-            });
+            }).map( appointment =>  Notify.item(appointment.subject, 'At ' + appointment.start) );
+
             if (appointments.length) {
                 Notify.createList('appointment_' + account.idx, {
                     title: 'Appointment(s) for ' + account.email,
@@ -201,7 +192,7 @@
             return appointments.length;
         });
         if (toRemind.length > 0) {
-            Extension.getConfig().then(function (config) {
+            Extension.getConfig().then( config => {
                 soundVolume(config.volume);
                 soundPlay(config.mailSound);
             });
@@ -211,107 +202,51 @@
     }
 
     function storageSave(name, value) {
-        return new Promise(function (resolve) {
+        return new Promise(resolve => {
             var data = {};
             data[name] = value;
-            chrome.storage.local.set(data, function () {
-                resolve(value)
-            });
+            chrome.storage.local.set(data, () => resolve(value) );
         });
     }
 
     function storageLoad(name) {
-        return new Promise(function (resolve) {
-            chrome.storage.local.get(name, function (value) {
-                resolve(value[name]);
-            });
-        });
+        return new Promise( resolve => chrome.storage.local.get(name,  value => resolve(value[name]) ) );
     }
 
-
-    function Account(email, username, password, serverEWS, serverOWA, folder) {
-        ExchangeAccount.call(this, username, password, serverEWS, serverOWA);
-        this.enabled = true;
-        this.email = email;
-        this.folder = folder || 'root';
-        this.unread = 0;
-        this.hasErrors = false;
+    class Account extends ExchangeAccount {
+        constructor(email, username, password, serverEWS, serverOWA, folder) {
+            super(username, password, serverEWS, serverOWA);
+            this.email = email;
+            this.folder = folder || 'root';
+            this.enabled = true;
+            this.unread = 0;
+            this.hasErrors = false;
+        }
     }
-
-    Account.prototype = new ExchangeAccount();
-    Account.prototype.constructor = Account;
 
     var updateTimer = 0;
-
     var Extension = {
-        logError: function (error) {
-            return new Promise(function (resolve) {
-                logError(error);
-                resolve(error);
-            });
-        },
-        getConfig: function () {
-            return storageLoad('config').then(function (loadedConfig) {
-                if (!loadedConfig) {
-                    return Extension.setConfig(defaultConfig)
-                }
-                return loadedConfig;
-            });
-        },
-        setConfig: function (config) {
-            return storageSave('config', config || defaultConfig).then(function (savedConfig) {
-                return savedConfig;
-            });
-        },
-        getAccounts: function () {
-            return storageLoad('accounts').then(function (loadedAccounts) {
-                return (loadedAccounts || []);
-            });
-        },
-        setAccounts: function (accounts) {
-            return storageSave('accounts', accounts || []).then(function (savedAccounts) {
-                return savedAccounts;
-            });
-        },
-        openUrl: function (url) {
-            openUrl(url);
-        },
-        openSettingsGeneral: function () {
-            var optionsUrl = chrome.extension.getURL('options.html#settings-general');
-            openUrl(optionsUrl);
-        },
-        openSettingsAccounts: function () {
-            var optionsUrl = chrome.extension.getURL('options.html#settings-accounts');
-            openUrl(optionsUrl);
-        },
-        openOwa: function (account) {
-            return new Promise(function (resolve) {
-                openOwa(account);
-                resolve(account);
-            });
-        },
-        getUnreadEmails: function (accounts) {
-            return Promise.all(Object.keys(accounts).map(function (idx) {
-                var account = accounts[idx];
-                if (account.folder === 'root') {
-                    return api.getAllItemsFolder(account).then(function (folder) {
-                        return api.getFolderUnreadMailsById(folder, account).then(function (mails) {
-                            return [account, mails];
-                        }).catch(logErrorDefault([]));
-                    }).catch(logErrorDefault([]));
-                } else {
-                    return api.getFolderUnreadMails('inbox', account).then(function (mails) {
-                        return [account, mails];
-                    }).catch(logErrorDefault([]));
-                }
-            }));
-        },
-        testAccount: function(account){
-            return api.getFolders(account);
-        },
-        getFolderInfo: function (accounts, displayTime) {
-            return Promise.all(Object.keys(accounts).map(function (idx) {
-                var account = accounts[idx];
+        logError: error => new Promise( resolve => resolve(logError(error)) ),
+        getConfig: () => storageLoad('config').then( loadedConfig => loadedConfig ? loadedConfig : Extension.setConfig(defaultConfig) ),
+        setConfig: config => storageSave('config', config || defaultConfig).then( savedConfig => savedConfig ),
+        getAccounts: () => storageLoad('accounts').then( loadedAccounts => loadedAccounts || [] ),
+        setAccounts: accounts => storageSave('accounts', accounts || []).then( savedAccounts => savedAccounts ),
+        openUrl: url => openUrl(url),
+        openSettingsGeneral: () => openUrl(chrome.extension.getURL('options.html#settings-general')),
+        openSettingsAccounts: () => openUrl(chrome.extension.getURL('options.html#settings-accounts')),
+        openOwa: account => new Promise( resolve => resolve(openOwa(account)) ),
+        getUnreadEmails: accounts => Promise.all(_.map(accounts, account => account.folder === 'root'
+                ? api.getAllItemsFolder(account)
+                    .then( folder => api.getFolderUnreadMailsById(folder, account)
+                               .then( mails => [account, mails])
+                               .catch(logErrorDefault([])) )
+                    .catch(logErrorDefault([]))
+                : api.getFolderUnreadMails('inbox', account)
+                    .then( mails => [account, mails] )
+                    .catch(logErrorDefault([]))
+        )),
+        testAccount: account => api.getFolders(account),
+        getFolderInfo: (accounts, displayTime) => Promise.all(_.map(accounts, account => {
                 if (!account.enabled) {
                     return [account,0,0];
                 }
@@ -324,21 +259,16 @@
                         return [account, folder.unreadCount, displayTime];
                     }).catch(logErrorDefault([account, null]));
                 }
-            }));
-        },
-        getAppointments: function (accounts, displayTime) {
-            return Promise.all(Object.keys(accounts).map(function (idx) {
-                var account = accounts[idx];
+        })),
+        getAppointments: (accounts, displayTime) => Promise.all(_.map(accounts, account => {
                 if (!account.enabled) {
                     return [account,0,0];
                 }
                 return api.getAppointments(account).then(function (appointments) {
                     return [account, appointments, displayTime];
                 }).catch(logErrorDefault([account, null]));
-            }));
-        },
-        update: function () {
-            return Extension.getAccounts().then(function (accounts) {
+        })),
+        update: () => Extension.getAccounts().then(function (accounts) {
                 if (accounts.length === 0) {
                     chrome.browserAction.setBadgeText({text: 'setup'});
                     return [];
@@ -349,28 +279,25 @@
                 return Promise.all([
                     Extension.getFolderInfo(accounts, Extension.update.displayTime).then(notifyEmails),
                     Extension.getAppointments(accounts, Extension.update.displayTime).then(notifyAppointments)
-                ]).then(function (result) {
-                    return Extension.setAccounts(accounts).then(function () {
-                        return result;
-                    });
-                })
-            });
-        },
-        process: function () {
-            return Extension.getConfig().then(function (config) {
+                ]).then( result => Extension.setAccounts(accounts).then(() => result) );
+        }),
+        process: () => Extension.getConfig().then( config => {
                 if (Extension.update.displayTime !== config.displayTime) {
                     Extension.update.displayTime = config.displayTime;
                 }
                 if (Extension.update.interval !== config.updateInterval) {
                     Extension.update.interval = config.updateInterval;
                     clearInterval(updateTimer);
-                    Extension.update().then(function () {
-                        updateTimer = setInterval(Extension.update, config.updateInterval * 1000);
-                    });
+                    Extension.update().then( () => updateTimer = setInterval(Extension.update, config.updateInterval * 1000) );
                 }
-            })
-        }
+        })
     };
+    //Async loading
+    setTimeout(() => {
+        audio.setAttribute('preload', 'auto');
+        audio.setAttribute('src', defaultConfig.mailSound);
+    },0);
+
 
     if (localStorage.getItem('version') !== chrome.app.getDetails().version) {
         localStorage.setItem('version', chrome.app.getDetails().version);
@@ -379,36 +306,9 @@
             message: 'Outlook Web Access updated to ' + chrome.app.getDetails().version,
             iconUrl: chrome.extension.getURL(icon.image),
             buttons: [_closeButton]
-        }, function () {
-            openUrl('https://chrome.google.com/webstore/detail/outlook-web-access-notifi/hldldpjjjagjfikfknadmnnmpbbhgihg');
-        }, _.fnEmpty);
-
-        /** Migration */
-        var oldData = localStorage.getItem('accounts');
-        if (oldData) {
-            oldData = JSON.parse(oldData);
-            var accountReplacer = /[^a-zA-Z0-9\._-]+/;
-            Extension.setAccounts(oldData.map(function (account, idx) {
-                account.idx = idx;
-                account.email = account.username.replace(accountReplacer, '') + '@' + _.url(account.serverEWS).host;
-                account.enabled = 1;
-                account.unread = 0;
-                return account;
-            })).then(function () {
-                localStorage.removeItem('accounts');
-            });
-        }
-
-        oldData = localStorage.getItem('options');
-        if (oldData) {
-            oldData = JSON.parse(oldData);
-            Extension.setConfig(oldData).then(function () {
-                localStorage.removeItem('options');
-            });
-        }
+        }, () =>  openUrl('https://chrome.google.com/webstore/detail/outlook-web-access-notifi/hldldpjjjagjfikfknadmnnmpbbhgihg'), _.fnEmpty);
     }
 
     this.Account = Account;
     this.Extension = Extension;
-
 }.call(this.global || this.window || global || window, jQuery));

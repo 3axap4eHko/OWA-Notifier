@@ -54,8 +54,8 @@
 function drawClock(timePickerTable, options, onSelect) {
     options = options || {};
     options.start = _.toInt(options.start);
-    options.step = _.toInt(options.step, 1);
-    options.value = _.toInt(options.value, options.start - 1);
+    options.step = _.toIntOrDefault(options.step, 1);
+    options.value = _.toIntOrDefault(options.value, options.start - 1);
     timePickerTable.empty();
     var callback = function () {
         onSelect($(this).data('value'));

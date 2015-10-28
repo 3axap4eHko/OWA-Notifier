@@ -41,112 +41,95 @@
         return object;
     }
 
-    function NotifyListItem(title, message) {
-        this.title = title;
-        this.message = message;
-    }
-
-    NotifyListItem.prototype.constructor = NotifyListItem;
-
-    function NotifyButton(title, icon, onClick) {
-        this.title = title;
-        this.iconUrl = icon;
-        define(this, 'onClick', onClick || _.fnEmpty);
-    }
-
-    NotifyButton.prototype.constructor = NotifyButton;
-
-    function Notify(id, options, onClick, onClose, onCreate) {
-        var self = this;
-        options = options || {};
-        options.eventTime = Date.now();
-        if (options.expired) {
-            options.timerId = setTimeout(function () {
-                self.remove();
-            }, _.toInt(options.expired) * 1000);
+    class NotifyListItem {
+        constructor(title, message) {
+            this.title = title;
+            this.message = message;
         }
-        delete options.expired;
-        _.extend(self, defaultOptions, options);
-        if (id == null) {
-            id = _generateId();
-        }
-        define(self, 'id', id);
-        define(self, 'timerId', options.timerId);
-        define(self, 'onClick', onClick);
-        define(self, 'onClose', onClose);
-        Promise.resolve(notifications[id] ? notifications[id].remove() : null).then(function(){
-            chrome.notifications.create(id, self, function (id) {
-                notifications[id] = self;
-                onCreate(self);
-            });
-        });
     }
 
-    Notify.prototype.constructor = null;
-    Notify.prototype.refresh = function () {
-        var self = this;
-        return new Promise(function (resolve) {
-            chrome.notifications.clear(self.id, function (removed) {
-                chrome.notifications.create(self.id, self, function (id) {
-                    resolve(notifications[id] = self);
+    class NotifyButton {
+        constructor(title, icon, onClick) {
+            this.title = title;
+            this.iconUrl = icon;
+            define(this, 'onClick', onClick || _.fnEmpty);
+        }
+    }
+
+    class Notify {
+        constructor (id, options, onClick, onClose, onCreate) {
+            var self = this;
+            options = options || {};
+            options.eventTime = Date.now();
+            if (options.expired) {
+                options.timerId = setTimeout(() => self.remove(), _.toInt(options.expired) * 1000);
+            }
+            delete options.expired;
+            _.extend(self, defaultOptions, options);
+            if (id == null) {
+                id = _generateId();
+            }
+            define(self, 'id', id);
+            define(self, 'timerId', options.timerId);
+            define(self, 'onClick', onClick);
+            define(self, 'onClose', onClose);
+            Promise.resolve(notifications[id] ? notifications[id].remove() : null)
+                .then(() => chrome.notifications.create(id, self, id => onCreate(notifications[id] = self)) );
+        }
+        refresh () {
+            var self = this;
+            return new Promise(function (resolve) {
+                chrome.notifications.clear(self.id, function (removed) {
+                    chrome.notifications.create(self.id, self, function (id) {
+                        resolve(notifications[id] = self);
+                    });
                 });
             });
-        });
-    };
-    Notify.prototype.remove = function () {
-        var self = this;
-        return new Promise(function (resolve) {
-            chrome.notifications.clear(self.id, resolve);
-        }).then(function (removed) {
-                return removed ? _releaseNotify(self.id) : false;
-            });
-    };
-    Notify.getAll = function () {
-        return new Promise(function (resolve) {
-            chrome.notifications.getAll(resolve);
-        });
-    };
-    Notify.createCustom = function (id, options, onClick, onClose) {
-        return Promise.resolve(notifications[id] ? notifications[id].remove() : 1).then(function (ready) {
-            return new Promise(function (resolve) {
-                new Notify(id, options, onClick, onClose, resolve)
-            });
-        });
-    };
-    Notify.createBasic = function (id, options, onClick, onClose) {
-        options = options || {};
-        options.type = 'basic';
-        return Notify.createCustom(id, options, onClick, onClose);
-    };
+        }
+        remove () {
+            var self = this;
+            return new Promise( resolve => chrome.notifications.clear(self.id, resolve))
+                .then( removed => removed ? _releaseNotify(self.id) : false );
+        }
+        static getAll () {
+            return new Promise( resolve => chrome.notifications.getAll(resolve) );
+        }
+        static createCustom (id, options, onClick, onClose) {
+            return Promise.resolve(notifications[id] ? notifications[id].remove() : 1)
+                .then( ready => new Promise(resolve => new Notify(id, options, onClick, onClose, resolve)));
+        }
+        static createBasic (id, options, onClick, onClose) {
+            options = options || {};
+            options.type = 'basic';
+            return Notify.createCustom(id, options, onClick, onClose);
+        }
+        static createImage (id, options, onClick, onClose) {
+            options = options || {};
+            options.type = 'image';
+            return Notify.createCustom(id, options, onClick, onClose);
+        }
+        static createList (id, options, onClick, onClose) {
+            options = options || {};
+            options.type = 'list';
+            return Notify.createCustom(id, options, onClick, onClose);
+        }
+        static createProgress (id, options, onClick, onClose) {
+            options = options || {};
+            options.type = 'progress';
+            return Notify.createCustom(id, options, onClick, onClose);
+        }
+        static item (title, message) {
+            return new NotifyListItem(title, message);
+        }
+        static button (title, icon, onClick) {
+            return new NotifyButton(title, icon, onClick);
+        }
+        static refreshAll () {
+            _.each(notifications, notification => notification.refresh() );
+        }
+    }
 
-    Notify.createImage = function (id, options, onClick, onClose) {
-        options = options || {};
-        options.type = 'image';
-        return Notify.createCustom(id, options, onClick, onClose);
-    };
-    Notify.createList = function (id, options, onClick, onClose) {
-        options = options || {};
-        options.type = 'list';
-        return Notify.createCustom(id, options, onClick, onClose);
-    };
-    Notify.createProgress = function (id, options, onClick, onClose) {
-        options = options || {};
-        options.type = 'progress';
-        return Notify.createCustom(id, options, onClick, onClose);
-    };
-    Notify.item = function (title, message) {
-        return new NotifyListItem(title, message);
-    };
-    Notify.button = function (title, icon, onClick) {
-        return new NotifyButton(title, icon, onClick);
-    };
-    Notify.refreshAll = function () {
-        _.each(notifications, function (notification) {
-            notification.refresh();
-        });
-    };
-
-    chrome.notifications.onClosed.addListener(function (id, byUser) {
+    chrome.notifications.onClosed.addListener( (id, byUser) => {
         try {
             if (byUser) {
                 _releaseNotify(id).onClose();
@@ -155,23 +138,19 @@
             console.log(e.stack);
         }
     });
-    chrome.notifications.onClicked.addListener(function (id) {
+    chrome.notifications.onClicked.addListener( id => {
         try {
             if (notifications[id]) {
-                notifications[id].remove().then(function (notification) {
-                    notification.onClick();
-                });
+                notifications[id].remove().then( notification => notification.onClick(notification, id) );
             }
         } catch (e) {
             console.log(e.stack);
         }
     });
-    chrome.notifications.onButtonClicked.addListener(function (id, buttonId) {
+    chrome.notifications.onButtonClicked.addListener( (id, buttonId) => {
         try {
             if (notifications[id]) {
-                notifications[id].remove().then(function (notification) {
-                    notification.buttons[buttonId].onClick.call(notification, buttonId);
-                });
+                notifications[id].remove().then( notification => notification.buttons[buttonId].onClick(notification, buttonId));
             }
         } catch (e) {
             console.log(e.stack);

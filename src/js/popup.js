@@ -58,7 +58,6 @@
         Extension.openUrl('https://github.com/3axap4eHko/OWA-Notifier/issues');
     });
 
-
     $(function(){
         updateMails();
     })
