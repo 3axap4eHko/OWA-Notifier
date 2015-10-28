@@ -74,7 +74,7 @@
         chrome.tabs.query({}, tabs => {
             for (var i = 0, tab; tab = tabs[i]; i++) {
                 if (tab.url && ~tab.url.indexOf(url)) {
-                    chrome.tabs.update(tab.id, {selected: true, url: tab.url});
+                    chrome.tabs.update(tab.id, {selected: true});
                     return;
                 }
             }
