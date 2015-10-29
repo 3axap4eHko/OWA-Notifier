@@ -108,7 +108,6 @@
                 return true;
             }
         });
-
         Extension.getAccounts().then(loadAccounts);
         Extension.getConfig().then(applyConfig).then( () => $('#notifier-config').on('change', 'input,select', () => Extension.setConfig(exportConfig()) ) );
 
@@ -219,5 +218,4 @@
             $('#account-modal').modal('hide');
         });
     });
-
 }.call(this.global || this.window || global || window));

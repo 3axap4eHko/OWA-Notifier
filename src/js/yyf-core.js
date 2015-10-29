@@ -148,6 +148,11 @@
         };
     };
 
+    function _s4() {
+        return Math.floor(Math.random() * 0xFFFF).toString(16)
+    }
+    _.randomGuid = () => _s4() + _s4() + '-' + _s4() + '-' + _s4() + '-' + _s4() + '-' + _s4() + _s4() + _s4();
+
 
     /**
      * Reflections
@@ -226,6 +231,20 @@
      * @returns {Array.<{key: number|string, value: *}>}
      */
     _.pairs = target => _.keys(target).map( key => _.toKeyValueOf(target, key) );
+
+    _.copy = function (target) {
+        _.toArray(arguments).slice(1).forEach(function (source) {
+            if (_.isStructure(source)) {
+                var keys = _.keys(source);
+                if (_.isArray(source)) {
+                    keys = keys.map(_.toInt);
+                }
+                keys.forEach( key => target[key] = source[key]);
+            }
+        });
+        return target;
+    };
+
     /**
      * 
      */
@@ -255,7 +274,6 @@
         function __() {
             this.constructor = target;
         }
-
         __.prototype = parent.prototype;
         target.prototype = new __();
         return target;

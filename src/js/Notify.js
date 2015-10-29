@@ -9,16 +9,6 @@
         buttons: []
     };
 
-    function _generateId() {
-        function s4() {
-            return Math.floor((1 + Math.random()) * 0x10000)
-                .toString(16)
-                .substring(1);
-        }
-
-        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-    }
-
     function _releaseNotify(id) {
         var notify = notifications[id];
         if (notify) {
@@ -65,16 +55,16 @@
                 options.timerId = setTimeout(() => self.remove(), _.toInt(options.expired) * 1000);
             }
             delete options.expired;
-            _.extend(self, defaultOptions, options);
+            _.copy(self, defaultOptions, options);
             if (id == null) {
-                id = _generateId();
+                id = _.randomGuid();
             }
             define(self, 'id', id);
             define(self, 'timerId', options.timerId);
             define(self, 'onClick', onClick);
             define(self, 'onClose', onClose);
             Promise.resolve(notifications[id] ? notifications[id].remove() : null)
-                .then(() => chrome.notifications.create(id, self, id => onCreate(notifications[id] = self)) );
+                .then(() => chrome.notifications.create(id, self, function(id) { onCreate(notifications[id] = self); }) );
         }
         refresh () {
             var self = this;
