@@ -70,20 +70,39 @@
         }
     }
 
-    function openUrl(url) {
+    function openUrl(url, needToClosePopup) {
+
+        if (typeof needToClosePopup == 'undefined') {
+            needToClosePopup = false;
+        }
+
         chrome.tabs.query({}, tabs => {
+
+            var sTab = null;
             for (var i = 0, tab; tab = tabs[i]; i++) {
                 if (tab.url && ~tab.url.indexOf(url)) {
-                    chrome.tabs.update(tab.id, {selected: true, url: tab.url});
-                    return;
+                    sTab = tab;
                 }
             }
-            chrome.tabs.create({url: url});
+    
+            if (sTab === null) {
+                chrome.tabs.create({url: url});
+            } else {
+                chrome.tabs.update(sTab.id, {selected: true, url: sTab.url});
+            }
+    
+            if (needToClosePopup) {
+                try {
+                    closePopup();
+                } catch (err) {
+                    // ---
+                }
+            }
         });
     }
 
     function openOwa(account) {
-        return (openUrl(account.serverOWA), account);
+        return (openUrl(account.serverOWA, true), account);
         /*
          var submit,
          form = $('<form>', {
