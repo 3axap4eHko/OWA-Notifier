@@ -121,3 +121,7 @@ a:hover, a:active {
 .mdl-margin__10px {
     margin: 10px;
 }
+
+.mdl-overflow--visible {
+    overflow: visible;
+}
