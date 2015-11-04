@@ -1,4 +1,6 @@
 .idea
+.vscode
 build
 owa.zip
 node_modules
+tmp

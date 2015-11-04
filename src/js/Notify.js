@@ -61,7 +61,7 @@
             }
             define(self, 'id', id);
             define(self, 'timerId', options.timerId);
-            define(self, 'onClick', onClick);
+            define(self, 'onClick', onClick);   
             define(self, 'onClose', onClose);
             Promise.resolve(notifications[id] ? notifications[id].remove() : null)
                 .then(() => chrome.notifications.create(id, self, function(id) { onCreate(notifications[id] = self); }) );

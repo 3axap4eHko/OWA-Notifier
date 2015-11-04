@@ -1,6 +1,16 @@
 'use strict';
 (function ($) {
-    var icon = {
+    const extensionDefaultSettings = {
+            mailSound: 'sounds/sound4.ogg',
+            appointmentSound: 'sounds/sound3.ogg',
+            updateInterval: 30,
+            displayTime: 15,
+            volume: 0.3,
+            popupClosing: 'automatically'
+    };
+    const audio = $('<audio>');
+    const api = new ExchangeAPI({ xmlFolder: chrome.extension.getURL('xml') });
+    const icon = {
             disable: {
                 image: 'images/icon_d.png',
                 background: [190, 190, 190, 230]
@@ -16,20 +26,8 @@
             image: 'images/icon128.png',
             width: 19,
             height: 19
-        },
-        defaultConfig = {
-            mailSound: 'sounds/sound4.ogg',
-            appointmentSound: 'sounds/sound3.ogg',
-            updateInterval: 30,
-            displayTime: 15,
-            volume: 0.3,
-            popupClosing: 'automatically'
-        },
-        audio = document.createElement('audio'),
-        api = new ExchangeAPI({
-            xmlFolder: chrome.extension.getURL('xml')
-        }),
-        remindedAppointments = {};
+    };
+    var remindedAppointments = {};
 
     function logError(error) {
         console.error(error);
@@ -227,8 +225,8 @@
     var updateTimer = 0;
     var Extension = {
         logError: error => new Promise( resolve => resolve(logError(error)) ),
-        getConfig: () => storageLoad('config').then( loadedConfig => loadedConfig ? loadedConfig : Extension.setConfig(defaultConfig) ),
-        setConfig: config => storageSave('config', config || defaultConfig).then( savedConfig => savedConfig ),
+        getConfig: () => storageLoad('config').then( loadedConfig => loadedConfig ? loadedConfig : Extension.setConfig(extensionDefaultSettings) ),
+        setConfig: config => storageSave('config', config || extensionDefaultSettings).then( savedConfig => savedConfig ),
         getAccounts: () => storageLoad('accounts').then( loadedAccounts => loadedAccounts || [] ),
         setAccounts: accounts => storageSave('accounts', accounts || []).then( savedAccounts => savedAccounts ),
         openUrl: url => openUrl(url),
@@ -295,7 +293,7 @@
     //Async loading
     setTimeout(() => {
         audio.setAttribute('preload', 'auto');
-        audio.setAttribute('src', defaultConfig.mailSound);
+        audio.setAttribute('src', extensionDefaultSettings.mailSound);
     },0);
 
 
@@ -309,6 +307,6 @@
         }, () =>  openUrl('https://chrome.google.com/webstore/detail/outlook-web-access-notifi/hldldpjjjagjfikfknadmnnmpbbhgihg'), _.fnEmpty);
     }
 
-    this.Account = Account;
-    this.Extension = Extension;
+    
+
 }.call(this.global || this.window || global || window, jQuery));
