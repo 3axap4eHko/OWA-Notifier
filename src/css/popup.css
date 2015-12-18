@@ -7,7 +7,7 @@
 
 body {
     min-width: 500px;
-    min-height: 180px;
+    min-height: 120px;
     max-width: 500px;
 }
 
@@ -20,20 +20,15 @@ body {
     margin: 0 10px 0 0;
 }
 
-.mdl-menu__container, .mdl-menu__outline {
-    width: 60px!important;
-}
-
 .mdl-menu--share.mdl-menu--bottom-right {
     left: 0;
-    width: 60px;
+    min-width: 60px;
 }
 
 .mdl-menu--share>.mdl-menu__item {
     height: 24px;
     line-height: 24px;
     font-size: 24px;
-    width: 60px;
 }
 
 .circle {
@@ -44,7 +39,7 @@ body {
 .mdl-card.mails-card {
     margin: 0 0 0 0;
     width: 500px;
-    min-height: 180px;
+    min-height: 120px;
 }
 
 .mdl-bar {
@@ -64,24 +59,22 @@ body {
 
 .mdl-bar > li > a {
     color: #fff;
-    margin: 0 0 0 15px;
+    margin: -3px 0 0 15px;
     overflow: hidden;
     height: 32px;
-    min-width: 100%;
     position: relative;
-    top: 3px;
+    top: 8px;
 }
 
-.mdl-bar > li > a > .counter {
-    float: right;
-    margin: -6px 20px 0 0;
-    max-width: 150px;
-    overflow: hidden;
+.mdl-bar > li > .action {
+    margin-right: 10px;
+    top: -2px;
 }
 
-.mdl-bar > li > a  .material-icons {
+.mdl-bar > li > .action > .material-icons {
     position: relative;
-    top: 3px;
+    top: 10px;
+    left: 13px;
 }
 
 

@@ -5,17 +5,7 @@
     <soap:Body>
         <m:UpdateItem MessageDisposition="SaveOnly" ConflictResolution="AutoResolve">
             <m:ItemChanges>
-                <t:ItemChange>
-                    <t:ItemId Id="{Id}" ChangeKey="{ChangeKey}"/>
-                    <t:Updates>
-                        <t:SetItemField>
-                            <t:FieldURI FieldURI="message:IsRead"/>
-                            <t:Message>
-                                <t:IsRead>true</t:IsRead>
-                            </t:Message>
-                        </t:SetItemField>
-                    </t:Updates>
-                </t:ItemChange>
+                {Changes}
             </m:ItemChanges>
         </m:UpdateItem>
     </soap:Body>

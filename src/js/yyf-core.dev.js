@@ -1,30 +1,34 @@
+/*! Yin and Yang Core Framework v0.1.4 | Copyright (c) 2015 Ivan (3axap4eHko) Zakharchenko*/
 'use strict';
-(function () {
-/*! Yin and Yang Core Framework v0.0.1 | Copyright (c) 2015 Ivan (3axap4eHko) Zakharchenko */
-    var global = this,
-        isNode = !!global.process && !!global.process.version,
-        _ = {};
-   
-    global.dbg = function () {
-        Array.from(arguments).forEach(function (arg) {
+(function (global, undefined) {
+    const isNode = global.hasOwnProperty('process') ? !!global.process.version : false;
+
+    var _ = {
+        DEBUG: 0,
+        get isNode() {
+            return isNode;
+        }
+    };
+
+    /**
+     * DEBUG
+     */
+    global.dbg = (...args) => {
+        args.forEach(function (arg) {
             console.log(arg);
         });
         isNode && process.exit(0);
     };
-    global.dmp = function (value, txt) {
+    global.dmp = (value, txt) => {
         console.log(txt + ': ' + value);
         return value;
     };
-    global.watch = function (callback) {
+    global.watch = callback => {
         var d = new Date();
         callback();
         return new Date().getTime() - d.getTime();
     };
-    global.test = function (times, callback) {
-        return global.watch(() => {
-            while(times--) callback(times);
-        });
-    };
+    global.test =  (times, callback) => global.watch(() => { while(times--) callback(times); });
 
     /**
      * Private class storage factory
@@ -33,17 +37,17 @@
     _.p = function () {
         var map = new WeakMap();
         return function (context, data, remove) {
-            if (arguments.length == 2) {
+            if (arguments.length === 2) {
                 return map.set(context, data);
-            } else if (arguments.length == 1) {
+            } else if (arguments.length === 1) {
                 return map.get(context);
-            } else if (arguments.length == 3 && remove) {
+            } else if (arguments.length === 3 && remove) {
                 return map.remove(context);
             }
-            throw new Error('_.p called with wrong count of arguments');
+            throw new Error(`Private scope storage called with wrong count of arguments: ${arguments.length}`);
         };
     };
-    var _p = _.p();
+    const _p = _.p();
     
     function _getObjectValue(object, property, defaultValue) {
         defaultValue = defaultValue || {};
@@ -64,19 +68,21 @@
     _.is                = (value, type) => _.classOf(value) == type.name;
     _.isArray           = value         => _.is(value, Array);
     _.isNumber          = value         => _.is(value, Number);
+    _.isInteger         = value         => Number.isInteger(value);
     _.isFiniteNumber    = value         => _.isNumber(value) && isFinite(value);
     _.isDate            = value         => _.is(value, Date);
     _.isString          = value         => _.is(value, String);
     _.isNotEmptyString  = value         => _.isString(value) && value.length>0;
     _.isObject          = value         => _.is(value, Object);
     _.isFunction        = value         => _.is(value, Function);
+    _.isBoolean         = value         => _.is(value, Boolean);
     _.isDefined         = value         => typeof value !== 'undefined';
     _.isNull            = value         => value === null;
     _.isValue           = value         => _.isDefined(value) && !_.isNull(value);
     _.isStructure       = value         => _.isObject(value) || _.isArray(value);
     _.isIterated        = value         => _.isObject(value) || _.isArray(value) || _.isString(value);
     _.isKeyValue        = value         => _.isObject(value) && value.hasOwnProperty('key') && value.hasOwnProperty('value');
-    _.areEqual = function (x, y) {
+    _.areEqual          = (x, y) => {
         if (x === null || x === undefined || y === null || y === undefined) {
             return x === y;
         }
@@ -88,7 +94,8 @@
         if (x instanceof Function) {
             return x === y;
         }
-        // if they are regexps, they should exactly refer to same one (it is hard to better equality check on current ES)
+        // if they are regexps, they should exactly refer to same one (it is hard to better equality check on current
+        // ES)
         if (x instanceof RegExp) {
             return x === y;
         }
@@ -134,7 +141,7 @@
     _.toHexFormat       = value => _.toHexArray(value).map( (hex, idx) => hex + (++idx % 8 ? '' : '\n') ).join(' ');
 
     const urlParse = /^(\w+):\/\/(.*?)\/(.*)$/;
-    _.url = function(url) {
+    _.urlParse =  url => {
         var matches = url.match(urlParse);
         if (!matches) {
             return {};
@@ -148,15 +155,21 @@
         };
     };
 
-    function _s4() {
-        return Math.floor(Math.random() * 0xFFFF).toString(16)
-    }
-    _.randomGuid = () => _s4() + _s4() + '-' + _s4() + '-' + _s4() + '-' + _s4() + '-' + _s4() + _s4() + _s4();
-
-
     /**
      * Reflections
      */
+    /**
+     *
+     * @param {Function} callback
+     * @param {Array} args
+     */
+    _.apply = (callback, args) => callback(...args);
+    /**
+     *
+     * @param {Function} callback
+     * @param {...*} [args]
+     */
+    _.call = (callback, ...args) => callback(args);
     /**
      * Instantiate class by constructor and arguments
      * @param {Function} Constructor
@@ -172,9 +185,7 @@
      * @param {Function} Constructor
      * @returns {Function}
      */
-    _.factory = (Constructor) => function () {
-        return _.create(Constructor, _.toArray(arguments));
-    };
+    _.factory = (Constructor) => (...args) => _.create(Constructor, args);
     /**
      * Define value in object
      */
@@ -209,87 +220,93 @@
         get: getter,
         set: setter
     });
-    /**
-     * Returns an array of the keys of a given target
-     * @param {Object|Array|String} target
-     * @static
-     * @returns {Array|Iterator.<number|string>}
-     */
-    _.keys = target => _.isObject(target) ? Object.keys(target) : Object.keys(target).map(_.toInt);
-
-    /**
-     * Returns an array of the values of a given target
-     * @param {Object|Array|String} target
-     * @static
-     * @returns {Array|Iterator.<*>}
-     */
-    _.values = target => _.keys(target).map( key => target[key]);
-    /**
-     * Returns an array of the key-value pairs of a given target
-     * @param {Object|Array|String} target
-     * @static
-     * @returns {Array.<{key: number|string, value: *}>}
-     */
-    _.pairs = target => _.keys(target).map( key => _.toKeyValueOf(target, key) );
-
-    _.copy = function (target) {
-        _.toArray(arguments).slice(1).forEach(function (source) {
-            if (_.isStructure(source)) {
-                var keys = _.keys(source);
-                if (_.isArray(source)) {
-                    keys = keys.map(_.toInt);
-                }
-                keys.forEach( key => target[key] = source[key]);
-            }
-        });
-        return target;
-    };
-
-    /**
-     * 
-     */
-    _.merge = function (target) {
-        if (!_.isValue(target)) {
-            throw new TypeError('Cannot convert target to object');
-        }
-        _.toArray(arguments).slice(1).forEach(function (source) {
-            if (!_.isStructure(source)) {
-                return;
-            }
-            if (_.isArray(target) && _.isArray(source)) {
-                target = target.concat(source);
-            } else _.keys(source).forEach(function (key) {
-                if (_.isStructure(source[key]) && _.isStructure(target[key])) {
-                    target[key] = _.merge(target[key], source[key]);
-                } else {
-                    target[key] = source[key];
-                }
-            });
-        });
-
-        return target;
-    };
-    _.extend = function (target, parent) {
-        target = _.merge(target, parent);
-        function __() {
-            this.constructor = target;
-        }
-        __.prototype = parent.prototype;
-        target.prototype = new __();
-        return target;
-    };
-    _.clone = function (target) {
-        if (_.isStructure(target)) {
-            return _.keys(target).reduce( (result, key) => (result[key] = _.clone(target[key]), result), _.isArray(target) ? [] : {});
-        }
-        return target;
-    };
+    
     /**
      * Create array with length filled by values
      * @param {Number} length
      * @param {*} value
      */
     _.range = (length, value) => new Array(length).fill(value);
+    /**
+     * Returns an array of the keys of a given target
+     * @param {Object|Array|String|Number} target
+     * @static
+     * @returns {Array|Iterator.<number|string>}
+     */
+    _.keys = target => _.isFiniteNumber(target) ? _.range(target, 0) : (_.isObject(target) ? Object.keys(target) : Object.keys(target).map(_.toInt));
+    /**
+     * Returns an array of the values of a given target
+     * @param {Object|Array|String} target
+     * @static
+     * @returns {Array|Iterator.<*>}
+     */
+    _.values = target => Object.keys(target).map( key => target[key]);
+    /**
+     * Returns an array of the key-value pairs of a given target
+     * @param {Object|Array|String|Number} target
+     * @static
+     * @returns {Array.<{key: number|string, value: *}>}
+     */
+    _.pairs = target => _.keys(target).map( key => _.toKeyValueOf(target, key) );
+    /**
+     * Iterate each enumerable property in target
+     *
+     * @param {Object|Array|String} target
+     * @param {function(*=, String|Number=, Array|Object|String=)} callback
+     */
+    _.each = (target, callback) => _.keys(target).forEach( key => callback(target[key], key, target));
+    /**
+     * Iterate each enumerable property in target and return true if no one callback return false
+     *
+     * @param {Object|Array|String} target
+     * @param {function(*=, String|Number=, Array|Object|String=)} callback
+     * @returns {Boolean}
+     */
+    _.every = (target, callback)=> _.keys(target).every( key => callback(target[key], key, target));
+    /**
+     * Iterate enumerable property in target and return true if any callback return true
+     * @param {Object|Array|String} target
+     * @param {function(*=, String|Number=, Array|Object|String=)} callback
+     * @returns {Boolean}
+     */
+    _.any = _.some = (target, callback) => _.keys(target).some( key => callback(target[key], key, target));
+    
+    function _merge(target, source, skipStack) {
+        Object.keys(source).forEach( key => {
+            if (_.isStructure(target[key]) && _.isStructure(source[key])) {
+                _merge(target[key], source[key], skipStack);
+            } else {
+                target[key] = source[key];
+            }
+        } );
+        return target;
+    }
+
+    /**
+     * Merge a few sources properties to the target
+     * @param {Object|Array} target
+     * @param {...Object|...Array} [args]
+     * @returns {Object|Array}
+     */
+    _.merge = (target, ...args) => {
+        if (!_.isValue(target)) {
+            throw new TypeError('Cannot convert target to object');
+        }
+        args.filter(_.isStructure).forEach( source => _merge(target, source, new WeakMap()));
+
+        return target;
+    };
+    /**
+     * Clone target
+     * @param {Object|Array} target
+     * @returns {Object|Array}
+     */
+    _.clone = target => {
+        if (_.isStructure(target)) {
+            return _merge(_.isArray(target) ? [] : {}, target, []);
+        }
+        return target;
+    };
 
     /**
      * Iterators
@@ -297,97 +314,70 @@
     /**
      * Call {callback} function {times} times
      * @param {Number} times
-     * @param {Function} callback
+     * @param {function(Number=, Number=)} callback
      */
     _.repeat = (times, callback) => {
         var iteration = 0;
-        while (iteration<times) callback(iteration++);
+        while (iteration<times) callback(iteration++, times);
     };
     /**
      * Call {callback} function {times} times and follow result to {handler}
      * @param {Number} times
-     * @param {Function} callback
-     * @param {Function} handler
+     * @param {function(Number=, Number=)} callback
+     * @param {function(*=)} handler
      */
     _.repeatHandled = (times, callback, handler) => {
         var iteration = 0;
-        while (iteration<times) handler(callback(iteration++));
-    };
-    
-    function* _iterator(data) {
-        for(var d of data) {
-            yield d;
-        }
-    }
-    
-    /**
-     * Chained callbacks invocation
-     * @param Array.<Function> target
-     * @param {Array} args
-     */
-    _.flow = function (target) {
-        var callbacks = _.toArray(target),
-            flow = () => {
-                    if(callbacks.length) {
-                        var next = callbacks.shift();
-                        next.apply(null, args);
-                    }
-                },
-            args = _.toArray(arguments).slice(1).concat([flow]);
-        flow();
-    };
-   
-    /**
-     * Iterate each enumerable property in target
-     *
-     * @param {Object|Array|String} target
-     * @param callback
-     */
-    _.each = (target, callback) => (_.keys(target).forEach( key => callback(target[key], key, target)));
-    /**
-     * Iterate each enumerable property in target and return true if no one callback return false
-     *
-     * @param {Object|Array|String} target
-     * @param {Function} callback
-     * @returns {Boolean}
-     */
-    _.every = (target, callback)=> _.keys(target).every( key => callback(target[key], key, target));
-    /**
-     * Iterate enumerable property in target and return true if any callback return true
-     * @param {Object|Array|String} target
-     * @param {Function} callback
-     * @returns {Boolean}
-     */
-    _.any = _.some = (target, callback) => _.keys(target).some( key => callback(target[key], key, target));
-    /**
-     *
-     * @param {Object|Array|String} target
-     * @param {Function} callback
-     * @returns {*}
-     */
-    _.map = (target, callback) => {
-        if (_.isObject(target)) {
-            return _.keys(target).reduce( (mapped, key) => (mapped[key] = callback.call(target, target[key], key, target), mapped), {});
-        }
-        return _.toArray(target).map(callback);
-    };
-    _.reduce = function (target, callback, init) {
-        var keys = _.keys(target);
-        var values = _.values(target);
-        var args = _.toArray(arguments).slice(1);
-        args[0] = (cur, next, idx) => callback(cur, next, keys[idx], target);
-        return values.reduce.apply(values, args);
-    };
-    _.select = (target, callback) => {
-        var keys = _.keys(target);
-        var key = keys.reduce((curKey, nextKey, idx) => callback(target[curKey], target[nextKey], nextKey, target) ? nextKey : curKey );
-        return _.toKeyValueOf(target, key);
+        while (iteration<times) handler(callback(iteration++, times));
     };
 
     /**
+     * @param {Object|Array|String} target
+     * @param {function(*=, Number=, Object|Array|String=)} callback
+     * @returns {Object|Array|String}
+     */
+    _.map = (target, callback) => {
+        if (_.isObject(target)) {
+            return _.keys(target).reduce( (mapped, key) => (mapped[key] = callback(target[key], key, target), mapped), {});
+        }
+        if (_.isString(target)) {
+            return _.toArray(target).map(callback).join('');
+        }
+        return _.toArray(target).map(callback);
+    };
+    /**
+     * @param {Object|Array|String} target
+     * @param {function(*=, *=, Number|String=, Object|Array|String=)} callback
+     * @param {*} [init]
+     * @returns {*}
+     */
+    _.reduce = (target, callback, ...init) => {
+        var keys = _.keys(target);
+        var values = _.values(target);
+        init.unshift((cur, next, idx) => callback(cur, next, keys[idx], target));
+        return values.reduce(...init);
+    };
+    /**
+     * @param {Object|Array|String} target
+     * @param {function(*=, Number|String=, Object|Array|String=)} callback
+     * @returns {Object|Array|String}
+     */
+    _.filter = (target, callback) => {
+        var filtered = _.keys(target).reduce( (filtered, key) => {
+            if (callback(target[key], key, target)) {
+                filtered[key] = target[key];
+            }
+            return filtered;
+        }, _.isObject(target) ? {} : [] );
+        if (_.isString(filtered)) {
+            filtered = filtered.join('');
+        }
+        return filtered;
+    };
+    /**
      * Returns first key-value pair from the target argument on truth callback result.
      * @param {Array|Object|String} target
-     * @param {function(*=, String|Number=, Array.<*>=)} callback
+     * @param {function(*=, String|Number=, Array|Object|String=)} callback
      * @param {String|Number|{key, value}} [defaultKey]
      * @returns {{key, value}}
      */
@@ -409,7 +399,7 @@
     /**
      * Returns last key-value pair from the target argument on truth callback result.
      * @param {Array|Object|String} target
-     * @param {function(*=, String|Number=, Array.<*>=)} callback
+     * @param {function(*=, String|Number=, Array|Object|String=)} callback
      * @param {String|Number} [defaultKey]
      * @returns {{key, value}}
      */
@@ -419,17 +409,28 @@
                 lastKey = key;
             }
             return lastKey;
-        }, defaultKey)
+        }, defaultKey);
         if (_.isKeyValue(last)) {
             return last;
         }
         return _.toKeyValueOf(target, last);
     };
+    /**
+     * Returns last key-value pair from the target argument on truth callback result.
+     * @param {Array|Object|String} target
+     * @param {function(*=, *=, String|Number=, Array|Object|String=)} callback
+     * @returns {{key: *, value: *}}
+     */
+    _.lastReduce = (target, callback) => {
+        var keys = _.keys(target);
+        var key = keys.reduce((curKey, nextKey, idx) => callback(target[curKey], target[nextKey], nextKey, target) ? nextKey : curKey );
+        return _.toKeyValueOf(target, key);
+    };
 
     /**
      * Returns first key-value pair and remove it from the target argument on truth callback result.
      * @param {Array|Object|String} target
-     * @param {function(*=, String|Number=, Array.<*>=)} callback
+     * @param {function(*=, String|Number=, Array|Object|String=)} callback
      * @returns {{key, value}}
      */
     _.take = (target, callback) => {
@@ -445,7 +446,7 @@
     /**
      * Returns first key-value pair and remove it from the target argument on truth callback result.
      * @param {Array|Object|String} target
-     * @param {function(*=, String|Number=, Array.<*>=)} callback
+     * @param {function(*=, *=, String|Number=, Array|Object|String=)} callback
      * @returns {{key, value}}
      */
     _.takeReduce = (target, callback) => {
@@ -453,7 +454,7 @@
         var key = keys.reduce( (curKey, nextKey) => {
             var curValue = target[curKey];
             var nextValue = target[nextKey];
-            if (callback(curValue, nextValue, curKey) === nextValue) {
+            if (callback(curValue, nextValue, curKey, target) === nextValue) {
                 return nextKey;
             }
             return curKey;
@@ -470,7 +471,7 @@
     /**
      * Sum all values of the target
      * @param {String|Array|Object} target
-     * @returns {Number}
+     * @returns {Number|String}
      */
     _.sum = target => _.values(target).reduce( (sum, value) => sum + value, _.isString(target) ? '' : 0);
     /**
@@ -494,7 +495,13 @@
     _.countOf = (target, countValue) => _.sum(_.values(target).map( value => countValue === value ? 1 : 0 ));
     
     /**
-     * Randomizer
+     * Randomize
+     */
+    /**
+     * Return random int value. If arguments not defined then return float value between 0 and 1
+     * @param {Number} [min]
+     * @param {Number} [max]
+     * @returns {Number}
      */
     _.random = (min, max) => {
         if (min === undefined) {
@@ -505,82 +512,109 @@
         }
         return min + Math.floor(Math.random() * (max - min + 1));
     };
-    _.randomString = (size) => new Array(size).fill('').map( (c, idx) => String.fromCharCode(_.random(c = _.random(1) == 1 ? 65 : 97, c + 25)) ).join();
-    _.randomCase = function () {
-        var probabilityData = _.toArray(arguments),
-            select = _.random(100),
+    /**
+     * Return random boolean value
+     * @returns {Boolean}
+     */
+    _.randomBool = () => Math.random() > 0.5;
+    /**
+     * Return random string [a-zA-Z] with defined size
+     * @param {Number} size
+     */
+    _.randomString = (size) => _.range(size,'').map( (c, idx) => String.fromCharCode(_.random(c = _.randomBool() ? 65 : 97, c + 25)) ).join();
+    /**
+     * Return index of defined probability value argument
+     * @param {...Number} probabilityData probability value
+     * @returns {Number}
+     */
+    _.randomCase = (...probabilityData) => {
+        var select = _.random(100),
             lost = 0;
-        return _.first(probabilityData, function (value) {
+        return _.first(probabilityData, value =>  {
             if (select < lost + value) {
                 return true;
             }
             lost += value;
-        }, probabilityData.length - 1).value;
+        }, probabilityData.length - 1).key;
     };
+    function _s4() {
+        return Math.floor(0x1000 +Math.random() * 0x0FFF).toString(16)
+    }
+    function _s12() {
+        return ('0000' + Date.now().toString('16')).slice(-12);
+    }
+    /**
+     * Guid string generator
+     * @returns {String}
+     */
+    _.randomGuid = () => _s4() + _s4() + '-' + _s4() + '-' + _s4() + '-' + _s4() + '-' + _s12();
+
     /**
      * Shuffle all values of the target
-     * @param target
-     * @returns {Array|Iterator.<*>}
+     * @param {Array|Object|String} target
+     * @returns {Array}
      */
     _.shuffle = function (target) {
-        var value = _.values(target),
+        var values = _.values(target),
             result = [];
-        while (value.length) {
-            result.push(value.splice(_.random(value.length), 1)[0]);
+        while (values.length) {
+            result.push(values.splice(_.random(values.length), 1)[0]);
         }
         return result;
     };
     /**
      * Functions
      */
-    _.fnArgsCallback    = callback => function(){ return callback(arguments) };
-    _.fnArgsValue       = (value, callback) => ( callback(value), value );
-    _.fnEmpty           = ()        => {};
-    _.fnTrue            = ()        => true;
-    _.fnFalse           = ()        => false;
-    _.fnArgs            = _.fnArgsCallback(_.toArray);
-    _.fnArg             = arg       => arg;
-    _.fnCallback        = callback => value => callback(value);
-    _.fnLog             = _.fnArgsCallback(console.log);
-    _.fnPromise         = callback => new Promise(callback);
-    _.fnPromises        = function () {
-        return Promise.all(_.toArray(arguments).map(_.fnPromise));
-    };
+    _.fnArgsCallFn      = callback => (...args) => callback(args);
+    _.fnArgsApplyFn     = callback => (args)    => callback(...args);
+    _.fnArgsValue       = (value, callback)     => (callback(value), value);
+    _.fnEmpty           = ()                    => {};
+    _.fnTrue            = ()                    => true;
+    _.fnFalse           = ()                    => false;
+    _.fnArgs            = (...args)             => args;
+    _.fnArg             = arg                   => arg;
+    _.fnCallback        = callback              => value => callback(value);
+    _.fnLog             = (...args)             => console.log(...args);
+    _.fnPromise         = callback              => new Promise(callback);
+    _.fnPromises        = (...callbacks)        => Promise.all(args.map(_.fnPromise));
+    /**
+     * Strings
+     */
+    _.stringToUpperCaseFirst    = str           => str.charAt(0).toUpperCase() + str.substr(1).toLowerCase();
+    _.stringToPascalCase        = (str, join)   => str.split(/[\s\-_\.,]+/g).map(_.stringToUpperCaseFirst).join(join || '');
+    _.stringToCamelCase         = str           => (str = _.stringToPascalCase(str)).charAt(0).toLowerCase() + str.substr(1);
+    _.stringToCapitalize        = str           => str.toUpperCase();
+    _.stringOccurrence          = (str, search) => (str.match(new RegExp(search,'g')) || []).length;
     /**
      * Formatting
      */
-    _.stringToUpperCaseFirst    = str           => str.charAt(0).toUpperCase() + str.substr(1).toLowerCase();
-    _.stringToPascalCase        = (str, join)   => str.replace(/[\s\-_\.,]+/g, ' ').split(' ').map(_.toUpperCaseFirst).join(join || '');
-    _.stringToCamelCase         = str           => (str = _.stringToPascalCase(str)).charAt(0).toLowerCase() + str.substr(1);
-    _.stringCapitalize          = str           => str.toUpperCase();
-
-    _.fmtString = function (str) {
+    _.fmtString = (str, ...args) => {
         var result = str.toString();
-        var args = _.toArray(arguments).slice(1);
         if (args.length == 1 && _.isStructure(args[0])) {
             args = args[0];
         }
-        _.each(args, function (value, key) {
+        _.each(args, (value, key) => {
             var regexp = new RegExp('\\{' + key + '\\}', 'g');
             result = result.replace(regexp, value);
         });
         return result;
     };
-    _.fmtNumber = function (num, iSize, forceSign) {
-        iSize = _.toInt(iSize || 0);
-        var isNegative = num < 0,
-            s = Math.abs(num) + "";
-        while (s.length < iSize) s = "0" + s;
-        if (isNegative) {
-            s = "-" + s;
+    const zeros = '000000000000000';
+    _.fmtNumber = (num, intSize, forceSign) => {
+        num = _.toInt(num);
+        intSize = _.toInt(intSize);
+        var str = Math.abs(num) + '',
+            strSize = str.length;
+        str = strSize < intSize ? (zeros + str).slice(-intSize) : str;
+        if (num < 0) {
+            str = '-' + str;
         } else if (forceSign && num >0) {
-            s = "+" + s;
+            str = '+' + str;
         }
-
-        return s;
+        return str;
     };
 
-    var dateFilters = {
+    const dateFilters = {
         'Y': date => date.getFullYear(),
         'y': date => date.getFullYear() % 100,
         'M': date => _.fmtNumber(date.getMonth() + 1, 2),
@@ -613,7 +647,7 @@
     _.dateAddMinutes= (date, minutes)   => _.fnArgsValue(new Date(date), date => date.setMinutes(date.getMinutes() + minutes));
     _.dateAddSeconds= (date, seconds)   => _.fnArgsValue(new Date(date), date => date.setSeconds(date.getSeconds() + seconds));
     
-    _.toXsdDate = date => _.fmtDate(date, _.fmtDate.DATE_XSD);
+    _.dateToXsd = date => _.fmtDate(date, _.fmtDate.DATE_XSD);
 
     Date.begin = function () {
         var d = Date.now;
@@ -623,28 +657,24 @@
     /**
      * Math
      */
-    _.mathSqrDiff = (a, b) => {
-        return (a-=b) * a;
+    _.mathSqrDiff = (a, b) => (a-=b) * a;
+    _.mathSqrtSum = (...values) => Math.pow(_.sum(values), 0.5);
+    _.mathDistanceEuclidean = (...coordinates) => {
+        var length = _.toInt(coordinates.length / 2);
+        var sqrDiffs = _.range(length, 0).map((v, id) => _.mathSqrDiff(coordinates[id], coordinates[id+length]) );
+        return _.mathSqrtSum(...sqrDiffs);
     };
-    _.mathSqrtSum = (values) => {
-        return Math.pow(_.sum(values), 0.5);
-    };
-    _.mathLengthEuclidean = function() {
-        var coords = _.toArray(arguments),
-            length = _.toInt(arguments.length / 2);
-        var sqrDiffs = new Array(length).fill(0).map((v, id) => {
-            return _.mathSqrDiff(coords[id], coords[id+length]);
-        });
-        return _.mathSqrtSum(sqrDiffs);
-    };
-    _.mathLengthManhattan = () => {
-        var coords = _.toArray(arguments),
-            length = _.toInt(arguments.length / 2);
-        var diffs = new Array(length).fill(0).map((v, id) => {
-            return Math.abs(coords[id] - coords[id+length]);
-        });
+    _.mathDistanceManhattan = (...coordinates) => {
+        var length = _.toInt(coordinates.length / 2);
+        var diffs = _.range(length, 0).map((v, id) => Math.abs(coordinates[id] - coordinates[id+length]) );
         return _.sum(diffs);
     };
+    _.mathDistanceDiagonal = (...coordinates) => {
+        var length = _.toInt(coordinates.length / 2);
+        var diffs = _.range(length, 0).map((v, id) => Math.abs(coordinates[id] - coordinates[id+length]) );
+        return Math.max(...diffs);
+    };
+    _.mathPointId = (x, y, width) => y * width + x;
     _.mathTransPoint = (x, y, toAngle, toDistance) => {
         return { 
             x: x + Math.cos(toAngle) * toDistance, 
@@ -668,25 +698,22 @@
 
     _.pathfinderAStar = (startPoint, finishPoint, width, height, weightCallback, heuristicCallback, maxIterationCount, onWhiteList) => {
         heuristicCallback = heuristicCallback || function(x, y) {
-            return _.mathLengthManhattan(x - finishPoint.x, y - finishPoint.y)*distance;
+            return _.mathDistanceManhattan(x - finishPoint.x, y - finishPoint.y)*distance;
         };
         maxIterationCount = maxIterationCount || width*height;
         var iteration = 1,
-            distance = _.mathLengthManhattan(startPoint.x - finishPoint.x, startPoint.y - finishPoint.y) + 1,
+            distance = _.mathDistanceManhattan(startPoint.x - finishPoint.x, startPoint.y - finishPoint.y) + 1,
             currentPoint,
             visitedList = {},
             blackList = {},
             whiteList = {},
-            getPointId = function(x, y) {
-                return y * (width) + x;
-            },
             getPoint = function (id, x, y, pid, pg, pm) {
                 var w = weightCallback(x, y),
                     h = heuristicCallback(x, y),
                     g = w + pg,
                     m = pm + 1;
                 return {
-                    id: id || getPointId(x, y),
+                    id: id || _.mathPointId(x, y),
                     x: x,
                     y: y,
                     p: pid,
@@ -713,8 +740,8 @@
             },
             result = [];
             
-        startPoint = getPoint(getPointId(startPoint.x, startPoint.y), startPoint.x, startPoint.y,-1,0,0);
-        finishPoint = getPoint(getPointId(finishPoint.x, finishPoint.y), finishPoint.x, finishPoint.y,-1,0,0);
+        startPoint = getPoint(_.mathPointId(startPoint.x, startPoint.y), startPoint.x, startPoint.y,-1,0,0);
+        finishPoint = getPoint(_.mathPointId(finishPoint.x, finishPoint.y), finishPoint.x, finishPoint.y,-1,0,0);
         visitedList[startPoint.id] = whiteList[startPoint.id] = startPoint;
         
         while (iteration++<maxIterationCount && Object.keys(whiteList).length && (currentPoint = _.takeReduce(whiteList, whiteListReduce).value).id != finishPoint.id) {
@@ -737,67 +764,170 @@
         }
         return result;
     };
-    
+
     /**
-     * Simple events manager
+     * EVENTS
      */
-    const LISTENERS = 'listeners';
-    _.evtOn = (object, event, callback) => {
-        var listeners = _getObjectValue(object, LISTENERS);
-        if (!listeners[event]) {
-            listeners[event] = [];
-        }
+    const EVENT_LISTENERS = 'eventListeners';
+    _.eventOn = (object, event, callback) => {
+        var listeners = _getObjectValue(object, EVENT_LISTENERS);
+        if (!listeners[event]) listeners[event] = [];
         listeners[event].push({callback: callback});
+        return _;
     };
-    _.evtOnce = (object, event, callback) => {
-        var listeners = _getObjectValue(object, LISTENERS);
+    _.eventOnce = (object, event, callback) => {
+        var listeners = _getObjectValue(object, EVENT_LISTENERS);
         if (!listeners[event]) {
             listeners[event] = [];
         }
         listeners[event].push({callback: callback, once: 1});
+        return _;
     };
-    _.evtUn = (object, event, calloback) => {
-        var listeners = _getObjectValue(object, LISTENERS);
+    _.eventUn = (object, event, ...callbacks) => {
+        var listeners = _getObjectValue(object, EVENT_LISTENERS);
         if (listeners[event]) {
-            var idx = listeners[event].indexOf(calloback);
-            if (!~idx) {
-                listeners[event].splice(idx, 1);
+            if (callbacks.length) {
+                callbacks.forEach( callback => {
+                    var idx = listeners[event].indexOf(callback);
+                    if (!~idx) {
+                        listeners[event].splice(idx, 1);
+                    }
+                });
+            } else {
+                delete listeners[event];
             }
         }
+        return _;
     };
-    _.evtEmit = (object, event, value) => {
-        var listeners = _getObjectValue(object, LISTENERS);
+    _.eventGo = (object, event, ...args) => {
+        var listeners = _getObjectValue(object, EVENT_LISTENERS);
         if (listeners[event]) {
-            listeners[event].slice().forEach((data, idx) => {
-                data.callback(value);
-                if (data.once) {
+            listeners[event].slice().forEach((listener, idx) => {
+                listener.callback(...args);
+                if (listener.once) {
                     listeners[event].splice(idx, 1);
                 }
             })
         }
+        return _;
     };
-    
+
     /**
-     * Simple middleware
+     * TASKS
      */
-    const MIDDLEWARES = 'middlewares';
-    _.mwUse = (object, middleware) => {
-       var middlewares = _getObjectValue(object, MIDDLEWARES, []);
-       if (middleware.hasOwnProperty('middleware')) {
-           middlewares.push(middleware.middleware.bind(middleware));
-       } else {
-           middlewares.push(middleware);
-       }
+    const TASK_POOL = 'taskPool';
+    function taskNext(taskPool, ...args) {
+        return taskPool.shift()(...args, () => {taskNext(taskPool, ...args)});
+    }
+    function _getTaskCategoryPool(scope, category) {
+        return _getObjectValue(scope, TASK_POOL)[category] = _getObjectValue(scope, TASK_POOL)[category] || []
+    }
+
+    /**
+     * Push the task(s) into scope pool
+     * @param {Array|Object} scope
+     * @param {String} category
+     * @param {...function(...args, next)|Array.<Function>} [tasks]
+     * @returns _
+     */
+    _.taskPush = (scope, category, ...tasks) => {
+        if (tasks.length == 1 && _.isArray(tasks[0])) {
+            tasks = tasks[0];
+        }
+        var taskPool = _getTaskCategoryPool(scope, category);
+        taskPool.push(...tasks);
+
+        return _;
     };
-    _.mwFlow = function(object) {
-        var args = _.toArray(arguments).slice(1),
-            middlewares = _getObjectValue(object, MIDDLEWARES, []).slice();
-        _.flow.apply(null, [middlewares].concat(args));
+
+    /**
+     * Delete the task(s) from scope pool
+     * @param {Object} scope
+     * @param {String} category
+     * @param {...function(...args, next)|Array.<Function>} [tasks]
+     * @returns _
+     */
+    _.taskDelete = (scope, category, ...tasks) => {
+        if (tasks.length == 1 && _.isArray(tasks)) {
+            tasks = tasks[0];
+        }
+        var taskPool = _getTaskCategoryPool(scope, category);
+        tasks.forEach( (task, idx) => {
+            if ( ~(idx = taskPool.indexOf(task)) ) {
+                taskPool.splice(idx,1);
+            }
+        });
+        return _;
     };
+    /**
+     *
+     * @param {Object} scope
+     * @param {String} category
+     * @param {...*} [args]
+     * @returns {Promise}
+     */
+    _.taskWaitSync = (scope, category, ...args) => {
+        return new Promise((resolve, reject) => {
+            try {
+                var taskPool = _getTaskCategoryPool(scope, category).concat([resolve.bind(null, args[0])]);
+                taskNext(taskPool, ...args);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    };
+    /**
+     *
+     * @param {Object} scope
+     * @param {String} category
+     * @param {...*} [args]
+     * @returns {Promise}
+     */
+    _.taskWaitAsync = (scope, category, ...args) => {
+        return new Promise((resolve, reject) => {
+            try {
+                const taskPool = _getTaskCategoryPool(scope, category);
+                const taskComplete = () => {
+                    if(!(--count)) resolve(args[0]);
+                };
+                var count = taskPool.length + 1;
+                taskPool.forEach( task => task(...args, taskComplete));
+                taskComplete();
+            } catch (error) {
+                reject(error);
+            }
+        });
+    };
+
+    _.pipe = transformator => {
+        return {
+            pipe: _.pipe,
+            push (...args) {
+                return args.map(transformator);
+            }
+        };
+    };
+
+    _.require = filename => {
+        filename = filename.split('@');
+        var namespaces = filename[1];
+        filename = filename[0];
+        var isPath = /[\\\/]/.test(filename);
+        namespaces = _.isNotEmptyString(namespaces) ? namespaces.split('.') : [];
+        try {
+            return namespaces.reduce( (required, namespace) => required[namespace], require(filename) );
+        } catch(e) {
+            if (isPath) {
+                throw new Error(`Please use absolute path for ${filename}`);
+            }
+            throw e;
+        }
+    };
+
     if (isNode) {
         module.exports = _;
     } else {
         global._ = _;
     }
 
-}).call(this.window || this.global || global || window);
+}(typeof global == 'object' ? global : typeof window == 'object' ? window : this));

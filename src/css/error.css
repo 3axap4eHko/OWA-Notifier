@@ -1,0 +1,66 @@
+.mdl-container {
+    width: 900px;
+    margin: 20px auto 0 auto;
+}
+
+.mdl-ribbon {
+    position: absolute;
+    width: 100%;
+    height: 40vh;
+    background-color: rgb(48, 63, 159);
+    -webkit-flex-shrink: 0;
+    -ms-flex-negative: 0;
+    flex-shrink: 0;
+}
+
+.page-content {
+    padding: 50px;
+}
+
+.mdl-cell--1-col-any {
+    width: 8.33%
+}
+
+.mdl-cell--2-col-any {
+    width: 16.66%
+}
+
+.mdl-cell--3-col-any {
+    width: 25%
+}
+
+.mdl-cell--4-col-any {
+    width: 33.33%
+}
+
+.mdl-cell--5-col-any {
+    width: 41.66%
+}
+
+.mdl-cell--6-col-any {
+    width: 50%
+}
+
+.mdl-cell--7-col-any {
+    width: 58.33%
+}
+
+.mdl-cell--8-col-any {
+    width: 66.66%
+}
+
+.mdl-cell--9-col-any {
+    width: 75%
+}
+
+.mdl-cell--10-col-any {
+    width: 83.33%
+}
+
+.mdl-cell--11-col-any {
+    width: 91.66%
+}
+
+.mdl-cell--12-col-any {
+    width: 100%
+}

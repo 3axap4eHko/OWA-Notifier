@@ -3,10 +3,11 @@
                xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
                xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types"
                xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-    <soap:Body>
+<soap:Body>
         <m:UpdateItem MessageDisposition="SaveOnly" ConflictResolution="AutoResolve">
             <m:ItemChanges>
                 <t:ItemChange>
+                    <t:ItemId Id="{}=" ChangeKey="{]" />
                     <t:Updates>
                         <t:SetItemField>
                             <t:FieldURI FieldURI="message:IsRead"/>

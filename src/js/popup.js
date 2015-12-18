@@ -1,65 +1,72 @@
-(function(){
-    function buildAccountBar(account) {
-        var count = _.toInt(account.unread),
-            icon = $('<i>', {'class': 'material-icons', html: 'mail'})
-        //,hint = ''
-            ;
+'use strict';
 
-        if (account.hasErrors) {
-            icon.addClass('md-attention blink');
-            //hint = '<div class="mdl-tooltip" for="account-'+account.idx+'-info">Has a problem</div>';
-        } else if (count) {
-            icon.addClass('md-info blink');
-            //hint = '<div class="mdl-tooltip" for="account-'+account.idx+'-info">Has unread mails</div>';
-        }
-        icon = icon[0].outerHTML;// + hint;
-
-        return $('<li>', {'class': 'mdl-shadow--2dp mdl-card__actions'}).append(
-            $('<a>', {
-                href: '#',
-                'data-trigger': 'account.owa',
-                'data-idx': account.idx
-            }).append(account.email)
-                .append($('<span>', {
-                    'class': 'counter',
-                    html: count + ' ' + icon,
-                    id: 'account-'+account.idx+'-info'
-                }))
-        )
-    }
-
-    function updateMails() {
-        var mailContainer = $('#mails');
-        mailContainer.empty();
-
-        Extension.getAccounts().then(function(accounts){
-            _.each(accounts, function(account){
-                mailContainer.append(buildAccountBar(account));
-            });
+var EmailBar = React.createClass({
+    getInitialState() {
+        return {count: 0};
+    },
+    componentWillMount() {
+        this.setState({
+            count: _.toInt(this.props.account.unread)
         });
+    },
+    openSettingsAccounts() {
+        ExtensionAPI.openSettingsAccounts(this.props.account);
+    },
+    openOwa() {
+        ExtensionAPI.openUrl(this.props.account.serverOWA);
+    },
+    markAllRead() {
+        ExtensionAPI.markAllAsRead(this.props.account);
+    },
+    render() {
+        var count = this.state.count;
+        if (count === 0) {
+            count = '';
+        } else {
+            count = `(${count})`;
+        }
+        var alert = '';
+        if (this.props.account.hasErrors) {
+            alert = (
+            <a href="#" className="pull-left action" onClick={this.openSettingsAccounts}>
+                <Icon title="Open Settings" className="blink md-attention" icon="error"  />
+            </a>);
+        }
+        return (
+            <li className="mdl-shadow--2dp mdl-card__actions">
+                <a href="#" className="pull-left" onClick={this.openOwa} title="Open OWA">
+                    {this.props.account.email} {count}
+                </a>
+                {alert}
+                <MdlButtonIcon className="pull-right action" onClick={this.openSettingsAccounts} title="Edit Account">
+                    settings applications
+                </MdlButtonIcon>
+                <MdlButtonIcon className="pull-right action" onClick={this.markAllRead} title="Mark All as Read">
+                    drafts
+                </MdlButtonIcon>
+            </li>
+        );
     }
+});
 
-    $(document).on('account.owa', function(event, data){
-        var idx = _.toInt(data.idx);
-        Extension.getAccounts().then(function(accounts){
-            Extension.openOwa(accounts[idx]);
-        })
+var EmailBars = React.createClass({
+    render() {
+        var accounts = ExtensionAPI.getAccountList(this.props.accounts);
+        return (
+            <ul className="mdl-bar" id="mails">
+                {accounts.map( account => <EmailBar key={account.guid} account={account}/> )}
+            </ul>
+        );
+    }
+});
+
+
+(function(){
+    ExtensionAPI.getAccountsStated().then( accounts => {
+        ReactDOM.render(<EmailBars accounts={accounts} />, document.getElementById('mails'));
     });
-
-    $(document).on('settings.general', function(){
-        Extension.openSettingsGeneral();
+    $(document).on('click', '[data-open-url]', event => {
+        var url = $(event.currentTarget).data('open-url');
+        ExtensionAPI.openUrl(url);
     });
-
-    $(document).on('settings.accounts', function(){
-        Extension.openSettingsAccounts();
-    });
-
-    $(document).on('report.bug', function(){
-        Extension.openUrl('https://github.com/3axap4eHko/OWA-Notifier/issues');
-    });
-
-    $(function(){
-        updateMails();
-    })
-
 })();

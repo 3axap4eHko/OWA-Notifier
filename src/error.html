@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OWA notifier - Errors</title>
+    <link rel="stylesheet" href="css/material-icons.css">
+    <link rel="stylesheet" href="css/material.min.css">
+    <link rel="stylesheet" href="css/error.css">
+</head>
+<body>
+<div class="mdl-ribbon"></div>
+<!-- Always shows a header, even in smaller screens. -->
+<div class="mdl-layout mdl-js-layout">
+    <header class="mdl-layout__header mdl-container">
+        <div class="mdl-layout__header-row">
+            <!-- Title -->
+            <span class="mdl-layout-title">
+                <img src="images/icon_48_invert.png">
+                Owa Notifier Errors Page
+            </span>
+            <!-- Add spacer, to align navigation to the right -->
+            <div class="mdl-layout-spacer"></div>
+            <!-- Navigation. We hide it in small screens. -->
+            <nav class="mdl-navigation mdl-layout--large-screen-only">
+                <a href="https://www.paypal.me/3axap4eHko" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" id="donate" target="donate">
+                    Donate
+                </a>
+                <a class="mdl-navigation__link" href="https://github.com/3axap4eHko/OWA-Notifier/issues"
+                   target="owa_issues">Report issue</a>
+                <a class="mdl-navigation__link" href="https://github.com/3axap4eHko/OWA-Notifier/wiki"
+                   target="owa_wiki">Have a question?</a>
+            </nav>
+
+        </div>
+    </header>
+    <main class="mdl-layout__content mdl-container mdl-color--white mdl-shadow--4dp content mdl-color-text--grey-800 mdl-cell mdl-cell--8-col" id="content">
+    </main>
+    <footer class="mdl-mini-footer mdl-container">
+        <div class="mdl-mini-footer__left-section">
+            <div class="mdl-logo"><img src="images/icon_48_invert.png"></div>
+            <ul class="mdl-mega-footer__link-list">
+                <li>For using OWA (Outlook Web Access) notifier you must have enabled the EWS (Exchange Web Service).
+                </li>
+                <li>If you find a bug, please report on
+                    <a href="https://github.com/3axap4eHko/OWA-Notifier/issues" target="owa_issues"> GitHub </a>
+                    or email me at <a
+                            href="mailto:3axap4ehko.development@gmail.com">3axap4ehko.development@gmail.com</a> and make
+                    you case.
+                </li>
+            </ul>
+        </div>
+    </footer>
+</div>
+
+<script type="text/javascript" src="js/react.min.js"></script>
+<script type="text/javascript" src="js/react-dom.min.js"></script>
+<script type="text/javascript" src="js/browser.min.js"></script>
+
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/material.min.js"></script>
+
+<script type="text/babel" src="js/yyf-core.min.js"></script>
+<script type="text/babel" src="js/Browser.js"></script>
+<script type="text/babel" src="js/ExtensionAPI.js"></script>
+
+<script type="text/babel" src="js/error.js"></script>
+</body>
+</html>

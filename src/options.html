@@ -5,12 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>OWA notifier - Options</title>
-    <!-- Tile icon for Win8 (144x144 + tile color) -->
-    <meta name="msapplication-TileImage" content="images/icon128.png">
-    <meta name="msapplication-TileColor" content="#3372DF">
-    <link href="css/material-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/material-icons.css">
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/material.min.css">
+    <link rel="stylesheet" href="css/timepicker.css">
     <link rel="stylesheet" href="css/plugins.css">
     <link rel="stylesheet" href="css/options.css">
 </head>
@@ -29,9 +27,12 @@
             <div class="mdl-layout-spacer"></div>
             <!-- Navigation. We hide it in small screens. -->
             <nav class="mdl-navigation mdl-layout--large-screen-only">
-                <a href="https://www.paypal.me/3axap4eHko" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" id="donate" target="donate">
+                <a href="https://www.paypal.me/3axap4eHko" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent heartbeat" id="donate" target="donate">
                     Donate
                 </a>
+                <div class="mdl-tooltip" for="donate">
+                    Project lives thanks to your donations
+                </div>
                 <a class="mdl-navigation__link" href="https://github.com/3axap4eHko/OWA-Notifier/issues"
                    target="owa_issues">Report issue</a>
                 <a class="mdl-navigation__link" href="https://github.com/3axap4eHko/OWA-Notifier/wiki"
@@ -41,144 +42,16 @@
         </div>
         <!-- Tabs -->
         <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
-            <a href="#settings-general" class="mdl-layout__tab" data-trigger="tab-switch">General</a>
-            <a href="#settings-accounts" class="mdl-layout__tab" data-trigger="tab-switch">Accounts</a>
+            <a href="#general" class="mdl-layout__tab">General</a>
+            <a href="#accounts" class="mdl-layout__tab">Accounts</a>
+            <a class="donate-text">Project lives thanks to your donations</a>
         </div>
     </header>
     <main class="mdl-layout__content mdl-container mdl-color--white mdl-shadow--4dp content mdl-color-text--grey-800 mdl-cell mdl-cell--8-col">
-        <section class="mdl-layout__tab-panel" id="settings-general">
-            <div class="page-content">
-                <form id="notifier-config" action="#">
-                    <ul class="mdl-list mdl-grid">
-                        <li class="mdl-list__item_horizontal mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--3-col">
-                            <label for="update-interval" class="mdl-textfield__label">Update interval </label>
-                            <input type="text" id="update-interval" name="updateInterval" class="mdl-textfield__input time-pick"
-                                   value="00:00:10" placeholder="Interval" readonly required data-filter="time">
-                            <div class="mdl-tooltip" for="update-interval">
-                                Period of getting Server state.
-                            </div>
-
-                        </li>
-                        <li class="mdl-list__item_horizontal mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--3-col">
-                        </li>
-                        <li class="mdl-list__item_horizontal mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--3-col">
-                            <label for="display-time" class="mdl-textfield__label">Display time </label>
-                            <input type="text" id="display-time" name="displayTime" class="mdl-textfield__input time-pick"
-                                   value="00:00:10" placeholder="Interval" readonly required data-filter="time">
-                            <div class="mdl-tooltip" for="display-time">
-                                How long popups will be kept in the tray.
-                            </div>
-                        </li>
-                    </ul>
-                    <ul class="mdl-list mdl-grid">
-                        <li class="mdl-list__item_horizontal mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--3-col">
-                            <label for="mail-sound" class="mdl-textfield__label">Mail Sound: </label>
-                            <input id="mail-sound" class="mdl-textfield__input" type="text" name="mailSound"
-                                   tabindex="0" readonly data-trigger="play"/>
-                            <ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect"
-                                for="mail-sound">
-                                <li class="mdl-menu__item" data-trigger="set" data-value="sounds/sound1.ogg"
-                                    data-target="#mail-sound">Sound 1
-                                </li>
-                                <li class="mdl-menu__item" data-trigger="set" data-value="sounds/sound2.ogg"
-                                    data-target="#mail-sound">Sound 2
-                                </li>
-                                <li class="mdl-menu__item" data-trigger="set" data-value="sounds/sound3.ogg"
-                                    data-target="#mail-sound">Sound 3
-                                </li>
-                                <li class="mdl-menu__item" data-trigger="set" data-value="sounds/sound4.ogg"
-                                    data-target="#mail-sound">Sound 4
-                                </li>
-                                <li class="mdl-menu__item" data-trigger="set" data-value="sounds/sound5.ogg"
-                                    data-target="#mail-sound">Sound 5
-                                </li>
-                            </ul>
-                            <div class="mdl-tooltip" for="mail-sound">
-                                Sound of mail notifications.
-                            </div>
-                        </li>
-                        <li class="mdl-list__item_horizontal mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--3-col">
-                        </li>
-                        <li class="mdl-list__item_horizontal mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--3-col">
-                            <label for="appointment-sound" class="mdl-textfield__label">Appointment Sound: </label>
-                            <input id="appointment-sound" class="mdl-textfield__input" type="text"
-                                   name="appointmentSound" tabindex="0" readonly data-trigger="play"/>
-                            <ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect"
-                                for="appointment-sound">
-                                <li class="mdl-menu__item" data-trigger="set" data-value="sounds/sound1.ogg"
-                                    data-target="#appointment-sound">Sound 1
-                                </li>
-                                <li class="mdl-menu__item" data-trigger="set" data-value="sounds/sound2.ogg"
-                                    data-target="#appointment-sound">Sound 2
-                                </li>
-                                <li class="mdl-menu__item" data-trigger="set" data-value="sounds/sound3.ogg"
-                                    data-target="#appointment-sound">Sound 3
-                                </li>
-                                <li class="mdl-menu__item" data-trigger="set" data-value="sounds/sound4.ogg"
-                                    data-target="#appointment-sound">Sound 4
-                                </li>
-                                <li class="mdl-menu__item" data-trigger="set" data-value="sounds/sound5.ogg"
-                                    data-target="#appointment-sound">Sound 5
-                                </li>
-                            </ul>
-                            <div class="mdl-tooltip" for="appointment-sound">
-                                Sound of appointment notifications.
-                            </div>
-                        </li>
-                    </ul>
-                    <ul class="mdl-list mdl-grid">
-                        <li class="mdl-list__item_horizontal mdl-cell--6-col">
-                            <label for="volume">Sound Volume: </label>
-                            <input class="mdl-slider mdl-js-slider" id="volume" type="range"
-                                   name="volume" min="0" max="1" step="0.01" value="0" tabindex="0"
-                                   data-display="Percent"/>
-                            <div class="mdl-tooltip" for="volume">
-                                Volume of the notifications sounds.
-                            </div>
-                        </li>
-                    </ul>
-                    <ul class="mdl-list mdl-grid">
-                        <li class="mdl-list__item_horizontal mdl-cell--6-col">
-                            <label for="popup-closing">Popups will be closed</label>
-                            <input id="popup-closing" class="mdl-textfield__input" type="text" name="popupClosing" tabindex="0" readonly value="automatically"/>
-                            <ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect"
-                                for="popup-closing">
-                                <li class="mdl-menu__item" data-trigger="set" data-value="automatically"
-                                    data-target="#popup-closing">automatically
-                                </li>
-                                <li class="mdl-menu__item" data-trigger="set" data-value="manually"
-                                    data-target="#popup-closing">manually
-                                </li>
-                            </ul>
-                            <div class="mdl-tooltip" for="popup-closing">
-                                How popups should be closed? Automatically or only user action.
-                            </div>
-                        </li>
-                    </ul>
-                </form>
-            </div>
+        <section class="mdl-layout__tab-panel is-active" id="general">
+            <div class="mdl-spinner mdl-spinner--single-color mdl-spinner--center mdl-js-spinner is-active"></div>
         </section>
-        <section class="mdl-layout__tab-panel" id="settings-accounts">
-            <div class="page-content">
-                <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
-                    <thead>
-                    <tr class="account-record">
-                        <th>Enabled</th>
-                        <th class="mdl-data-table__cell--non-numeric">Email</th>
-                        <th class="mdl-data-table__cell--non-numeric">Username</th>
-                        <th class="mdl-data-table__cell--non-numeric">Sever</th>
-                        <th class="mdl-data-table__cell--non-numeric">Folder</th>
-                        <th class="mdl-data-table__cell--non-numeric"></th>
-                    </tr>
-                    </thead>
-                    <tbody id="accounts">
-                    </tbody>
-                </table>
-                <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored pull-right mdl-margin__10px mdl-shadow--6dp" data-trigger="account.form">
-                    <i class="material-icons">add</i>
-                </button>
-            </div>
-        </section>
+        <section class="mdl-layout__tab-panel" id="accounts"></section>
     </main>
     <footer class="mdl-mini-footer mdl-container">
         <div class="mdl-mini-footer__left-section">
@@ -197,72 +70,25 @@
     </footer>
 </div>
 
-<div class="modal fade" id="account-modal" tabindex="-1" role="dialog" aria-labelledby="account-modal-label">
+<div class="modal fade" id="modal" tabIndex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body"></div>
+        </div>
+    </div>
+</div>
+
+<div class="time-picker modal fade" id="time-picker-modal" tabIndex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-body">
-                <form id="account-form" data-trigger="account.save" data-trigger-on="submit">
-                    <input type="hidden" id="account-idx" name="idx">
-                    <ul class="mdl-list">
-                        <li class="mdl-list__item_vertical mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                            <input type="email" id="account-email" name="email" class="mdl-textfield__input" required>
-                            <label for="account-email" class="mdl-textfield__label">Email</label>
-                            <!--<span class="mdl-textfield__error">Invalid Email!</span>-->
-                        </li>
-                        <li class="mdl-list__item_vertical mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                            <label for="account-serverEWS" class="mdl-textfield__label">Exchange Server URL</label>
-                            <input type="url" id="account-serverEWS" name="serverEWS" class="mdl-textfield__input" required data-filter="url">
-                        </li>
-                        <li class="mdl-list__item_vertical mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                            <label for="account-serverOWA" class="mdl-textfield__label">Web Access URL</label>
-                            <input type="url" id="account-serverOWA" name="serverOWA" class="mdl-textfield__input" required data-filter="url">
-                        </li>
-                        <li class="mdl-list__item_vertical mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                            <label for="account-username" class="mdl-textfield__label">Username</label>
-                            <input type="text" id="account-username" name="username" class="mdl-textfield__input" required>
-                        </li>
-                        <li class="mdl-list__item_vertical mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                            <label for="account-password" class="mdl-textfield__label">Password</label>
-                            <input type="password" id="account-password" name="password" class="mdl-textfield__input" required>
-                        </li>
-                        <li class="mdl-list__item_vertical mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                            <label for="account-folder" class="mdl-textfield__label">Check folder</label>
-                            <input id="account-folder" class="mdl-textfield__input" type="text" name="folder" tabindex="0" readonly/>
-                            <ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect"
-                                for="account-folder">
-                                <li class="mdl-menu__item" data-trigger="set" data-value="root"
-                                    data-target="#account-folder">Root
-                                </li>
-                                <li class="mdl-menu__item" data-trigger="set" data-value="inbox"
-                                    data-target="#account-folder">Inbox
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="mdl-list__item_vertical">
-                            <ul class="mdl-list mdl-grid">
-                                <li class="mdl-list__item_horizontal mdl-cell--3-col">
-                                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
-                                        OK
-                                    </button>
-                                </li>
-                                <li class="mdl-list__item_horizontal mdl-cell--6-col">
-
-                                </li>
-                                <li class="mdl-list__item_horizontal mdl-cell--3-col">
-                                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" data-dismiss="modal">
-                                        Cancel
-                                    </button>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </form>
             </div>
         </div>
     </div>
 </div>
 
-<div class="confirmation-modal modal fade" id="confirmation-modal" tabindex="-1" role="dialog" aria-labelledby="confirmation-modal-label">
+
+<div class="confirmation-modal modal fade" id="confirmation-modal" tabIndex="-1" role="dialog" aria-labelledby="confirmation-modal-label">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-body">
@@ -289,21 +115,6 @@
     </div>
 </div>
 
-<div class="time-picker modal fade" id="time-picker" tabindex="-1" role="dialog" aria-labelledby="time-picker-label">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-body">
-                <div class="time-picker-table mdl-shadow--2dp">
-                </div>
-                <ul class="mdl-list time-picker-display">
-                    <li class="mdl-list__item_horizontal time-picker-display-time"></li>
-                    <li class="mdl-list__item_horizontal time-picker-display-time"></li>
-                    <li class="mdl-list__item_horizontal time-picker-display-time"></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
 <div class="screen-locker" id="screen-locker">
     <div class="content">
         <div class="modal-content">
@@ -311,15 +122,24 @@
         </div>
     </div>
 </div>
-<script type="text/javascript" src="js/yyf-core.js"></script>
-<script type="text/javascript" src="js/Time.js"></script>
+
+<script type="text/javascript" src="js/react.dev.js"></script>
+<script type="text/javascript" src="js/react-dom.dev.js"></script>
+<script type="text/javascript" src="js/browser.min.js"></script>
+
 <script type="text/javascript" src="js/jquery.min.js"></script>
 <script type="text/javascript" src="js/bootstrap.min.js"></script>
 <script type="text/javascript" src="js/material.min.js"></script>
-<script type="text/javascript" src="js/ExchangeAPI.js"></script>
-<script type="text/javascript" src="js/Notify.js"></script>
-<script type="text/javascript" src="js/Extension.js"></script>
-<script type="text/javascript" src="js/plugins.js"></script>
-<script type="text/javascript" src="js/options.js"></script>
+
+<script type="text/babel" src="js/yyf-core.min.js"></script>
+<script type="text/babel" src="js/Browser.js"></script>
+<script type="text/babel" src="js/ExtensionAPI.js"></script>
+
+<script type="text/babel" src="js/material-react.components.js"></script>
+<script type="text/babel" src="js/material-react.timepicker.js"></script>
+
+<script type="text/babel" src="js/settings-general.js"></script>
+<script type="text/babel" src="js/settings-accounts.js"></script>
+<script type="text/babel" src="js/settings.js"></script>
 </body>
 </html>

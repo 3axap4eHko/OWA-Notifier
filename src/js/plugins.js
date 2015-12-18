@@ -46,7 +46,7 @@
     });
 
     $(document).on('share', function (event, data) {
-        Extension.openUrl(data.url);
+        Browser.openUrl(data.url);
     });
 
 }.call(this.global || this.window || global || window));

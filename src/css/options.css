@@ -56,6 +56,10 @@ a:hover, a:active {
     color: #ff4081;
 }
 
+.mdl-layout__tab:hover {
+    color: #fff;
+}
+
 .mdl-layout__tab-bar {
     height: 48px!important;
 }
@@ -120,4 +124,39 @@ a:hover, a:active {
 
 .mdl-margin__10px {
     margin: 10px;
+}
+
+.mdl-spinner--center {
+    margin-top: 200px;
+    margin-left: 400px;
+    width: 100px;
+    height: 100px;
+}
+
+.donate-text {
+    color: #fff;
+    margin: 0;
+    border: none;
+    padding-left: 150px;
+    float: right;
+    position: relative;
+    display: block;
+    -webkit-box-flex: 0;
+    -webkit-flex-grow: 0;
+    -ms-flex-positive: 0;
+    flex-grow: 0;
+    -webkit-flex-shrink: 0;
+    -ms-flex-negative: 0;
+    flex-shrink: 0;
+    text-decoration: none;
+    height: 48px;
+    line-height: 48px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 14px;
+    text-transform: uppercase;
+    overflow: hidden;
+}
+.donate-text:hover {
+    color: #fff;
 }

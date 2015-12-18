@@ -1,6 +1,6 @@
 {
     "author": "3axap4eHko",
-    "version": "3.0.2.7",
+    "version": "4.0.0.0",
     "manifest_version": 2,
     "name": "Outlook Web Access notifier",
     "short_name": "OWA notifier",
@@ -16,6 +16,7 @@
     "web_accessible_resources": [
         "images/icon128.png"
     ],
+    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
     "permissions": [
         "storage",
         "tts",

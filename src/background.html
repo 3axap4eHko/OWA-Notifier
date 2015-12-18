@@ -3,13 +3,15 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Outlook Web Access notifier background page</title>
-    <script type="text/javascript" src="js/yyf-core.js"></script>
-    <script type="text/javascript" src="js/jquery.min.js"></script>
-    <script type="text/javascript" src="js/ExchangeAPI.js"></script>
-    <script type="text/javascript" src="js/Notify.js"></script>
-    <script type="text/javascript" src="js/Extension.js"></script>
-    <script type="text/javascript" src="js/background.js"></script>
 </head>
 <body>
+    <audio id="mail-sound" preload="auto" src="sounds/sound4.ogg"></audio>
+    <audio id="appointment-sound" preload="auto" src="sounds/sound3.ogg"></audio>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/browser.min.js"></script>
+    <script type="text/javascript" src="js/yyf-core.min.js"></script>
+    <script type="text/babel" src="js/Browser.js"></script>
+    <script type="text/babel" src="js/Exchange.js"></script>
+    <script type="text/babel" src="js/Extension.js"></script>
 </body>
 </html>

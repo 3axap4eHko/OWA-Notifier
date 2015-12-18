@@ -5,72 +5,67 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>OWA notifier - Popup</title>
-    <!-- Tile icon for Win8 (144x144 + tile color) -->
-    <meta name="msapplication-TileImage" content="images/icon128.png">
-    <meta name="msapplication-TileColor" content="#3372DF">
-    <link href="css/material-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/material.min.css">
-    <link rel="stylesheet" href="css/plugins.css">
-    <link rel="stylesheet" href="css/socicon.css">
+    <link rel="stylesheet" href="css/material-icons.css" />
+    <link rel="stylesheet" href="css/material.min.css" />
+    <link rel="stylesheet" href="css/plugins.css" />
+    <link rel="stylesheet" href="css/socicon.css" />
     <link rel="stylesheet" href="css/popup.css"/>
 </head>
 <body>
-
 <div class="mdl-card mdl-shadow--2dp mails-card">
     <div class="mdl-card__title">
         <h2 class="mdl-card__title-text logo"><img src="images/icon_32.png">OWA Notifier</h2>
     </div>
-    <ul class="mdl-bar" id="mails">
-    </ul>
-    <ul class="list-group">
-        <li>
-            <a href="https://www.paypal.me/3axap4eHko" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent pull-right" id="btn-donate" target="donate">
-                Donate
-            </a>
-        </li>
-    </ul>
-
-
-    <div class="mdl-card__menu">
-        <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" id="btn-share">
+    <div id="mails">
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+        <button data-open-url="https://www.paypal.me/3axap4eHko" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent pull-right mdl-hover--heartbeat">
+            Donate
+        </button>
+    </div>
+    <div class="mdl-card__menu" id="menu">
+        <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" id="btn-share" title="Tell about OWANotifier">
             <i class="material-icons">share</i>
         </button>
         <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect mdl-menu--share"
             for="btn-share">
-            <li class="mdl-menu__item share socicon-facebook" data-trigger="share" data-url="https://www.facebook.com/sharer/sharer.php?display=popup&u=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Foutlook-web-access-notifi%2Fhldldpjjjagjfikfknadmnnmpbbhgihg">
+            <li class="mdl-menu__item share socicon-facebook" data-open-url="https://www.facebook.com/sharer/sharer.php?display=popup&u=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Foutlook-web-access-notifi%2Fhldldpjjjagjfikfknadmnnmpbbhgihg">
                 b
             </li>
-            <li class="mdl-menu__item socicon-twitter" data-trigger="share" data-url="https://twitter.com/intent/tweet?hashtags=OWA-Notifier&url=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Foutlook-web-access-notifi%2Fhldldpjjjagjfikfknadmnnmpbbhgihg&text=OWA%20Notifier">
+            <li class="mdl-menu__item socicon-twitter" data-open-url="https://twitter.com/intent/tweet?hashtags=OWA-Notifier&url=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Foutlook-web-access-notifi%2Fhldldpjjjagjfikfknadmnnmpbbhgihg&text=OWA%20Notifier">
                 a
             </li>
-            <li class="mdl-menu__item socicon-google" data-trigger="share" data-url="https://plus.google.com/share?url=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Foutlook-web-access-notifi%2Fhldldpjjjagjfikfknadmnnmpbbhgihg">
+            <li class="mdl-menu__item socicon-google" data-open-url="https://plus.google.com/share?url=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Foutlook-web-access-notifi%2Fhldldpjjjagjfikfknadmnnmpbbhgihg">
                 c
             </li>
-            <li class="mdl-menu__item socicon-vkontakte" data-trigger="share" data-url="http://vk.com/share.php?url=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Foutlook-web-access-notifi%2Fhldldpjjjagjfikfknadmnnmpbbhgihg">
+            <li class="mdl-menu__item socicon-vkontakte" data-open-url="http://vk.com/share.php?url=https%3A%2F%2Fchrome.google.com%2Fwebstore%2Fdetail%2Foutlook-web-access-notifi%2Fhldldpjjjagjfikfknadmnnmpbbhgihg">
                 ;
             </li>
         </ul>
-        <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-trigger="settings.general">
+
+        <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-open-url="options.html#settings-general" title="General Settings">
             <i class="material-icons">settings</i>
         </button>
-        <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-trigger="settings.accounts">
+        <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-open-url="options.html#settings-accounts" title="Accounts Settings">
             <i class="material-icons">people</i>
         </button>
-        <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-trigger="report.bug">
+        <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-open-url="https://github.com/3axap4eHko/OWA-Notifier/issues" title="Report a Bug">
             <i class="material-icons">bug_report</i>
         </button>
     </div>
 </div>
 
-<script type="text/javascript" src="js/yyf-core.js"></script>
+<script type="text/javascript" src="js/browser.min.js"></script>
+<script type="text/javascript" src="js/react.min.js"></script>
+<script type="text/javascript" src="js/react-dom.min.js"></script>
 <script type="text/javascript" src="js/jquery.min.js"></script>
-<script type="text/javascript" src="js/bootstrap.min.js"></script>
 <script type="text/javascript" src="js/material.min.js"></script>
-<script type="text/javascript" src="js/ExchangeAPI.js"></script>
-<script type="text/javascript" src="js/Notify.js"></script>
-<script type="text/javascript" src="js/Extension.js"></script>
-<script type="text/javascript" src="js/plugins.js"></script>
-<script type="text/javascript" src="js/popup.js"></script>
+
+<script type="text/javascript" src="js/yyf-core.min.js"></script>
+<script type="text/babel" src="js/Browser.js"></script>
+<script type="text/babel" src="js/ExtensionAPI.js"></script>
+
+<script type="text/babel" src="js/material-react.components.js"></script>
+<script type="text/babel" src="js/popup.js"></script>
 </body>
 </html>
