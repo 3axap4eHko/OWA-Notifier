@@ -309,5 +309,4 @@
         return time;
     };
     window.Time = Time;
-
 })(window);
