@@ -104,7 +104,7 @@ body {
 }
 
 /** Day Events **/
-.christmas .mdl-card__actions {
+.christmas .mdl-card>.mdl-card__actions {
     background: url("../images/event_lamps.png") repeat-x;
     background-position-y: -10px;
     background-size: 25%
