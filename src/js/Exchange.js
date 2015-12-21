@@ -184,6 +184,7 @@
             if (mails.length === 0) {
                 return Promise.resolve(0);
             }
+            debugger;
             return getXML(`${this.xmlFolder}/read-item-template.xml`).then( readItemXML => {
                 var changes = mails.map( mail => _.fmtString(readItemXML, {Id: mail.id, ChangeKey: mail.changeKey}));
                 var bulkChanges = [];

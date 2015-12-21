@@ -61,10 +61,12 @@
                 self.close();
             });
 
-            chrome.notifications.create(self.id, self.notifyOptions, () => {
-                self.options.timerId = setTimeout(() => self.close(), self.options.liveTime * 1000);
-                notifyScope.notifications[self.id] = self;
-                _.eventGo(self, 'create', self);
+            Browser.Notify.close(options.id).then( () => {
+                chrome.notifications.create(self.id, self.notifyOptions, () => {
+                    self.options.timerId = setTimeout(() => self.close(), self.options.liveTime * 1000);
+                    notifyScope.notifications[self.id] = self;
+                    _.eventGo(self, 'create', self);
+                });
             });
         }
         get isAlive() {
@@ -75,7 +77,7 @@
             this.close();
         }
         clickButton(btnId) {
-            _.eventGo(this, `button.${btnId}`, this);
+            _.eventGo(this, `button${btnId}`, this);
             this.close();
         }
         close() {
@@ -131,7 +133,7 @@
             var notify = notifyScope.notifications[id];
             if (!notify || !notify.isAlive) {
                 delete notifyScope.notifications[id];
-            } else {
+            } else if (notify.options.notifyCloseBehavior == 'manually') {
                 notify.close().then(options => new Notify(options));
             }
         },

@@ -228,8 +228,8 @@
         var mails = event.mails.slice(0,5).map( mail => Browser.Notify.createListItem(mail.subject, 'From: ' + mail.from));
         console.log(`Notify mails for ${event.account.email}`);
         Browser.Notify.create({
-            id: `emails_${event.account.guid} (${event.state.unread})`,
-            title: event.account.email,
+            id: `emails_${event.account.guid}`,
+            title: `${event.account.email} (${event.state.unread})`,
             message: `${event.state.unread} unread mail(s)`,
             iconUrl: Browser.Extension.getUrl(icon.image),
             items: mails,
