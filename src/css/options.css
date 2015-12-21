@@ -162,5 +162,5 @@ a:hover, a:active {
 }
 .winter .mdl-ribbon {
     background-image: url("../images/event_snow1.png"), url("../images/event_snow2.png"), url("../images/event_snow3.png");
-    animation: snow 10s linear infinite;
+    animation: snow 20s linear infinite;
 }

@@ -9,11 +9,16 @@
     function getXML(actionXml) {
         actionXml = actionXml.toLowerCase();
         return new Promise((resolve, reject) => {
-            if(!xmlCache[actionXml])
-            {
+            if (_.isArray(xmlCache[actionXml])) {
+                xmlCache[actionXml].push(resolve);
+            } else if (!xmlCache[actionXml]) {
+                xmlCache[actionXml] = [resolve];
                 Browser.ajax({
                     url: actionXml,
-                    onLoad: xhr => resolve(xmlCache[actionXml] = xhr.responseText),
+                    onLoad: xhr => {
+                        xmlCache[actionXml].forEach( resolve => resolve(xhr.responseText));
+                        xmlCache[actionXml] = xhr.responseText;
+                    },
                     onError: reject,
                     onAbort: reject
                 });
@@ -175,15 +180,18 @@
                     return ({code: -1, message: error.stack || error});
                 });
         }
-        markAllAsRead (folderInfo, account) {
-            return this.getFolderUnreadMailsById(folderInfo, account).then( mails => {
-                if (mails.length === 0) {
-                    return Promise.resolve(0);
+        markAllAsRead (mails, account) {
+            if (mails.length === 0) {
+                return Promise.resolve(0);
+            }
+            return getXML(`${this.xmlFolder}/read-item-template.xml`).then( readItemXML => {
+                var changes = mails.map( mail => _.fmtString(readItemXML, {Id: mail.id, ChangeKey: mail.changeKey}));
+                var bulkChanges = [];
+                while (changes.length>0) {
+                    bulkChanges.push(changes.splice(0, 500));
                 }
-                return getXML(`${this.xmlFolder}/read-item-template.xml`).then( readItemXML => {
-                    var changes = mails.map( mail => _.fmtString(readItemXML, {Id: mail.id, ChangeKey: mail.changeKey}));
-                    return this.doAction('change-items', account, {Changes: changes.join('\r\n')});
-                });
+                return Promise.all(bulkChanges.map( bulkChange => this.doAction('change-items', account, {Changes: bulkChange.join('\r\n')}) ))
+                    .then( () => mails.length);
             });
         }
     }

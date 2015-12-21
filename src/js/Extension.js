@@ -4,13 +4,13 @@
             mailSound: 'sounds/sound4.ogg',
             appointmentSound: 'sounds/sound3.ogg',
             updateInterval: 30,
-            displayTime: 15,
+            liveTime: 30,
             volume: 0.3,
-            popupClosing: 'automatically'
+            notifyCloseBehavior: 'automatically'
     };
     const audioMail = document.getElementById('mail-sound');
     const audioAppointment = document.getElementById('appointment-sound');
-    const api = new ExchangeAPI({ xmlFolder: chrome.extension.getURL('xml') });
+    const api = new ExchangeAPI({ xmlFolder: Browser.Extension.getUrl('xml') });
     const icon = {
             disable: {
                 image: 'images/icon_d.png',
@@ -76,7 +76,7 @@
         if (hasErrors) {
             badgeText +='!';
         }
-        chrome.browserAction.setBadgeText({text: badgeText});
+        Browser.Extension.setBadgeText(badgeText);
         return mappedData;
     }
 
@@ -117,12 +117,14 @@
         return account.folder === 'root' ? api.getAllItemsFolder(account) : api.getFolder(account.folder, account);
     }
 
-    function getAccountsFolders(accounts) {
+    function getAccountsMails(accounts) {
         return Promise.all((accounts || []).map(account => {
             if (!account.enabled) {
                 return Promise.resolve(null);
             }
-            return getAccountFolder(account).catch( error => {
+            return getAccountFolder(account).then( folder => {
+                return api.getFolderUnreadMailsById(folder, account).then( mails => ({folder, mails}));
+            }).catch( error => {
                     runtimeState.accountsStates[account.guid].hasErrors = true;
                     runtimeState.accountsStates[account.guid].errors.push(error.stack);
                     logError(error.stack);
@@ -151,12 +153,13 @@
             runtimeState.accountsStates[account.guid].hasErrors = false;
             runtimeState.accountsStates[account.guid].errors = [];
         });
-        return Promise.all([getAccountsFolders(accounts), getAccountsAppointments(accounts)]).then( data => {
+        return Promise.all([getAccountsMails(accounts), getAccountsAppointments(accounts)]).then( data => {
             return accounts.map( (account, id) => ({
                 id: id,
                 account: account,
                 state: runtimeState.accountsStates[account.guid],
-                folder: data[0][id],
+                mails: (data[0][id] || {}).mails,
+                folder: (data[0][id] || {}).folder,
                 appointments: data[1][id]
             }));
         });
@@ -165,16 +168,14 @@
     function update() {
         var accounts = _.values(runtimeState.accounts);
         if (!accounts.length) {
-            chrome.browserAction.setBadgeText({text: 'setup'});
+            Browser.Extension.setBadgeText('setup');
             return Promise.resolve({});
         }
         return mapData(accounts).then(handleData).then(setBadgeText);
     }
 
-    function markAllAsRead(account) {
-        return getAccountFolder(account).then( folder => {
-            return api.markAllAsRead(folder, account).then(update);
-        });
+    function markAllAsRead(account, mails) {
+        return api.markAllAsRead(mails, account).then(update);
     }
 
     Browser.Notify.registerHandlers();
@@ -209,16 +210,21 @@
 
 
     _.eventOn(runtimeState, 'notify.mails', event => {
+        var mails = event.mails.slice(0,5).map( mail => Browser.Notify.createListItem(mail.subject, 'From: ' + mail.from));
         console.log(`Notify mails for ${event.account.email}`);
         Browser.Notify.create({
+            id: `emails_${event.account.guid}`,
             title: event.account.email,
             message: `${event.state.unread} unread mail(s)`,
-            iconUrl: chrome.extension.getURL(icon.image),
+            iconUrl: Browser.Extension.getUrl(icon.image),
+            items: mails,
+            type: 'list',
             isClickable: true,
-            expired: runtimeState.config.displayTime,
+            liveTime: runtimeState.config.liveTime,
+            notifyCloseBehavior: runtimeState.config.notifyCloseBehavior,
             onClick: () => Browser.openUrl(event.account.serverOWA),
             buttons: [
-                Browser.Notify.createButton('Mark as Read','images/button_read.png', () => markAllAsRead(event.account)),
+                Browser.Notify.createButton('Mark as Read', 'images/button_read.png', () => markAllAsRead(event.account, event.mails)),
                 _closeButton
             ]
         });
@@ -229,20 +235,22 @@
         console.log(`Notify appointments for ${event.account.email}`);
         var appointments = toRemind.map( appointment => Browser.Notify.createListItem(appointment.subject, 'At ' + appointment.start));
         Browser.Notify.create({
-                id: 'appointment_' + event.account.guid,
-                title: `Appointment(s) for ${event.account.email}`,
-                message: `Remind about ${toRemind.length} appointment(s)`,
-                iconUrl: chrome.extension.getURL(icon.image),
-                items: appointments,
-                type: 'list',
-                isClickable: true,
-                expired: runtimeState.config.displayTime,
-                onClick: () => Browser.openUrl(event.account.serverOWA),
-                buttons: [ _closeButton ]}
-        );
+            id: `appointment_${event.account.guid}`,
+            title: `Appointment(s) for ${event.account.email}`,
+            message: `Remind about ${toRemind.length} appointment(s)`,
+            iconUrl: Browser.Extension.getUrl(icon.image),
+            items: appointments,
+            type: 'list',
+            isClickable: true,
+            liveTime: runtimeState.config.liveTime,
+            notifyCloseBehavior: runtimeState.config.notifyCloseBehavior,
+            onClick: () => Browser.openUrl(event.account.serverOWA),
+            buttons: [_closeButton]
+        });
         soundPlay(audioAppointment);
     });
     _.eventOn(runtimeState, 'extension.loaded', () => {
+        console.log('Extension loaded');
         audioMail.setAttribute('src', runtimeState.config.mailSound);
         audioAppointment.setAttribute('src', runtimeState.config.appointmentSound);
         runtimeState.updateTimerId = setInterval(update, runtimeState.config.updateInterval * 1000);
@@ -268,14 +276,10 @@
         });
 
         Browser.state.onFocus(()=>{
-            if (runtimeState.config.popupClosing === 'manually') {
-                Browser.Notify.refreshAll();
-            }
+            Browser.Notify.refreshAll();
         });
         Browser.state.onActive(()=>{
-            if (runtimeState.config.popupClosing === 'manually') {
-                Browser.Notify.refreshAll();
-            }
+            Browser.Notify.refreshAll();
         });
 
         update();
@@ -284,30 +288,36 @@
     Browser.storage.load().then( state => {
         state.config = Object.assign({}, defaultConfig, state.config || {});
         state.accounts = state.accounts || {};
-
-        if (localStorage.getItem('version') !== chrome.app.getDetails().version) {
-            if (_.isArray(state.accounts)) {
-                state.accounts = state.accounts.reduce( (accounts, account, id) => {
-                    var guid = _.randomGuid();
-                    account.created = Date.now() + id;
-                    account.guid = guid;
-                    accounts[guid] = account;
-                    return accounts;
-                }, {});
-                Browser.storage.save(undefined, {accounts: state.accounts});
-            }
-
-            localStorage.setItem('version', chrome.app.getDetails().version);
+        var currentVersion = Browser.Extension.version;
+        if (localStorage.getItem('version') !== currentVersion) {
+            var accounts = {};
+            _.values(state.accounts).forEach( (account, id) => {
+                var guid = _.randomGuid();
+                accounts[guid] = {
+                    guid: guid,
+                    created: account.created || Date.now() + id,
+                    email: account.email,
+                    enabled: account.enabled,
+                    folder: account.folder,
+                    password: account.password,
+                    username: account.username,
+                    serverEWS: account.serverEWS,
+                    serverOWA: account.serverOWA
+                };
+            });
+            Browser.storage.save('accounts', {accounts: state.accounts});
+            localStorage.setItem('version', currentVersion);
 
             Browser.Notify.create({
-                title: `New version ${chrome.app.getDetails().version}`,
-                message: `Outlook Web Access Notifier was updated to ${chrome.app.getDetails().version}`,
-                iconUrl: chrome.extension.getURL(icon.image),
-                buttons: [_closeButton],
-                onClick: () =>  Browser.openUrl('https://chrome.google.com/webstore/detail/outlook-web-access-notifi/hldldpjjjagjfikfknadmnnmpbbhgihg')
+                title: `New version ${currentVersion}`,
+                message: `Outlook Web Access Notifier was updated to ${currentVersion}`,
+                iconUrl: Browser.Extension.getUrl(icon.image),
+                buttons: [
+                    _closeButton
+                ],
+                onClick: () =>  Browser.openUrl(Browser.Extension.storeUrl)
             });
         }
-
         runtimeState.config = observableStorage(state.config, 'config');
         runtimeState.accounts = observableStorage(state.accounts, 'accounts');
         _.eventGo(runtimeState, 'extension.loaded');

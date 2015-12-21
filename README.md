@@ -7,6 +7,11 @@ Need to enabled the Exchange Web Services (EWS).
 P.S. Please, help me to improve extension. If you have a bug or idea, just send me email or report on GitHub with your case. Thnx.
 
 Changes:
+#### Version 4.0.0.x beta
+ - Based on ReactJS
+ - Added Mark All as Read button
+ - Small fixes
+
 #### Version 3.0.2.x beta
  - Popup close mode
  - Popup buttons

@@ -52,12 +52,12 @@
                             <FormEmptyField className="mdl-list__item_horizontal mdl-cell--3-col"/>
                             <FormTimePickerField
                                 className="mdl-list__item_horizontal"
-                                id="display-time"
-                                name="displayTime"
-                                defaultValue={Time.fromSeconds(this.props.config.displayTime).toString()}
-                                label="Display time"
+                                id="live-time"
+                                name="liveTime"
+                                defaultValue={Time.fromSeconds(this.props.config.liveTime).toString()}
+                                label="Notification Live time"
                                 placeholder="Delay"
-                                tooltip="Time of displaying a notification message."
+                                tooltip="Time of living a notification message."
                                 onValue={this.onValue}
                                 />
                         </ul>
@@ -101,15 +101,15 @@
                         <ul className="mdl-list mdl-grid">
                             <FormSelectField
                                 className="mdl-list__item_horizontal mdl-cell--6-col"
-                                id="popup-closing"
-                                name="popupClosing"
-                                label="Notify close behavior"
+                                id="notify-close-behavior"
+                                name="notifyCloseBehavior"
+                                label="Notification close behavior"
                                 tooltip="How notifications should be closed? Automatically or only by user action."
                                 values={{
                                 "Automatically": "automatically",
                                 "Manually": "manually"
                                 }}
-                                defaultKey={this.props.config.popupClosing}
+                                defaultKey={<this className="props config notifyCloseBehavior"></this>}
                                 onValue={this.onValue}
                                 />
                         </ul>

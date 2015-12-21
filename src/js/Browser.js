@@ -83,44 +83,45 @@
         },
 
         create (notify) {
-            console.log('Creating notification');
-            console.log(notify);
-
             if (!(notify instanceof Notify)) {
                 notify = new Notify(notify);
             }
 
             return new Promise( resolve => {
-                console.log(notify.notifyOptions);
                 chrome.notifications.create(notify.id, notify.notifyOptions, id => {
-                    if (notify.options.displayTime) {
-                        notify.options.timerId = setTimeout(() => Browser.Notify.close(id), _.toInt(notify.options.displayTime) * 1000);
+                    if (notify.options.liveTime) {
+                        notify.options.timerId = setTimeout(() => Browser.Notify.close(id), _.toInt(notify.options.liveTime) * 1000);
                     }
-                    resolve(notifyScope.notifications[id] = notify);
+                    resolve(notify);
+                    if (notify.options.notifyCloseBehavior == 'manually') {
+                        notifyScope.notifications[id] = notify;
+                    }
                 });
             });
         },
         close(id) {
             return new Promise( resolve => {
                 var notify = notifyScope.notifications[id];
-                chrome.notifications.clear(id, removed => {
-                    _.eventGo(notify, 'close', id, false);
-                    resolve(notify);
-                });
+                if (notify) {
+                    chrome.notifications.clear(id, removed => resolve(notify));
+                }
+                delete notifyScope.notifications[id];
             });
         },
         refresh(id) {
             return Browser.Notify.close(id).then( notify => Browser.Notify.create(notify) );
         },
         refreshAll() {
-            return Promise.all(_.keys(notifyScope).map(Browser.Notify.refresh));
+            return Promise.all(_.keys(notifyScope.notifications).map(Browser.Notify.refresh));
         },
         registerHandlers() {
             chrome.notifications.onClosed.addListener( (id, byUser) => {
                 try {
                     var notify = notifyScope.notifications[id];
-                    _.eventGo(notify, 'close', id, byUser);
-                    delete notifyScope.notifications[id];
+                    if (notify && byUser) {
+                        _.eventGo(notify, 'close', id, byUser);
+                        delete notifyScope.notifications[id];
+                    }
                 } catch (e) {
                     console.log(e.stack);
                 }
@@ -128,8 +129,10 @@
             chrome.notifications.onClicked.addListener( id => {
                 try {
                     var notify = notifyScope.notifications[id];
-                    _.eventGo(notify, 'click', id);
-                    Browser.Notify.close(id);
+                    if (notify) {
+                        _.eventGo(notify, 'click', id);
+                        Browser.Notify.close(id);
+                    }
                 } catch (e) {
                     console.log(e.stack);
                 }
@@ -137,8 +140,10 @@
             chrome.notifications.onButtonClicked.addListener( (id, buttonId) => {
                 try {
                     var notify = notifyScope.notifications[id];
-                    _.eventGo(notify, 'button', id, buttonId);
-                    Browser.Notify.close(id);
+                    if (notify) {
+                        _.eventGo(notify, 'button', id, buttonId);
+                        Browser.Notify.close(id);
+                    }
                 } catch (e) {
                     console.log(e.stack);
                 }
@@ -149,19 +154,19 @@
     const stateScope = {};
     Browser.state = {
         onFocus(listener) {
-            _.eventGo(stateScope, 'focus', listener);
+            _.eventOn(stateScope, 'focus', listener);
         },
         onBlur(listener) {
-            _.eventGo(stateScope, 'blur', listener);
+            _.eventOn(stateScope, 'blur', listener);
         },
         onActive(listener) {
-            _.eventGo(stateScope, 'active', listener);
+            _.eventOn(stateScope, 'active', listener);
         },
         onIdle(listener) {
-            _.eventGo(stateScope, 'idle', listener);
+            _.eventOn(stateScope, 'idle', listener);
         },
         onLocked(listener) {
-            _.eventGo(stateScope, 'locked', listener);
+            _.eventOn(stateScope, 'locked', listener);
         }
     };
     chrome.windows.onFocusChanged.addListener( window => {
@@ -269,6 +274,20 @@
         xhr.send(options.data);
     };
 
+    Browser.Extension = {
+        get version() {
+            return chrome.app.getDetails().version;
+        },
+        getUrl(uri) {
+            return chrome.extension.getURL(uri);
+        },
+        setBadgeText(text) {
+            chrome.browserAction.setBadgeText({text});
+        },
+        get storeUrl() {
+            return 'https://chrome.google.com/webstore/detail/outlook-web-access-notifi/hldldpjjjagjfikfknadmnnmpbbhgihg';
+        }
+    };
 
     Browser.getXMLElement = (xml, tagName) => {
         return xml.getElementsByTagName(tagName)[0];
