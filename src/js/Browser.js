@@ -29,11 +29,19 @@
         title: 'Notification title',
         message: 'Notification message',
         iconUrl: '',
+        isClickable: true,
+        liveTime: 15,
+        notifyCloseBehavior: 'automatically',
         onClick: _.fnEmpty,
         onClose: _.fnEmpty,
+        onCreate: _.fnEmpty,
         buttons: []
     };
     const notifyAllowedOptions = ['type', 'iconUrl', 'appIconMaskUrl', 'title', 'message', 'contextMessage', 'priority', 'eventTime', 'buttons', 'imageUrl', 'items', 'progress', 'isClickable'];
+
+    var notifyScope = {
+        notifications: {}
+    };
 
     class Notify {
         constructor(options) {
@@ -42,13 +50,43 @@
             options.type = options.type || 'basic';
             options.id = options.id || _.randomGuid();
             options.eventTime = Date.now();
+            options.liveTime = _.toInt(options.liveTime);
             _p(self, options);
+
+            _.eventOn(self, 'create', options.onCreate);
             _.eventOn(self, 'click', options.onClick);
             _.eventOn(self, 'close', options.onClose);
-            _.eventOn(self, 'button', (id, btnId) => {
-                if(options.buttons[btnId]) {
-                    options.buttons[btnId].onClick(self);
-                }
+            options.buttons.forEach( (button, btnId) => {
+                _.eventOn(self, `button${btnId}`, () => options.buttons[btnId].onClick(self) );
+                self.close();
+            });
+
+            chrome.notifications.create(self.id, self.notifyOptions, () => {
+                self.options.timerId = setTimeout(() => self.close(), self.options.liveTime * 1000);
+                notifyScope.notifications[self.id] = self;
+                _.eventGo(self, 'create', self);
+            });
+        }
+        get isAlive() {
+            return (this.options.eventTime + (this.options.liveTime * 1000) - Date.now()) > 0;
+        }
+        click() {
+            _.eventGo(this, 'click', this);
+            this.close();
+        }
+        clickButton(btnId) {
+            _.eventGo(this, `button.${btnId}`, this);
+            this.close();
+        }
+        close() {
+            var self = this;
+            return new Promise( resolve => {
+                clearTimeout(self.options.timerId);
+                chrome.notifications.clear(self.id, () => {
+                    _.eventGo(self, 'close', this);
+                    delete notifyScope.notifications[self.id];
+                    resolve(self.options);
+                });
             });
         }
         get options () {
@@ -70,9 +108,7 @@
             return notifyOptions;
         }
     }
-    var notifyScope = {
-        notifications: {}
-    };
+
     Browser.Notify = {
         createButton(title, iconUrl, onClick) {
             onClick = onClick || _.fnEmpty;
@@ -81,46 +117,35 @@
         createListItem(title, message) {
             return { title, message };
         },
-
-        create (notify) {
-            if (!(notify instanceof Notify)) {
-                notify = new Notify(notify);
-            }
-
-            return new Promise( resolve => {
-                chrome.notifications.create(notify.id, notify.notifyOptions, id => {
-                    if (notify.options.liveTime) {
-                        notify.options.timerId = setTimeout(() => Browser.Notify.close(id), _.toInt(notify.options.liveTime) * 1000);
-                    }
-                    resolve(notify);
-                    if (notify.options.notifyCloseBehavior == 'manually') {
-                        notifyScope.notifications[id] = notify;
-                    }
-                });
-            });
+        create (options) {
+            var notify = new Notify(options);
+            return notify.id;
         },
         close(id) {
-            return new Promise( resolve => {
-                var notify = notifyScope.notifications[id];
-                if (notify) {
-                    chrome.notifications.clear(id, removed => resolve(notify));
-                }
-                delete notifyScope.notifications[id];
-            });
+            if (notifyScope.notifications[id]) {
+                return notifyScope.notifications[id].close();
+            }
+            return Promise.resolve(false);
         },
         refresh(id) {
-            return Browser.Notify.close(id).then( notify => Browser.Notify.create(notify) );
+            var notify = notifyScope.notifications[id];
+            if (!notify || !notify.isAlive) {
+                delete notifyScope.notifications[id];
+            } else {
+                notify.close().then(options => new Notify(options));
+            }
         },
         refreshAll() {
-            return Promise.all(_.keys(notifyScope.notifications).map(Browser.Notify.refresh));
+            return new Promise( resolve => {
+                _.keys(notifyScope.notifications).forEach(Browser.Notify.refresh);
+                resolve(_.keys(notifyScope.notifications));
+            });
         },
         registerHandlers() {
             chrome.notifications.onClosed.addListener( (id, byUser) => {
                 try {
-                    var notify = notifyScope.notifications[id];
-                    if (notify && byUser) {
-                        _.eventGo(notify, 'close', id, byUser);
-                        delete notifyScope.notifications[id];
+                    if (byUser) {
+                        Browser.Notify.close(id);
                     }
                 } catch (e) {
                     console.log(e.stack);
@@ -130,8 +155,7 @@
                 try {
                     var notify = notifyScope.notifications[id];
                     if (notify) {
-                        _.eventGo(notify, 'click', id);
-                        Browser.Notify.close(id);
+                        notify.click();
                     }
                 } catch (e) {
                     console.log(e.stack);
@@ -141,9 +165,9 @@
                 try {
                     var notify = notifyScope.notifications[id];
                     if (notify) {
-                        _.eventGo(notify, 'button', id, buttonId);
-                        Browser.Notify.close(id);
+                        notify.clickButton(buttonId);
                     }
+                    Browser.Notify.close(id);
                 } catch (e) {
                     console.log(e.stack);
                 }

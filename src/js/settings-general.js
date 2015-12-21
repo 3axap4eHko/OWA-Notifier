@@ -109,7 +109,7 @@
                                 "Automatically": "automatically",
                                 "Manually": "manually"
                                 }}
-                                defaultKey={<this className="props config notifyCloseBehavior"></this>}
+                                defaultKey={this.props.config.notifyCloseBehavior}
                                 onValue={this.onValue}
                                 />
                         </ul>

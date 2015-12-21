@@ -1,6 +1,6 @@
 {
     "author": "3axap4eHko",
-    "version": "4.0.0.1",
+    "version": "4.0.0.3",
     "manifest_version": 2,
     "name": "Outlook Web Access notifier",
     "short_name": "OWA notifier",

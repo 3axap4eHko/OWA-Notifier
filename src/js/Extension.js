@@ -84,6 +84,7 @@
         return mappedData.map( data => {
             if (data.account.enabled && !data.state.hasErrors) {
                 var oldUnread = _.toInt(data.state.unread);
+
                 if ( (data.state.unread = data.folder.unreadCount) > oldUnread) {
                     _.eventGo(runtimeState, 'notify.mails', data);
                 }
@@ -117,14 +118,18 @@
         return account.folder === 'root' ? api.getAllItemsFolder(account) : api.getFolder(account.folder, account);
     }
 
+    function getAccountUnreadMails(account) {
+        return getAccountFolder(account).then( folder => {
+            return api.getFolderUnreadMailsById(folder, account).then( mails => ({folder, mails}));
+        });
+    }
+
     function getAccountsMails(accounts) {
         return Promise.all((accounts || []).map(account => {
             if (!account.enabled) {
                 return Promise.resolve(null);
             }
-            return getAccountFolder(account).then( folder => {
-                return api.getFolderUnreadMailsById(folder, account).then( mails => ({folder, mails}));
-            }).catch( error => {
+            return getAccountUnreadMails(account).catch( error => {
                     runtimeState.accountsStates[account.guid].hasErrors = true;
                     runtimeState.accountsStates[account.guid].errors.push(error.stack);
                     logError(error.stack);
@@ -171,11 +176,19 @@
             Browser.Extension.setBadgeText('setup');
             return Promise.resolve({});
         }
-        return mapData(accounts).then(handleData).then(setBadgeText);
+        return mapData(accounts).then(handleData).then(setBadgeText).catch( () => 0);
     }
 
-    function markAllAsRead(account, mails) {
-        return api.markAllAsRead(mails, account).then(update);
+    function updateLopped() {
+        return update().then( () => {
+            setTimeout(updateLopped, runtimeState.config.updateInterval * 1000);
+        })
+    }
+
+    function markAllAsRead(account) {
+        return getAccountUnreadMails(account).then( mails => {
+            return api.markAllAsRead(mails, account).then(update);
+        })
     }
 
     Browser.Notify.registerHandlers();
@@ -193,10 +206,12 @@
         getAccountsStated: () => Promise.resolve(_.map(runtimeState.accounts, account => getAccountStated(account))),
         updateAccount: account => {
             runtimeState.accounts[account.guid] = account;
+            update();
             return Promise.resolve(runtimeState.accounts);
         },
         deleteAccount: account => {
             delete runtimeState.accounts[account.guid];
+            update();
             return Promise.resolve(runtimeState.accounts);
         },
         openUrl: Browser.openUrl,
@@ -213,7 +228,7 @@
         var mails = event.mails.slice(0,5).map( mail => Browser.Notify.createListItem(mail.subject, 'From: ' + mail.from));
         console.log(`Notify mails for ${event.account.email}`);
         Browser.Notify.create({
-            id: `emails_${event.account.guid}`,
+            id: `emails_${event.account.guid} (${event.state.unread})`,
             title: event.account.email,
             message: `${event.state.unread} unread mail(s)`,
             iconUrl: Browser.Extension.getUrl(icon.image),
@@ -224,7 +239,7 @@
             notifyCloseBehavior: runtimeState.config.notifyCloseBehavior,
             onClick: () => Browser.openUrl(event.account.serverOWA),
             buttons: [
-                Browser.Notify.createButton('Mark as Read', 'images/button_read.png', () => markAllAsRead(event.account, event.mails)),
+                Browser.Notify.createButton('Mark as Read', 'images/button_read.png', () => api.markAllAsRead(event.mails, event.account).then(update)),
                 _closeButton
             ]
         });
@@ -236,7 +251,7 @@
         var appointments = toRemind.map( appointment => Browser.Notify.createListItem(appointment.subject, 'At ' + appointment.start));
         Browser.Notify.create({
             id: `appointment_${event.account.guid}`,
-            title: `Appointment(s) for ${event.account.email}`,
+            title: `Appointment(s) for ${event.account.email} (${toRemind.length})`,
             message: `Remind about ${toRemind.length} appointment(s)`,
             iconUrl: Browser.Extension.getUrl(icon.image),
             items: appointments,
@@ -253,12 +268,7 @@
         console.log('Extension loaded');
         audioMail.setAttribute('src', runtimeState.config.mailSound);
         audioAppointment.setAttribute('src', runtimeState.config.appointmentSound);
-        runtimeState.updateTimerId = setInterval(update, runtimeState.config.updateInterval * 1000);
 
-        _.eventOn(runtimeState, 'config.updateInterval', updateInterval => {
-            clearInterval(runtimeState.updateTimerId);
-            runtimeState.updateTimerId = setInterval(update, updateInterval * 1000);
-        });
         _.eventOn(runtimeState, 'config.mailSound', mailSound => {
             audioMail.setAttribute('src', mailSound);
             soundPlay(audioMail);
@@ -282,16 +292,16 @@
             Browser.Notify.refreshAll();
         });
 
-        update();
+        updateLopped();
     });
 
     Browser.storage.load().then( state => {
         state.config = Object.assign({}, defaultConfig, state.config || {});
         state.accounts = state.accounts || {};
         var currentVersion = Browser.Extension.version;
-        if (localStorage.getItem('version') !== currentVersion) {
+        if (localStorage.getItem('version') === currentVersion) {
             var accounts = {};
-            _.values(state.accounts).forEach( (account, id) => {
+            _.values(state.accounts).filter( account => _.isNotEmptyString(account.username) ).forEach( (account, id) => {
                 var guid = _.randomGuid();
                 accounts[guid] = {
                     guid: guid,
@@ -305,7 +315,7 @@
                     serverOWA: account.serverOWA
                 };
             });
-            Browser.storage.save('accounts', {accounts: state.accounts});
+            Browser.storage.save('accounts', state.accounts = accounts);
             localStorage.setItem('version', currentVersion);
 
             Browser.Notify.create({
