@@ -29,11 +29,11 @@
         },
         render() {
             var sounds = {
-                "Sound 1": "sounds/sound1.ogg",
-                "Sound 2": "sounds/sound2.ogg",
-                "Sound 3": "sounds/sound3.ogg",
-                "Sound 4": "sounds/sound4.ogg",
-                "Sound 5": "sounds/sound5.ogg"
+                "sounds/sound1.ogg": "Sound 1",
+                "sounds/sound2.ogg": "Sound 2",
+                "sounds/sound3.ogg": "Sound 3",
+                "sounds/sound4.ogg": "Sound 4",
+                "sounds/sound5.ogg": "Sound 5"
             };
             return (
                 <div className="page-content">
@@ -106,8 +106,8 @@
                                 label="Notification close behavior"
                                 tooltip="How notifications should be closed? Automatically or only by user action."
                                 values={{
-                                "Automatically": "automatically",
-                                "Manually": "manually"
+                                "automatically": "Automatically",
+                                "manually": "Manually"
                                 }}
                                 defaultKey={this.props.config.notifyCloseBehavior}
                                 onValue={this.onValue}

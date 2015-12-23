@@ -31,7 +31,6 @@
     const _closeButton = Browser.Notify.createButton('Close','images/button_close.png', _.fnEmpty );
     var runtimeState = {
         accounts: {},
-        accountsStates: {},
         config: {},
         remindedAppointments: {},
         updateTimerId: 0
@@ -48,10 +47,6 @@
         return observable;
     }
 
-    function getAccountStated(account) {
-        return Object.assign({}, account, runtimeState.accountsStates[account.guid]);
-    }
-
     function soundPlay(audio) {
         try {
             audio.pause();
@@ -65,9 +60,9 @@
         return Promise.resolve(Browser.log.write(value));
     }
 
-    function setBadgeText(mappedData) {
-        var total = mappedData.reduce( (total, data) => total + data.state.unread, 0 );
-        var hasErrors = mappedData.some( data => data.account.enabled && data.state.hasErrors );
+    function setBadgeText(accounts) {
+        var total = accounts.reduce( (total, account) => total + account.unread, 0 );
+        var hasErrors = accounts.some( account => account.enabled && account.errors.length );
 
         var badgeText = '';
         if (total) {
@@ -77,24 +72,24 @@
             badgeText +='!';
         }
         Browser.Extension.setBadgeText(badgeText);
-        return mappedData;
+        return accounts;
     }
 
-    function handleData(mappedData) {
-        return mappedData.map( data => {
-            if (data.account.enabled && !data.state.hasErrors) {
-                var oldUnread = _.toInt(data.state.unread);
-
-                if ( (data.state.unread = data.folder.unreadCount) > oldUnread) {
-                    _.eventGo(runtimeState, 'notify.mails', data);
+    function handleData(mappedAccounts) {
+        return mappedAccounts.map( account => {
+            var now = new Date();
+            account.updated = now.getTime();
+            runtimeState.accounts[account.guid] = account;
+            if (account.enabled && !account.errors.length) {
+                if ( account.unread < (account.unread = account.mails.length)) {
+                    _.eventGo(runtimeState, 'notify.mails', account);
                 }
-                var now = new Date();
                 Object.keys(runtimeState.remindedAppointments).forEach( id => {
                     if (runtimeState.remindedAppointments[id].start < now) {
                         delete runtimeState.remindedAppointments[id];
                     }
                 });
-                var toRemind = data.appointments.reduce( (toRemind, appointment) => {
+                account.appointments = account.appointments.reduce( (toRemind, appointment) => {
                     if (appointment.start >= now &&
                         appointment.start <= _.dateAddMinutes(now, appointment.remind) &&
                         !runtimeState.remindedAppointments.hasOwnProperty(appointment.id)) {
@@ -103,25 +98,22 @@
                     }
                     return toRemind;
                 }, []);
-                if (toRemind.length) {
-                    _.eventGo(runtimeState, 'notify.appointment', data, toRemind);
+                if (account.appointments.length) {
+                    _.eventGo(runtimeState, 'notify.appointment', account);
                 }
             } else {
-                data.state.unread = 0;
+                account.unread = 0;
             }
 
-            return data;
+            return account;
         });
     }
 
-    function getAccountFolder(account) {
-        return account.folder === 'root' ? api.getAllItemsFolder(account) : api.getFolder(account.folder, account);
-    }
-
-    function getAccountUnreadMails(account) {
-        return getAccountFolder(account).then( folder => {
-            return api.getFolderUnreadMailsById(folder, account).then( mails => ({folder, mails}));
-        });
+    function getAccountMails(account) {
+        return api.getFolderByName(account, account.folderId)
+                    .catch( err => (account.error.push(err),[]))
+                    .then( folder => api.getFolderUnreadMails(account, folder)
+                                        .catch( err => (account.error.push(err),[])));
     }
 
     function getAccountsMails(accounts) {
@@ -129,9 +121,8 @@
             if (!account.enabled) {
                 return Promise.resolve(null);
             }
-            return getAccountUnreadMails(account).catch( error => {
-                    runtimeState.accountsStates[account.guid].hasErrors = true;
-                    runtimeState.accountsStates[account.guid].errors.push(error.stack);
+            return getAccountMails(account).catch( error => {
+                    account.errors.push(error.stack);
                     logError(error.stack);
                     return null;
                 });
@@ -143,8 +134,7 @@
                 return Promise.resolve(null);
             }
             return api.getAppointments(account).catch( error => {
-                runtimeState.accountsStates[account.guid].hasErrors = true;
-                runtimeState.accountsStates[account.guid].errors.push(error.stack);
+                account.errors.push(error.stack);
                 logError(error.stack);
                 return null;
             });
@@ -153,18 +143,11 @@
 
     function mapData(accounts) {
         /** Reset All previous errors */
-        accounts.forEach( account => {
-            runtimeState.accountsStates[account.guid] = runtimeState.accountsStates[account.guid] || {};
-            runtimeState.accountsStates[account.guid].hasErrors = false;
-            runtimeState.accountsStates[account.guid].errors = [];
-        });
+        accounts.forEach( account => account.errors = []);
         return Promise.all([getAccountsMails(accounts), getAccountsAppointments(accounts)]).then( data => {
-            return accounts.map( (account, id) => ({
-                id: id,
-                account: account,
-                state: runtimeState.accountsStates[account.guid],
-                mails: (data[0][id] || {}).mails,
-                folder: (data[0][id] || {}).folder,
+            return accounts.map( (account, id) => Object.assign({}, account, {
+                mails: data[0][id],
+                unread: _.toInt(account.unread),
                 appointments: data[1][id]
             }));
         });
@@ -174,21 +157,20 @@
         var accounts = _.values(runtimeState.accounts);
         if (!accounts.length) {
             Browser.Extension.setBadgeText('setup');
-            return Promise.resolve({});
+            return Promise.resolve(0);
         }
         return mapData(accounts).then(handleData).then(setBadgeText).catch( () => 0);
     }
 
     function updateLopped() {
-        return update().then( () => {
+        return update().then( (a,b) => {
             setTimeout(updateLopped, runtimeState.config.updateInterval * 1000);
-        })
+        });
     }
 
-    function markAllAsRead(account) {
-        return getAccountUnreadMails(account).then( mails => {
-            return api.markAllAsRead(mails, account).then(update);
-        })
+    function markAllAsRead(accountGuid) {
+        var account = runtimeState.accounts[accountGuid];
+        return api.changeMailsRead(account, account.mails, true).then(update);
     }
 
     Browser.Notify.registerHandlers();
@@ -203,9 +185,8 @@
             return Promise.resolve(runtimeState.config);
         },
         getAccounts: () => Promise.resolve(runtimeState.accounts),
-        getAccountsStated: () => Promise.resolve(_.map(runtimeState.accounts, account => getAccountStated(account))),
         updateAccount: account => {
-            runtimeState.accounts[account.guid] = account;
+            runtimeState.accounts[account.guid] = Object.assign({}, account, {errors: [], mails: {}, appointments: {}});
             update();
             return Promise.resolve(runtimeState.accounts);
         },
@@ -214,52 +195,52 @@
             update();
             return Promise.resolve(runtimeState.accounts);
         },
+        getFolderList: account => api.getFoldersList(account),
         openUrl: Browser.openUrl,
         openSettingsGeneral: () => Browser.openUrl('options.html#general'),
         openSettingsAccounts: account => Browser.openUrl(`options.html#accounts${account ? '&guid='+account.guid : ''}`),
         openOwa: account => Browser.openUrl(account.serverOWA),
         testAccount: account => api.testCredentials(account),
-        update: update,
         markAllAsRead: markAllAsRead
     });
 
 
-    _.eventOn(runtimeState, 'notify.mails', event => {
-        var mails = event.mails.slice(0,5).map( mail => Browser.Notify.createListItem(mail.subject, 'From: ' + mail.from));
-        console.log(`Notify mails for ${event.account.email}`);
+    _.eventOn(runtimeState, 'notify.mails', account => {
+        var mails = account.mails.slice(0,5).map( mail => Browser.Notify.createListItem(mail.from, mail.subject));
+        console.log(`Notify mails for ${account.email}`);
         Browser.Notify.create({
-            id: `emails_${event.account.guid}`,
-            title: `${event.account.email} (${event.state.unread})`,
-            message: `${event.state.unread} unread mail(s)`,
+            id: `emails_${account.guid}`,
+            title: `${account.email} (${account.unread})`,
+            message: `${account.unread} unread mail(s)`,
             iconUrl: Browser.Extension.getUrl(icon.image),
             items: mails,
             type: 'list',
             isClickable: true,
             liveTime: runtimeState.config.liveTime,
             notifyCloseBehavior: runtimeState.config.notifyCloseBehavior,
-            onClick: () => Browser.openUrl(event.account.serverOWA),
+            onClick: () => Browser.openUrl(account.serverOWA),
             buttons: [
-                Browser.Notify.createButton('Mark as Read', 'images/button_read.png', () => api.markAllAsRead(event.mails, event.account).then(update)),
+                Browser.Notify.createButton('Mark as Read', 'images/button_read.png', () => markAllAsRead(account.guid)),
                 _closeButton
             ]
         });
         soundPlay(audioMail);
     });
 
-    _.eventOn(runtimeState, 'notify.appointment', (event, toRemind) => {
-        console.log(`Notify appointments for ${event.account.email}`);
-        var appointments = toRemind.map( appointment => Browser.Notify.createListItem(appointment.subject, 'At ' + appointment.start));
+    _.eventOn(runtimeState, 'notify.appointment', account => {
+        console.log(`Notify appointments for ${account.email}`);
+        var appointments = account.appointments.map( appointment => Browser.Notify.createListItem(appointment.subject, 'At ' + appointment.start));
         Browser.Notify.create({
-            id: `appointment_${event.account.guid}`,
-            title: `Appointment(s) for ${event.account.email} (${toRemind.length})`,
-            message: `Remind about ${toRemind.length} appointment(s)`,
+            id: `appointment_${account.guid}`,
+            title: `Appointment(s) for ${account.email} (${appointments.length})`,
+            message: `Remind about ${appointments.length} appointment(s)`,
             iconUrl: Browser.Extension.getUrl(icon.image),
             items: appointments,
             type: 'list',
             isClickable: true,
             liveTime: runtimeState.config.liveTime,
             notifyCloseBehavior: runtimeState.config.notifyCloseBehavior,
-            onClick: () => Browser.openUrl(event.account.serverOWA),
+            onClick: () => Browser.openUrl(account.serverOWA),
             buttons: [_closeButton]
         });
         soundPlay(audioAppointment);
@@ -285,37 +266,25 @@
             audioAppointment.volume = volume;
         });
 
-        Browser.state.onFocus(()=>{
+        Browser.state.onFocus(() => {
             Browser.Notify.refreshAll();
         });
-        Browser.state.onActive(()=>{
+        Browser.state.onActive(() => {
             Browser.Notify.refreshAll();
         });
 
         updateLopped();
+        window.api = api;
+        window.state = runtimeState;
     });
 
     Browser.storage.load().then( state => {
-        state.config = Object.assign({}, defaultConfig, state.config || {});
-        state.accounts = state.accounts || {};
         var currentVersion = Browser.Extension.version;
-        if (localStorage.getItem('version') === currentVersion) {
-            var accounts = {};
-            _.values(state.accounts).filter( account => _.isNotEmptyString(account.username) ).forEach( (account, id) => {
-                var guid = _.randomGuid();
-                accounts[guid] = {
-                    guid: guid,
-                    created: account.created || Date.now() + id,
-                    email: account.email,
-                    enabled: account.enabled,
-                    folder: account.folder,
-                    password: account.password,
-                    username: account.username,
-                    serverEWS: account.serverEWS,
-                    serverOWA: account.serverOWA
-                };
-            });
-            Browser.storage.save('accounts', state.accounts = accounts);
+        if (localStorage.getItem('version') !== currentVersion) {
+            state.accounts = {};
+            state.config = Object.assign({}, defaultConfig);
+            Browser.storage.clear();
+            localStorage.clear();
             localStorage.setItem('version', currentVersion);
 
             Browser.Notify.create({
@@ -327,9 +296,13 @@
                 ],
                 onClick: () =>  Browser.openUrl(Browser.Extension.storeUrl)
             });
+        } else {
+            state.config = Object.assign({}, defaultConfig, state.config || {});
+            state.accounts = state.accounts || {};
         }
         runtimeState.config = observableStorage(state.config, 'config');
         runtimeState.accounts = observableStorage(state.accounts, 'accounts');
         _.eventGo(runtimeState, 'extension.loaded');
     });
+
 })();

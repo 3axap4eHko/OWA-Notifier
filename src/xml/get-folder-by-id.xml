@@ -6,10 +6,10 @@
     <soap:Body>
         <m:GetFolder>
             <m:FolderShape>
-                <t:BaseShape>Default</t:BaseShape>
+                <t:BaseShape>AllProperties</t:BaseShape>
             </m:FolderShape>
             <m:FolderIds>
-                <t:FolderId Id="{Id}" ChangeKey="{ChangeKey}"/>
+                <t:FolderId Id="{id}"/>
             </m:FolderIds>
         </m:GetFolder>
     </soap:Body>

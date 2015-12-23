@@ -101,17 +101,14 @@
             }
         },
         onSelect (event) {
-            var element = document.getElementById(this.props.target);
-            element.value = event.currentTarget.textContent;
-            event = new Event('input', { bubbles: true });
-            element.dispatchEvent(event);
+            this.props.onSelect(event.currentTarget.dataset.key, event.currentTarget.dataset.value);
         },
         render() {
             var values = _.pairs(this.props.values || {});
             var pos = this.props.position || 'mdl-menu--bottom-left';
             return (
                 <ul className={`mdl-menu mdl-js-menu mdl-js-ripple-effect ${pos}`} htmlFor={this.props.target}>
-                    {values.map( (pair,id) => <li key={id} className="mdl-menu__item" onClick={this.onSelect} data-value={pair.value}>{pair.key}</li> )}
+                    {values.map( (pair,id) => <li key={id} className="mdl-menu__item" onClick={this.onSelect} data-key={pair.key} data-value={pair.value}>{pair.value}</li> )}
                 </ul>
             )
         }
@@ -188,14 +185,14 @@
                 onValue: _.fnEmpty
             }
         },
-        onSelect () {
-            var key = this.refs.view.value;
-            this.refs.input.value = this.props.values[key];
+        onSelect (key, value) {
+            this.refs.input.value = key;
+            this.refs.view.value = value;
             this.props.onValue(this.refs.input.value, this.refs.input.name);
         },
         render() {
             var attr = this.props.attr || {};
-            var defaultValue = _.first(this.props.values, key => key === this.props.defaultKey, Object.keys(this.props.values)[0]).key;
+            var defaultKey = this.props.defaultKey || Object.keys(this.props.values)[0];
             return (
                 <FormFieldBase
                     className={`mdl-textfield mdl-js-textfield mdl-textfield--floating-label ${this.props.className || ''}`}
@@ -204,12 +201,13 @@
                     tooltip={this.props.tooltip}
                     >
                     <input type="hidden" id={this.props.id} name={this.props.name} ref="input"
-                           defaultValue={this.props.values[defaultValue]} />
+                           defaultValue={defaultKey} />
                     <input type="text" id={`${this.props.id}__view`} className="mdl-textfield__input" ref="view"
-                           tabIndex="0" readOnly defaultValue={defaultValue} {...attr} onChange={this.onSelect} />
+                           tabIndex="0" readOnly defaultValue={this.props.values[defaultKey]} {...attr} />
                     <MdlSelect
                         target={`${this.props.id}__view`}
                         values={this.props.values}
+                        onSelect={this.onSelect}
                         />
                 </FormFieldBase>
             )

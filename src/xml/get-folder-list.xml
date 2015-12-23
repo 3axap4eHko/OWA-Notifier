@@ -3,21 +3,21 @@
                xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
                xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types"
                xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-   <soap:Body>
-        <m:FindFolder Traversal="Shallow">
+    <soap:Body>
+        <m:FindFolder Traversal="Deep">
             <m:FolderShape>
                 <t:BaseShape>AllProperties</t:BaseShape>
-            </m:FolderShape>
+             </m:FolderShape>
             <m:Restriction>
                 <t:IsEqualTo>
                     <t:FieldURI FieldURI="folder:FolderClass"/>
                     <t:FieldURIOrConstant>
-                        <t:Constant Value="IPF"/>
+                        <t:Constant Value="IPF.Note"/>
                     </t:FieldURIOrConstant>
                 </t:IsEqualTo>
             </m:Restriction>
             <m:ParentFolderIds>
-                <t:DistinguishedFolderId Id="root"/>
+                <t:DistinguishedFolderId Id="msgfolderroot"/>
             </m:ParentFolderIds>
         </m:FindFolder>
     </soap:Body>

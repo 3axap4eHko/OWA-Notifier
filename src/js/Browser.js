@@ -37,7 +37,7 @@
         onCreate: _.fnEmpty,
         buttons: []
     };
-    const notifyAllowedOptions = ['type', 'iconUrl', 'appIconMaskUrl', 'title', 'message', 'contextMessage', 'priority', 'eventTime', 'buttons', 'imageUrl', 'items', 'progress', 'isClickable'];
+    const notifyAllowedOptions = ['type', 'iconUrl', 'expandedMessage', 'appIconMaskUrl', 'title', 'message', 'contextMessage', 'priority', 'eventTime', 'buttons', 'imageUrl', 'items', 'progress', 'isClickable'];
 
     var notifyScope = {
         notifications: {}
@@ -231,8 +231,11 @@
         },
         load(name) {
             return new Promise( resolve => {
-                chrome.storage.local.get(undefined,  value => resolve( name ? value[name] : value) )
+                chrome.storage.local.get(null,  value => resolve( name ? value[name] : value) )
             });
+        },
+        clear () {
+            return new Promise( resolve => chrome.storage.local.clear(resolve));
         }
     };
 

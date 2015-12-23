@@ -4,13 +4,14 @@
                xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types"
                xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
     <soap:Body>
-        <m:GetFolder>
-            <m:FolderShape>
-                <t:BaseShape>Default</t:BaseShape>
-            </m:FolderShape>
-            <m:FolderIds>
-                <t:DistinguishedFolderId Id="{Id}"/>
-            </m:FolderIds>
-        </m:GetFolder>
+        <m:GetItem>
+            <m:ItemShape>
+                <t:BaseShape>AllProperties</t:BaseShape>
+                <t:IncludeMimeContent>true</t:IncludeMimeContent>
+            </m:ItemShape>
+            <m:ItemIds>
+                <t:ItemId Id="{id}" ChangeKey="{changeKey}" />
+            </m:ItemIds>
+        </m:GetItem>
     </soap:Body>
 </soap:Envelope>

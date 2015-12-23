@@ -14,7 +14,7 @@
                     <t:FieldURI FieldURI="message:From"/>
                 </t:AdditionalProperties>
             </m:ItemShape>
-            <m:IndexedPageItemView MaxEntriesReturned="{MaxEntriesReturned}" Offset="0" BasePoint="Beginning"/>
+            <m:IndexedPageItemView MaxEntriesReturned="{maxEntriesReturned}" Offset="0" BasePoint="Beginning"/>
             <m:Restriction>
                 <t:IsEqualTo>
                     <t:FieldURI FieldURI="message:IsRead"/>
@@ -24,7 +24,7 @@
                 </t:IsEqualTo>
             </m:Restriction>
             <m:ParentFolderIds>
-                <t:DistinguishedFolderId Id="{Id}"/>
+                <t:FolderId Id="{id}"/>
             </m:ParentFolderIds>
         </m:FindItem>
     </soap:Body>

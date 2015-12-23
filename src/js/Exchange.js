@@ -4,7 +4,8 @@
     var _p = _.p();
     var xmlCache = {};
 
-    const MaxEntriesReturned = 100;
+    const maxEntriesReturned = 100;
+    const changesChunkSize = 500;
 
     function getXML(actionXml) {
         actionXml = actionXml.toLowerCase();
@@ -69,17 +70,13 @@
         get xmlFolder() {
             return _p(this).xmlFolder;
         }
-        static createAccount(username, password, serverEWS, serverOWA) {
-            return {username, password, serverEWS, serverOWA};
-        }
-
-        static getItemInfo(item) {
+        static getItem(item) {
             return {
                 id: Browser.getXMLAttribute(item, 'ItemId', 'Id'),
                 changeKey: Browser.getXMLAttribute(item, 'ItemId', 'ChangeKey')
             };
         }
-        static getFolderInfo(folder) {
+        static getFolder(folder) {
             return {
                 id: Browser.getXMLAttribute(folder, 'FolderId', 'Id'),
                 changeKey: Browser.getXMLAttribute(folder, 'FolderId', 'ChangeKey'),
@@ -92,7 +89,7 @@
                 unreadCount: _.toInt(Browser.getXMLElementText(folder, 'UnreadCount'))
             };
         }
-        static getAppointmentInfo(appointment) {
+        static getAppointment(appointment) {
             return {
                 id: Browser.getXMLAttribute(appointment, 'ItemId', 'Id'),
                 changeKey: Browser.getXMLAttribute(appointment, 'ItemId', 'ChangeKey'),
@@ -103,7 +100,7 @@
                 location: Browser.getXMLElementText(appointment, 'Location')
             };
         }
-        static getMailInfo(mail) {
+        static getMail(mail) {
             var sender = Browser.getXMLElement(mail, 'Sender');
             return {
                 id: Browser.getXMLAttribute(mail, 'ItemId', 'Id'),
@@ -124,54 +121,49 @@
         static getServices(account) {
             return exchangeRequest('get', '/Services.wsdl', null, account);
         }
+        getAction(name, parameters) {
+            return getXML(`${this.xmlFolder}/${name}.xml`).then( xml => _.fmtString(xml, parameters));
+        }
         doAction (name, account, parameters) {
             parameters = parameters || {};
-            return getXML(`${this.xmlFolder}/${name}.xml`).then( xml => {
-                xml = _.fmtString(xml, parameters);
-                return exchangeRequest('post', '/Exchange.asmx', xml, account);
-            });
+            return this.getAction(name, parameters).then( xml => exchangeRequest('post', '/Exchange.asmx', xml, account))
         }
-        getFolder (folderName, account) {
-            return this.doAction('get-folder', account, {Id: folderName}).then(ExchangeAPI.getFolderInfo);
+        getItemById (account, id) {
+            return this.doAction('get-item-by-id', account, {id}).then(ExchangeAPI.getItem);
         }
-        getFolderById (folder, account) {
-            return this.doAction('get-folder-id', account, {Id: folder.id, ChangeKey: folder.changeKey}).then(ExchangeAPI.getFolderInfo);
+        changeItems(account, itemChanges) {
+            var itemChangesChunks = [];
+            while (itemChanges.length > 0) {
+                itemChangesChunks.push(itemChanges.splice(0, changesChunkSize));
+            }
+            return Promise.all(itemChangesChunks.map(changesChunk => this.doAction('change-items', account, {changes: changesChunk.join('\r\n')}) ));
         }
-        getItem (id, changeKey, account) {
-            return this.doAction('get-item', account, {Id: id, ChangeKey: changeKey}).then(ExchangeAPI.getItemInfo);
+        getFolderRoot (account) {
+            return this.doAction('get-folder-root', account).then(ExchangeAPI.getFolder).then( folder => (folder.displayName = 'Root',folder));
+        }
+        getFolderByName (account, folderName) {
+            return this.doAction('get-folder-by-name', account, {folderName}).then(ExchangeAPI.getFolder);
+        }
+        getFolderById (account, id) {
+            return this.doAction('get-folder-by-id', account, {id}).then(ExchangeAPI.getFolder);
         }
         getAppointments (account) {
             var startDate = _.dateToXsd(new Date()),
                 endDate = _.dateToXsd(_.dateAddDays(new Date(),10));
-            return this.doAction('get-appointment', account, {MaxEntriesReturned: 10, StartDate: startDate, EndDate: endDate }).then( response => {
-                return Browser.getXMLElementChildren(response, 'Items').map(ExchangeAPI.getAppointmentInfo);
+            return this.doAction('get-appointments', account, {maxEntriesReturned, startDate, endDate}).then( response => {
+                return Browser.getXMLElementChildren(response, 'Items').map(ExchangeAPI.getAppointment);
             });
         }
-        getFolderUnreadMails (folderName, account) {
-            return this.doAction('get-unread-mails', account, {Id: folderName, MaxEntriesReturned: 10}).then( response => {
-                return Browser.getXMLElementChildren(response, 'Items').map(ExchangeAPI.getMailInfo);
-            });
+        getFoldersList (account) {
+            return this.doAction('get-folder-list', account)
+                .then( response => Browser.getXMLElementChildren(response, 'Folders').map(ExchangeAPI.getFolder));
         }
-        getFolderUnreadMailsById (folder, account) {
-            return this.doAction('get-unread-mails-id', account, {Id: folder.id, ChangeKey: folder.changeKey, MaxEntriesReturned: folder.unreadCount || 1}).then( response => {
-                return Browser.getXMLElementChildren(response, 'Items').map(ExchangeAPI.getMailInfo);
-            });
-        }
-        getAllItemsFolder (account) {
-            return this.doAction('all-items', account).then(ExchangeAPI.getFolderInfo);
-        }
-        getTotalUnreadCount (account) {
-            return this.getAllItemsFolder(account).then( folder => folder.unreadCount );
-        }
-        getFolderUnreadCount (folderName, account) {
-            return this.getFolder(folderName, account).then( response => _.toInt(Browser.getXMLElementText(response, 'UnreadCount')) );
-        }
-        getFolders (account) {
-            return this.doAction('find-folder', account, {Id: 'root'})
-                .then( response => Browser.getXMLElementChildren(response, 'Folders').map(ExchangeAPI.getFolderInfo));
+        getFolderUnreadMails (account, folder) {
+            return this.doAction('get-folder-unread-mails', account, {id: folder.id, maxEntriesReturned: Math.max(folder.unreadCount,1)})
+                .then( response => Browser.getXMLElementChildren(response, 'Items').map(ExchangeAPI.getMail));
         }
         testCredentials(account) {
-            return this.getAllItemsFolder(account)
+            return this.getFolderRoot(account)
                 .then( _.fnFalse )
                 .catch( error => {
                     if (error instanceof XMLHttpRequest) {
@@ -180,19 +172,13 @@
                     return ({code: -1, message: error.stack || error});
                 });
         }
-        markAllAsRead (mails, account) {
+        changeMailsRead (account, mails, read) {
             if (mails.length === 0) {
                 return Promise.resolve(0);
             }
-            debugger;
-            return getXML(`${this.xmlFolder}/read-item-template.xml`).then( readItemXML => {
-                var changes = mails.map( mail => _.fmtString(readItemXML, {Id: mail.id, ChangeKey: mail.changeKey}));
-                var bulkChanges = [];
-                while (changes.length>0) {
-                    bulkChanges.push(changes.splice(0, 500));
-                }
-                return Promise.all(bulkChanges.map( bulkChange => this.doAction('change-items', account, {Changes: bulkChange.join('\r\n')}) ))
-                    .then( () => mails.length);
+            return getXML(`${this.xmlFolder}/partials/change-item-read.xml`).then( partialXML => {
+                var changes = mails.map( mail => _.fmtString(partialXML, {id: mail.id, changeKey: mail.changeKey, read}));
+                return this.changeItems(account, changes);
             });
         }
     }

@@ -10,19 +10,19 @@
         password: '',
         serverEWS: '',
         serverOWA: '',
-        folder: 'root'
+        folderId: 'msgfolderroot'
     };
-    const folders = {
-        "All": "root",
-        "Inbox": "inbox"
+    const folderIds = {
+        "msgfolderroot": "All",
+        "inbox": "Inbox"
     };
 
-    function formToAccount(form, oldAccount) {
-        var account = _.reduce(form.querySelectorAll('input[name]'), (account, element) => {
-            account[element.name] = element.value;
-            return account;
+    function formToValues(form, oldValues) {
+        var values = _.reduce(form.querySelectorAll('input[name]'), (values, element) => {
+            values[element.name] = element.value;
+            return values;
         }, {});
-        return Object.assign({}, defaultAccountValues, oldAccount, account);
+        return Object.assign({}, defaultAccountValues, oldValues, values);
     }
 
     function extractAccount(data) {
@@ -36,7 +36,7 @@
         onSubmit(event) {
             event.preventDefault();
             const self = this;
-            var account = formToAccount(event.currentTarget, extractAccount(this.props));
+            var account = formToValues(event.currentTarget, extractAccount(this.props));
             var modal = document.getElementById('modal');
             var locker = document.getElementById('screen-locker');
             $(locker).show();
@@ -122,11 +122,11 @@
                             />
                         <FormSelectField
                             className="mdl-list__item_vertical"
-                            id="form-account-folder"
-                            name="folder"
+                            id="form-account-folderId"
+                            name="folderId"
                             label="Check folder"
-                            values={folders}
-                            defaultKey={this.props.folder}
+                            values={folderIds}
+                            defaultKey={this.props.folderId}
                             />
                         <li className="mdl-list__item_vertical">
                             <ul className="mdl-list mdl-grid">
@@ -189,11 +189,11 @@
         }
     });
 
-    function showConfirmation(message, onConfirmed) {
+    function showModal(content) {
         var modal = document.getElementById('modal');
         var body = modal.querySelector('.modal-body');
         ReactDOM.unmountComponentAtNode(body);
-        ReactDOM.render(<Confirmation message={message} onConfirmed={onConfirmed}/>, body, () => {
+        ReactDOM.render(content, body, () => {
             componentHandler.upgradeElements(modal);
             $(modal).modal('show');
         });
@@ -227,16 +227,12 @@
         },
         onDelete() {
             const self = this;
-            showConfirmation(`Are you sure you want to delete ${this.state.email}?`, () => {
-                ExtensionAPI.deleteAccount(this.state).then( account => {
-                    self.props.updateTable(account);
-                });
-            });
+            const onConfirmed = () => ExtensionAPI.deleteAccount(this.state).then( account => self.props.updateTable(account));
+            showModal((<Confirmation message={`Are you sure you want to delete ${this.state.email}?`} onConfirmed={onConfirmed}/>));
         },
         render() {
             var account = this.state;
             var server = _.urlParse(account.serverEWS);
-            var folder = _.first(folders, key => key === account.folder, Object.keys(folders)[0]).key;
             return (
                 <tr className="account-record" ref="root">
                     <td className="mdl-data-table__cell--icon">
@@ -247,7 +243,7 @@
                     <td className="mdl-data-table__cell--non-numeric" title={account.email}>{account.email}</td>
                     <td className="mdl-data-table__cell--non-numeric" title={account.username}>{account.username}</td>
                     <td className="mdl-data-table__cell--non-numeric" title={server.host}>{server.host}</td>
-                    <td className="mdl-data-table__cell--non-numeric" title={folder}>{folder}</td>
+                    <td className="mdl-data-table__cell--non-numeric" title={folderIds[account.folderId]}>{folderIds[account.folderId]}</td>
                     <td className="mdl-data-table__cell--icon">
                         <MdlButtonIcon className="mdl-js-ripple-effect mdl-button--colored" id={`action-button-${account.guid}`}>more_vert</MdlButtonIcon>
                         <ul className="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect mdl-menu-actions"
@@ -305,7 +301,7 @@
         }
     });
     _.taskPush(global, 'settings-load', complete => {
-        ExtensionAPI.getAccountsStated().then(accounts => {
+        ExtensionAPI.getAccounts().then(accounts => {
             ReactDOM.render(<AccountsSettingsTable accounts={accounts}/>, document.getElementById('accounts'), complete);
         });
     });

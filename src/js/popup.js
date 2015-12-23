@@ -16,7 +16,7 @@ var EmailBar = React.createClass({
         ExtensionAPI.openUrl(this.props.account.serverOWA);
     },
     markAllRead() {
-        ExtensionAPI.markAllAsRead(this.props.account);
+        ExtensionAPI.markAllAsRead(this.props.account.guid);
     },
     render() {
         var count = this.state.count;
@@ -26,7 +26,7 @@ var EmailBar = React.createClass({
             count = `(${count})`;
         }
         var alert = '';
-        if (this.props.account.hasErrors) {
+        if (this.props.account.errors.length) {
             alert = (
             <a href="#" className="pull-left action" onClick={this.openSettingsAccounts}>
                 <Icon title="Open Settings" className="blink md-attention" icon="error"  />
@@ -62,7 +62,7 @@ var EmailBars = React.createClass({
 
 
 (function(){
-    ExtensionAPI.getAccountsStated().then( accounts => {
+    ExtensionAPI.getAccounts().then( accounts => {
         ReactDOM.render(<EmailBars accounts={accounts} />, document.getElementById('mails'));
     });
     $(document).on('click', '[data-open-url]', event => {

@@ -20,9 +20,6 @@
         getAccounts () {
             return Browser.Message.send('getAccounts');
         },
-        getAccountsStated() {
-            return Browser.Message.send('getAccountsStated');
-        },
         updateAccount(account) {
             return Browser.Message.send('updateAccount', account);
         },
@@ -47,8 +44,8 @@
         update() {
             return Browser.Message.send('update');
         },
-        markAllAsRead(account) {
-            return Browser.Message.send('markAllAsRead', account);
+        markAllAsRead(accountGuid) {
+            return Browser.Message.send('markAllAsRead', accountGuid);
         },
         services() {
             return Object.keys(window.ExchangeAPI);
