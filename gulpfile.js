@@ -15,7 +15,7 @@ gulp.task('clean', cb => {
 });
 
 gulp.task('css-minify', ['clean'], function() {
-    return gulp.src(['./src/css/*.css', '!./src/css/*.min.css'])
+    return gulp.src(['./src/css/**/*.css', '!./src/css/**/*.min.css'])
         .pipe(minifyCss({compatibility: 'ie8'}))
         .pipe(autoprefixer({
             browsers: ['last 10 versions'],
@@ -25,12 +25,12 @@ gulp.task('css-minify', ['clean'], function() {
 });
 
 gulp.task('css-copy', ['clean'], function() {
-    return gulp.src(['./src/css/*.min.css'])
+    return gulp.src(['./src/css/**/*.min.css'])
         .pipe(gulp.dest(`${buildDir}/css`));
 });
 
 gulp.task('js-minify', ['clean'], function() {
-    return gulp.src(['./src/js/*.js', '!./src/js/*.min.js', '!./src/js/*.dev.js'])
+    return gulp.src(['./src/js/**/*.js', '!./src/js/**/*.min.js', '!./src/js/**/*.dev.js'])
         .pipe(babel({
                   presets: ['es2015','react']
               }))
@@ -39,32 +39,32 @@ gulp.task('js-minify', ['clean'], function() {
 });
 
 gulp.task('js-copy', ['clean'], function() {
-    return gulp.src(['./src/js/*.min.js'])
+    return gulp.src(['./src/js/**/*.min.js'])
         .pipe(gulp.dest(`${buildDir}/js`));
 });
 
 gulp.task('fonts-copy', ['clean'], function() {
-    return gulp.src('./src/fonts/*.woff2')
+    return gulp.src('./src/fonts/**/*.woff2')
         .pipe(gulp.dest(`${buildDir}/fonts/`));
 });
 
 gulp.task('images-copy', ['clean'], function() {
-    return gulp.src('./src/images/*.png')
+    return gulp.src('./src/images/**/*.png')
         .pipe(gulp.dest(`${buildDir}/images/`));
 });
 
 gulp.task('sounds-copy', ['clean'], function() {
-    return gulp.src('./src/sounds/*.ogg')
+    return gulp.src('./src/sounds/**/*.ogg')
         .pipe(gulp.dest(`${buildDir}/sounds/`));
 });
 
 gulp.task('xml-copy', ['clean'], function() {
-    return gulp.src('./src/xml/*.xml')
+    return gulp.src('./src/xml/**/*.xml')
         .pipe(gulp.dest(`${buildDir}/xml/`));
 });
 
 gulp.task('html-minify', ['clean'], function() {
-    return gulp.src('./src/*.html')
+    return gulp.src('./src/**/*.html')
         .pipe(minifyHtml())
         .pipe(gulp.dest(`${buildDir}`));
 });

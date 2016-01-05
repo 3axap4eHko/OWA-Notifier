@@ -5,7 +5,7 @@
     var xmlCache = {};
 
     const maxEntriesReturned = 100;
-    const changesChunkSize = 500;
+    const changesChunkSize = 1000;
 
     function getXML(actionXml) {
         actionXml = actionXml.toLowerCase();
@@ -138,14 +138,18 @@
             }
             return Promise.all(itemChangesChunks.map(changesChunk => this.doAction('change-items', account, {changes: changesChunk.join('\r\n')}) ));
         }
-        getFolderRoot (account) {
-            return this.doAction('get-folder-root', account).then(ExchangeAPI.getFolder).then( folder => (folder.displayName = 'Root',folder));
+        findFoldersByClass (account, parentFolderName, folderClass) {
+            return this.doAction('find-folder-by-class', account, {parentFolderName, folderClass})
+                .then( response => Browser.getXMLElementChildren(response, 'Folders').map(ExchangeAPI.getFolder));
         }
         getFolderByName (account, folderName) {
             return this.doAction('get-folder-by-name', account, {folderName}).then(ExchangeAPI.getFolder);
         }
         getFolderById (account, id) {
             return this.doAction('get-folder-by-id', account, {id}).then(ExchangeAPI.getFolder);
+        }
+        getFolderRoot (account) {
+            return this.getFolderByName(account,'msgfolderroot').then( folder => (folder.displayName = 'Root',folder));
         }
         getAppointments (account) {
             var startDate = _.dateToXsd(new Date()),
@@ -154,13 +158,17 @@
                 return Browser.getXMLElementChildren(response, 'Items').map(ExchangeAPI.getAppointment);
             });
         }
-        getFoldersList (account) {
-            return this.doAction('get-folder-list', account)
-                .then( response => Browser.getXMLElementChildren(response, 'Folders').map(ExchangeAPI.getFolder));
+        getMailFoldersList (account) {
+            return this.findFoldersByClass(account, 'msgfolderroot', 'IPF.Note')
         }
         getFolderUnreadMails (account, folder) {
-            return this.doAction('get-folder-unread-mails', account, {id: folder.id, maxEntriesReturned: Math.max(folder.unreadCount,1)})
-                .then( response => Browser.getXMLElementChildren(response, 'Items').map(ExchangeAPI.getMail));
+            const mailsCount =  Math.max(folder.unreadCount,1);
+            const pageCount = Math.ceil(mailsCount / changesChunkSize);
+            const pages = _.range(pageCount, pageCount);
+            return Promise.all(pages.map((v, id) => {
+                return this.doAction('get-folder-unread-mails', account, {id: folder.id, maxEntriesReturned: mailsCount, offset: changesChunkSize*id})
+                    .then( response => Browser.getXMLElementChildren(response, 'Items').map(ExchangeAPI.getMail))
+            })).then( mailsSet => [].concat(...mailsSet));
         }
         testCredentials(account) {
             return this.getFolderRoot(account)

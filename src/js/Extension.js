@@ -81,7 +81,7 @@
             account.updated = now.getTime();
             runtimeState.accounts[account.guid] = account;
             if (account.enabled && !account.errors.length) {
-                if ( account.unread < (account.unread = account.mails.length)) {
+                if ( account.unread < (account.unread = account.mails.count)) {
                     _.eventGo(runtimeState, 'notify.mails', account);
                 }
                 Object.keys(runtimeState.remindedAppointments).forEach( id => {
@@ -109,10 +109,18 @@
         });
     }
 
-    function getAccountMails(account) {
+    function getAccountFolder(account) {
+        if (account.folderId == 'all') {
+            return api.findFoldersByClass(account,'root','IPF').then( folders => folders[0]);
+        }
         return api.getFolderByName(account, account.folderId)
+    }
+
+    function getAccountMails(account) {
+        return getAccountFolder(account)
                     .catch( err => (account.error.push(err),[]))
                     .then( folder => api.getFolderUnreadMails(account, folder)
+                                        .then( mails => (mails.count = folder.unreadCount, mails))
                                         .catch( err => (account.error.push(err),[])));
     }
 
@@ -195,7 +203,7 @@
             update();
             return Promise.resolve(runtimeState.accounts);
         },
-        getFolderList: account => api.getFoldersList(account),
+        getFolderList: account => api.getMailFoldersList(account),
         openUrl: Browser.openUrl,
         openSettingsGeneral: () => Browser.openUrl('options.html#general'),
         openSettingsAccounts: account => Browser.openUrl(`options.html#accounts${account ? '&guid='+account.guid : ''}`),
@@ -281,10 +289,6 @@
     Browser.storage.load().then( state => {
         var currentVersion = Browser.Extension.version;
         if (localStorage.getItem('version') !== currentVersion) {
-            state.accounts = {};
-            state.config = Object.assign({}, defaultConfig);
-            Browser.storage.clear();
-            localStorage.clear();
             localStorage.setItem('version', currentVersion);
 
             Browser.Notify.create({
@@ -296,10 +300,10 @@
                 ],
                 onClick: () =>  Browser.openUrl(Browser.Extension.storeUrl)
             });
-        } else {
-            state.config = Object.assign({}, defaultConfig, state.config || {});
-            state.accounts = state.accounts || {};
         }
+        state.config = Object.assign({}, defaultConfig, state.config || {});
+        state.accounts = state.accounts || {};
+
         runtimeState.config = observableStorage(state.config, 'config');
         runtimeState.accounts = observableStorage(state.accounts, 'accounts');
         _.eventGo(runtimeState, 'extension.loaded');

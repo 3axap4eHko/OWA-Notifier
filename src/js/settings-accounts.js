@@ -10,10 +10,10 @@
         password: '',
         serverEWS: '',
         serverOWA: '',
-        folderId: 'msgfolderroot'
+        folderId: 'all'
     };
     const folderIds = {
-        "msgfolderroot": "All",
+        "all": "All",
         "inbox": "Inbox"
     };
 
@@ -218,6 +218,7 @@
         OnSwitch () {
             this.state.enabled = !this.state.enabled;
             this._updateAccount(this.state);
+            ExtensionAPI.updateAccount(extractAccount(this.state));
             componentHandler.upgradeElements(this.refs.root);
         },
         onEdit() {

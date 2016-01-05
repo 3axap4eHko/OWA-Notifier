@@ -14,7 +14,7 @@
                     <t:FieldURI FieldURI="message:From"/>
                 </t:AdditionalProperties>
             </m:ItemShape>
-            <m:IndexedPageItemView MaxEntriesReturned="{maxEntriesReturned}" Offset="0" BasePoint="Beginning"/>
+            <m:IndexedPageItemView MaxEntriesReturned="{maxEntriesReturned}" Offset="{offset}" BasePoint="Beginning"/>
             <m:Restriction>
                 <t:IsEqualTo>
                     <t:FieldURI FieldURI="message:IsRead"/>

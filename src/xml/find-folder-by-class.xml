@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
+               xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types"
+               xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+        <m:FindFolder Traversal="Shallow">
+            <m:FolderShape>
+                <t:BaseShape>AllProperties</t:BaseShape>
+            </m:FolderShape>
+            <m:Restriction>
+                <t:IsEqualTo>
+                    <t:FieldURI FieldURI="folder:FolderClass"/>
+                    <t:FieldURIOrConstant>
+                        <t:Constant Value="{folderClass}"/>
+                    </t:FieldURIOrConstant>
+                </t:IsEqualTo>
+            </m:Restriction>
+            <m:ParentFolderIds>
+                <t:DistinguishedFolderId Id="{parentFolderName}"/>
+            </m:ParentFolderIds>
+        </m:FindFolder>
+    </soap:Body>
+</soap:Envelope>

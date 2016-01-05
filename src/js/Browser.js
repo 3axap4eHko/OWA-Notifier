@@ -244,7 +244,7 @@
             chrome.tabs.query({}, tabs => {
                 for (var i = 0, tab; tab = tabs[i]; i++) {
                     if (tab.url && ~tab.url.indexOf(url)) {
-                        chrome.tabs.update(tab.id, {selected: true, url: tab.url}, resolve);
+                        chrome.tabs.update(tab.id, {selected: true, url: url}, resolve);
                         return;
                     }
                 }

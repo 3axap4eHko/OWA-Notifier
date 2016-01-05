@@ -156,11 +156,11 @@ a:hover, a:active {
 
 /** Day Events **/
 .christmas .full-layer {
-    background-image: url("../images/event_lamps.png");
+    background-image: url("../images/events/lamps.png");
     background-repeat: repeat-x;
     background-position-y: -10px;
 }
 .winter .mdl-ribbon {
-    background-image: url("../images/event_snow1.png"), url("../images/event_snow2.png"), url("../images/event_snow3.png");
+    background-image: url("../images/events/snow1.png"), url("../images/events/snow2.png"), url("../images/events/snow3.png");
     animation: snow 20s linear infinite;
 }

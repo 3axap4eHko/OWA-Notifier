@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GetEvents xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <SubscriptionId xmlns="http://schemas.microsoft.com/exchange/services/2006/messages">{subscriptionId}</SubscriptionId>
+    <Watermark xmlns="http://schemas.microsoft.com/exchange/services/2006/messages">{watermark}</Watermark>
+</GetEvents>
