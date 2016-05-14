@@ -48,7 +48,7 @@
             var self = this;
             options = Object.assign({}, notifyDefaultOptions, options || {});
             options.type = options.type || 'basic';
-            options.id = options.id || _.randomGuid();
+            options.id = options.id || _.randomGUID();
             options.eventTime = Date.now();
             options.liveTime = _.toInt(options.liveTime);
             _p(self, options);
@@ -226,16 +226,16 @@
             return new Promise(resolve => {
                 var data = {};
                 data[name] = value;
-                chrome.storage.local.set(data, () => resolve(value) );
+                chrome.storage.sync.set(data, () => resolve(value) );
             });
         },
         load(name) {
             return new Promise( resolve => {
-                chrome.storage.local.get(null,  value => resolve( name ? value[name] : value) )
+                chrome.storage.sync.get(null,  value => resolve( name ? value[name] : value) )
             });
         },
         clear () {
-            return new Promise( resolve => chrome.storage.local.clear(resolve));
+            return new Promise( resolve => chrome.storage.sync.clear(resolve));
         }
     };
 

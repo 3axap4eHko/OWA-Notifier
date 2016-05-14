@@ -1,8 +1,8 @@
-/*! Yin and Yang Core Framework v0.1.4 | Copyright (c) 2015 Ivan (3axap4eHko) Zakharchenko*/
+/*! Yin and Yang Core Framework v0.3.7 | Copyright (c) 2015-2016 Ivan (3axap4eHko) Zakharchenko*/
 'use strict';
-(function (global, undefined) {
-    const isNode = global.hasOwnProperty('process') ? !!global.process.version : false;
+const isNode = typeof window !== 'object';
 
+(function (global, undefined) {
     var _ = {
         DEBUG: 0,
         get isNode() {
@@ -13,22 +13,22 @@
     /**
      * DEBUG
      */
-    global.dbg = (...args) => {
+    _.dbg = (...args) => {
         args.forEach(function (arg) {
             console.log(arg);
         });
         isNode && process.exit(0);
     };
-    global.dmp = (value, txt) => {
+    _.dmp = (value, txt) => {
         console.log(txt + ': ' + value);
         return value;
     };
-    global.watch = callback => {
+    _.watch = callback => {
         var d = new Date();
         callback();
         return new Date().getTime() - d.getTime();
     };
-    global.test =  (times, callback) => global.watch(() => { while(times--) callback(times); });
+    _.test =  (times, callback) => global.watch(() => { while(times--) callback(times); });
 
     /**
      * Private class storage factory
@@ -124,25 +124,48 @@
     /**
      * Filters
      */
-    _.toInt             = value => isFinite(value = parseInt(value)) ? value : 0;
-    _.toIntOrDefault    = (value, def) => isFinite(value = parseInt(value)) ? value : def || 0;
-    _.toFloat           = value => isFinite(value = parseFloat(value)) ? value : 0.0;
-    _.toFloatOrDefault  = (value, def) => isFinite(value = parseFloat(value)) ? value : def || 0.0;
+    _.toInt             = value         => isFinite(value = parseInt(value)) ? value : 0;
+    _.toIntOrDefault    = (value, def)  => isFinite(value = parseInt(value)) ? value : def || 0;
+    _.toFloat           = value         => isFinite(value = parseFloat(value)) ? value : 0.0;
+    _.toFloatOrDefault  = (value, def)  => isFinite(value = parseFloat(value)) ? value : def || 0.0;
     _.toArray           = Array.from;
     _.toArrayOf         = Array.of;
     _.toKeyValue        = (key, value)  => ({key: key, value: value});
     _.toKeyValueOf      = (target, key) => ({key: key, value: target[key]});
-    _.toString          = value => _.isValue(value) ? value.toString() : '';
-    _.toJsonString      = value => JSON.stringify(value);
-    _.toJsonObject      = value => JSON.parse(value);
-    _.toCharCodes       = value => _.toArray(value.toString()).map(c => c.charCodeAt(0) );
-    _.toHex             = value => (_.isNumber(value) ? value : _.toString(value).charCodeAt(0)).toString(16);
-    _.toHexArray        = value => _.toArray(value).map(_.toHex);
-    _.toHexFormat       = value => _.toHexArray(value).map( (hex, idx) => hex + (++idx % 8 ? '' : '\n') ).join(' ');
+    _.toString          = value         => _.isValue(value) ? value.toString() : '';
+    _.toJsonString      = value         => JSON.stringify(value);
+    _.toJsonObject      = value         => JSON.parse(value);
+    _.toCharCodes       = value         => _.toArray(value.toString()).map(c => c.charCodeAt(0) );
+    _.toHex             = value         => (_.isNumber(value) ? [value] : _.toCharCodes(value)).map( value => value.toString(16)).join('');
+    _.toHexArray        = value         => _.toArray(value).map(_.toHex);
+    _.toHexFormat       = value         => _.toHexArray(value).map( (hex, idx) => hex + (++idx % 8 ? '' : '\n') ).join(' ');
+    _.toNibbles         = value         => _.toHex(value).split('');
+    _.to4Bit            = value         => ('000' + parseInt(value).toString(2)).slice(-4);
+    _.to4BitFromHex     = value         => _.to4Bit(parseInt(value, 16));
+    _.to8Bit            = value         => ('0000000' + parseInt(value).toString(2)).slice(-8);
+    _.to8BitFromHex     = value         => _.to8Bit(parseInt(value, 16));
 
-    const urlParse = /^(\w+):\/\/(.*?)\/(.*)$/;
+    function charRange(from, to) {
+        var start = from.charCodeAt(0);
+        var finish = to.charCodeAt(0);
+        return new Array(finish - start + 1).fill(start).map( (v, idx) => String.fromCharCode(v+idx));
+    }
+
+    const baseAlphabet  = charRange('0','9').concat( charRange('A','Z'), charRange('a','z'), ['!', '#', '$', '%', '&', '(', ')', '*', '+', '-', ';', '<', '=', '>', '?', '@', '^', '_', '`', '{', '|', '}', '~']);
+
+    _.toBase = (value, base, alphabet) => {
+        alphabet = alphabet || baseAlphabet;
+        base = _.toInt(base);
+        value = _.toHex(value);
+        const groupSize = Math.ceil(Math.log2(base));
+        const bits = value.split('').map(_.to4BitFromHex).join('').split('');
+        return _.groupOf(bits, groupSize)
+            .map( bits => parseInt(bits.join(''), 2))
+            .map( idx => alphabet[idx % base] );
+    };
+    const urlParseExpr = /^(\w+):\/\/(.*?)\/(.*)$/;
     _.urlParse =  url => {
-        var matches = url.match(urlParse);
+        var matches = url.match(urlParseExpr);
         if (!matches) {
             return {};
         }
@@ -170,6 +193,19 @@
      * @param {...*} [args]
      */
     _.call = (callback, ...args) => callback(args);
+    /**
+     *
+     * @param {Function} callback
+     * @param {...*} [curryArgs]
+     */
+    _.curry = (callback, ...curryArgs) => (...args) => callback(...curryArgs, ...args);
+    /**
+     *
+     * @param {Function} callback
+     * @param {...*} [curryArgs]
+     */
+    _.curryRight = (callback, ...curryArgs) => (...args) => callback(...args, ...curryArgs);
+
     /**
      * Instantiate class by constructor and arguments
      * @param {Function} Constructor
@@ -222,7 +258,7 @@
     });
     
     /**
-     * Create array with length filled by values
+     * Create an array with defined length filled by values
      * @param {Number} length
      * @param {*} value
      */
@@ -307,6 +343,15 @@
         }
         return target;
     };
+    /**
+     * Freeze target
+     * @param {Object|Array} target
+     * @param {Object} [args]
+     * @returns {Object|Array}
+     */
+    _.freeze = (target, ...args) => {
+        return Object.freeze(Object.assign(target, ...args));
+    };
 
     /**
      * Iterators
@@ -359,6 +404,31 @@
     };
     /**
      * @param {Object|Array|String} target
+     * @param {Number} size
+     * @returns {Array}
+     */
+    _.groupOf = (target, size) => {
+        const pairs = _.pairs(target);
+        const pairsMaxIndex = pairs.length - 1;
+        var grouped = pairs.reduceRight( (groups, pair, idx) => {
+            if( (pairsMaxIndex - idx) % size) {
+                groups[0].unshift(pair);
+            } else {
+                groups.unshift([pair]);
+            }
+            return groups;
+        },[]);
+        if (_.isObject(target)) {
+            return grouped.map(group => group.reduce( (group, pair) => (group[pair.key]=pair.value,group), {}));
+        }
+        grouped = grouped.map(group => group.map( pair => pair.value));
+        if (_.isString(target)) {
+            grouped = grouped.map( group => group.join(''));
+        }
+        return grouped;
+    };
+    /**
+     * @param {Object|Array|String} target
      * @param {function(*=, Number|String=, Object|Array|String=)} callback
      * @returns {Object|Array|String}
      */
@@ -374,6 +444,7 @@
         }
         return filtered;
     };
+
     /**
      * Returns first key-value pair from the target argument on truth callback result.
      * @param {Array|Object|String} target
@@ -382,16 +453,8 @@
      * @returns {{key, value}}
      */
     _.first = (target, callback, defaultKey) => {
-        var firstKey;
-        if (!_.keys(target).some( key => {
-                if (callback(target[key], key, target)) {
-                    firstKey = key;
-                    return true;
-                }
-            })) {
-            if (_.isKeyValue(defaultKey)) {
-                return defaultKey;
-            }
+        var firstKey = _.keys(target).find( key => callback(target[key], key, target));
+        if (!_.isDefined(firstKey)) {
             firstKey = defaultKey;
         }
         return _.toKeyValueOf(target, firstKey);
@@ -423,7 +486,7 @@
      */
     _.lastReduce = (target, callback) => {
         var keys = _.keys(target);
-        var key = keys.reduce((curKey, nextKey, idx) => callback(target[curKey], target[nextKey], nextKey, target) ? nextKey : curKey );
+        var key = keys.reduce((curKey, nextKey) => callback(target[curKey], target[nextKey], nextKey, target) ? nextKey : curKey );
         return _.toKeyValueOf(target, key);
     };
 
@@ -487,12 +550,12 @@
      */
     _.min = target => _.toKeyValueOf(target, _.keys(target).reduce( (minKey, nextKey) => target[minKey] <= target[nextKey] ? minKey : nextKey));
     /**
-     * Counts of values equal to countValue
+     * Counts of values
      * @param {String|Array|Object} target
-     * @param {*} countValue
+     * @param {Function} callback
      * @returns {Number}
      */
-    _.countOf = (target, countValue) => _.sum(_.values(target).map( value => countValue === value ? 1 : 0 ));
+    _.countOf = (target, callback) => _.keys(target).reduce( (count, key) => callback(target[key], key, target) ? count + 1 : count, 0);
     
     /**
      * Randomize
@@ -521,7 +584,7 @@
      * Return random string [a-zA-Z] with defined size
      * @param {Number} size
      */
-    _.randomString = (size) => _.range(size,'').map( (c, idx) => String.fromCharCode(_.random(c = _.randomBool() ? 65 : 97, c + 25)) ).join();
+    _.randomString = (size) => _.range(size,'').map( c => String.fromCharCode(_.random(c = _.randomBool() ? 65 : 97, c + 25)) ).join('');
     /**
      * Return index of defined probability value argument
      * @param {...Number} probabilityData probability value
@@ -537,6 +600,7 @@
             lost += value;
         }, probabilityData.length - 1).key;
     };
+
     function _s4() {
         return Math.floor(0x1000 +Math.random() * 0x0FFF).toString(16)
     }
@@ -544,10 +608,10 @@
         return ('0000' + Date.now().toString('16')).slice(-12);
     }
     /**
-     * Guid string generator
+     * GUID string generator
      * @returns {String}
      */
-    _.randomGuid = () => _s4() + _s4() + '-' + _s4() + '-' + _s4() + '-' + _s4() + '-' + _s12();
+    _.randomGUID = () => _s4() + _s4() + '-' + _s4() + '-' + _s4() + '-' + _s4() + '-' + _s12();
 
     /**
      * Shuffle all values of the target
@@ -576,7 +640,7 @@
     _.fnCallback        = callback              => value => callback(value);
     _.fnLog             = (...args)             => console.log(...args);
     _.fnPromise         = callback              => new Promise(callback);
-    _.fnPromises        = (...callbacks)        => Promise.all(args.map(_.fnPromise));
+    _.fnPromises        = (...callbacks)        => Promise.all(callbacks.map(_.fnPromise));
     /**
      * Strings
      */
@@ -585,6 +649,9 @@
     _.stringToCamelCase         = str           => (str = _.stringToPascalCase(str)).charAt(0).toLowerCase() + str.substr(1);
     _.stringToCapitalize        = str           => str.toUpperCase();
     _.stringOccurrence          = (str, search) => (str.match(new RegExp(search,'g')) || []).length;
+
+    _.stringPadLeft             = (str, size, char) =>  new Array(size).fill(char || ' ').join('').concat(str).slice(-size);
+    _.stringPadRight            = (str, size, char) =>  str.concat(new Array(size).fill(char || ' ').join('')).slice(0, size);
     /**
      * Formatting
      */
@@ -630,7 +697,7 @@
             if (!diff) {
                 return 'Z';
             }
-            return _.fmtNumber(diff|0, 2, true) + ":" + _.fmtNumber(Math.abs(diff) % 1 * 60, 2);
+            return _.fmtNumber(diff|0, 2, true) + ':' + _.fmtNumber(Math.abs(diff) % 1 * 60, 2);
         }
     };
     _.fmtDate = function (date, format) {
@@ -730,7 +797,7 @@
             addToWhiteList = function (newPoint) {
                 iteration++;
                 visitedList[newPoint.id] = whiteList[newPoint.id] = newPoint;
-                onWhiteList && onWhiteList(newPoint);
+                onWhiteList && onWhiteList(newPoint.x, newPoint.y);
             },
             directionToPoint = function(dir) {
                 return getPoint(0, currentPoint.x + dir.x, currentPoint.y + dir.y, currentPoint.id, currentPoint.g, currentPoint.m);
@@ -811,123 +878,165 @@
         }
         return _;
     };
+    /**
+     * POOL
+     */
+    /**
+     *
+     * @param {Array|Object|String} target
+     * @param {Function} callback
+     * @param {Number} [poolSize]
+     * @returns {Promise}
+     */
+    _.pool = (target, callback, poolSize) => {
+        return new Promise((resolve, reject) => {
+            try {
+                var data = _.values(target);
+                if (data.length === 0) {
+                    return resolve([]);
+                }
+                var results = [];
+                const next = result => {
+                    dataPool.pop();
+                    results.push(result);
+                    if (data.length > 0) {
+                        dataPool.unshift(data.shift());
+                        callback(dataPool[0], next);
+                    } else if(dataPool.length == 0) {
+                        resolve(results);
+                    }
+                };
+                var dataPool = data.splice(0, poolSize || data.length);
+                dataPool.forEach(value => callback(value, next));
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+    };
 
     /**
      * TASKS
      */
-    const TASK_POOL = 'taskPool';
-    function taskNext(taskPool, ...args) {
-        return taskPool.shift()(...args, () => {taskNext(taskPool, ...args)});
-    }
-    function _getTaskCategoryPool(scope, category) {
-        return _getObjectValue(scope, TASK_POOL)[category] = _getObjectValue(scope, TASK_POOL)[category] || []
+    const TASK_LIST = 'taskList';
+
+    function _getTaskTypeList(context, type) {
+        return _getObjectValue(context, TASK_LIST)[type] = _getObjectValue(context, TASK_LIST)[type] || []
     }
 
     /**
-     * Push the task(s) into scope pool
-     * @param {Array|Object} scope
-     * @param {String} category
+     * Push the task(s) into context
+     * @param {Array|Object} context
+     * @param {String} type
      * @param {...function(...args, next)|Array.<Function>} [tasks]
      * @returns _
      */
-    _.taskPush = (scope, category, ...tasks) => {
+    _.taskPush = (context, type, ...tasks) => {
         if (tasks.length == 1 && _.isArray(tasks[0])) {
             tasks = tasks[0];
         }
-        var taskPool = _getTaskCategoryPool(scope, category);
-        taskPool.push(...tasks);
+        var taskList = _getTaskTypeList(context, type);
+        taskList.push(...tasks);
 
         return _;
     };
 
     /**
-     * Delete the task(s) from scope pool
-     * @param {Object} scope
-     * @param {String} category
+     * Delete the task(s) from context
+     * @param {Object} context
+     * @param {String} type
      * @param {...function(...args, next)|Array.<Function>} [tasks]
      * @returns _
      */
-    _.taskDelete = (scope, category, ...tasks) => {
+    _.taskDelete = (context, type, ...tasks) => {
         if (tasks.length == 1 && _.isArray(tasks)) {
             tasks = tasks[0];
         }
-        var taskPool = _getTaskCategoryPool(scope, category);
+        var taskList = _getTaskTypeList(context, type);
         tasks.forEach( (task, idx) => {
-            if ( ~(idx = taskPool.indexOf(task)) ) {
-                taskPool.splice(idx,1);
+            if ( ~(idx = taskList.indexOf(task)) ) {
+                taskList.splice(idx,1);
             }
         });
         return _;
     };
     /**
+     * Clear all context tasks
+     * @param {Object} context
+     * @param {String} type
+     * @returns _
+     */
+    _.taskClear = (context, type) => {
+        var taskList = _getTaskTypeList(context, type);
+        taskList.splice(0);
+        return _;
+    };
+
+    /**
      *
-     * @param {Object} scope
-     * @param {String} category
+     * @param {Object} context
+     * @param {String} type
+     * @param {Number} [size]
      * @param {...*} [args]
      * @returns {Promise}
      */
-    _.taskWaitSync = (scope, category, ...args) => {
+    _.taskWait = (context, type, size, ...args) => {
         return new Promise((resolve, reject) => {
-            try {
-                var taskPool = _getTaskCategoryPool(scope, category).concat([resolve.bind(null, args[0])]);
-                taskNext(taskPool, ...args);
-            } catch (error) {
-                reject(error);
-            }
+            const taskList = _getTaskTypeList(context, type);
+            const handler = (task, complete) => task(...args, complete);
+            _.pool(taskList, handler, size)
+                .then(resolve)
+                .catch(reject);
         });
     };
     /**
-     *
-     * @param {Object} scope
-     * @param {String} category
-     * @param {...*} [args]
-     * @returns {Promise}
+     * HISTORY
      */
-    _.taskWaitAsync = (scope, category, ...args) => {
-        return new Promise((resolve, reject) => {
-            try {
-                const taskPool = _getTaskCategoryPool(scope, category);
-                const taskComplete = () => {
-                    if(!(--count)) resolve(args[0]);
-                };
-                var count = taskPool.length + 1;
-                taskPool.forEach( task => task(...args, taskComplete));
-                taskComplete();
-            } catch (error) {
-                reject(error);
-            }
-        });
-    };
+    const HISTORY_LIST = 'historyList';
 
-    _.pipe = transformator => {
-        return {
-            pipe: _.pipe,
-            push (...args) {
-                return args.map(transformator);
-            }
-        };
-    };
+    _.historyMaxSize = 100;
 
-    _.require = filename => {
-        filename = filename.split('@');
-        var namespaces = filename[1];
-        filename = filename[0];
-        var isPath = /[\\\/]/.test(filename);
-        namespaces = _.isNotEmptyString(namespaces) ? namespaces.split('.') : [];
-        try {
-            return namespaces.reduce( (required, namespace) => required[namespace], require(filename) );
-        } catch(e) {
-            if (isPath) {
-                throw new Error(`Please use absolute path for ${filename}`);
-            }
-            throw e;
+    _.historyDo = (context, data) => {
+        const historyUndo = _getObjectValue(context, HISTORY_LIST)['undo'] = _getObjectValue(context, HISTORY_LIST)['undo'] || [];
+        _getObjectValue(context, HISTORY_LIST)['redo'] = [];
+        if (historyUndo.length > _.historyMaxSize) {
+            historyUndo.shift();
         }
+        historyUndo.push(data);
+    };
+    _.historyHasUndo = (context) => {
+        return !!(_getObjectValue(context, HISTORY_LIST)['undo'] = _getObjectValue(context, HISTORY_LIST)['undo'] || []).length;
+    };
+    _.historyUndo = (context) => {
+        const historyUndo = _getObjectValue(context, HISTORY_LIST)['undo'] = _getObjectValue(context, HISTORY_LIST)['undo'] || [];
+        const historyRedo = _getObjectValue(context, HISTORY_LIST)['redo'] = _getObjectValue(context, HISTORY_LIST)['redo'] || [];
+        const data = historyUndo.pop();
+        if (data) {
+            historyRedo.push(data);
+        }
+        return data;
+    };
+    _.historyHasRedo = (context) => {
+        return !!(_getObjectValue(context, HISTORY_LIST)['redo'] = _getObjectValue(context, HISTORY_LIST)['redo'] || []).length;
+    };
+    _.historyRedo = (context) => {
+        const historyUndo = _getObjectValue(context, HISTORY_LIST)['undo'] = _getObjectValue(context, HISTORY_LIST)['undo'] || [];
+        const historyRedo = _getObjectValue(context, HISTORY_LIST)['redo'] = _getObjectValue(context, HISTORY_LIST)['redo'] || [];
+        const data = historyRedo.pop();
+        if (data) {
+            historyUndo.push(data);
+        }
+        return data;
+    };
+    _.historyClear = (context) => {
+        _getObjectValue(context, HISTORY_LIST)['undo'] = [];
+        _getObjectValue(context, HISTORY_LIST)['redo'] = [];
     };
 
-    if (isNode) {
+    if (typeof module === 'object') {
         module.exports = _;
     } else {
         global._ = _;
     }
 
-}(typeof global == 'object' ? global : typeof window == 'object' ? window : this));
+}(isNode ? global : window));

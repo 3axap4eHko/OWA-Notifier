@@ -2,7 +2,7 @@
 (global => {
 
     const defaultAccountValues = {
-        guid: _.randomGuid(),
+        guid: _.randomGUID(),
         created: Date.now(),
         enabled: true,
         email: '',
@@ -265,7 +265,7 @@
             }
         },
         onClick() {
-            showAccountForm({guid: _.randomGuid(), created: Date.now()}, this.updateTable);
+            showAccountForm({guid: _.randomGUID(), created: Date.now()}, this.updateTable);
         },
         updateTable() {
             ExtensionAPI.getAccounts().then( accounts => this.setState({accounts}));
@@ -282,7 +282,7 @@
                             <th className="mdl-data-table__cell--non-numeric">Username</th>
                             <th className="mdl-data-table__cell--non-numeric">Sever</th>
                             <th className="mdl-data-table__cell--non-numeric">Folder</th>
-                            <th className="mdl-data-table__cell--non-numeric"></th>
+                            <th className="mdl-data-table__cell--non-numeric">&nbsp;</th>
                         </tr>
                         </thead>
                         <tbody>

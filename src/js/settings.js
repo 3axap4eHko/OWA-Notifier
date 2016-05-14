@@ -1,6 +1,6 @@
 'use strict';
 (global => {
-    _.taskWaitAsync(global, 'settings-load').then( () => {
+    _.taskWait(global, 'settings-load').then( () => {
         componentHandler.upgradeDom();
         var tab = '#general';
         if (window.location.hash.indexOf('#accounts')===0) {

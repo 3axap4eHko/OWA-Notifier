@@ -37,14 +37,24 @@
     };
 
     function observableStorage(observable, storeName) {
-        Object.observe(observable, changes => {
-            Browser.storage.save(storeName, observable);
-            changes.forEach( change => {
-                _.eventGo(runtimeState, `${storeName}.${change.name}`, change.object[change.name]);
+        if (typeof Proxy === 'undefined') {
+            Object.observe(observable, changes => {
+                Browser.storage.save(storeName, observable);
+                changes.forEach( change => {
+                    _.eventGo(runtimeState, `${storeName}.${change.name}`, change.object[change.name]);
+                });
             });
-            _.eventGo(runtimeState, `${storeName}`, observable);
-        });
-        return observable;
+            return observable;
+        } else {
+            return new Proxy(observable,{
+                set(target, property, value) {
+                    target[property] = value;
+                    Browser.storage.save(storeName, target);
+                    _.eventGo(runtimeState, `${storeName}.${property}`, value);
+                    return true;
+                }
+            });
+        }
     }
 
     function soundPlay(audio) {
